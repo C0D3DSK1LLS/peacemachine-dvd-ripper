@@ -1734,9 +1734,52 @@ class RipperWindow(Gtk.ApplicationWindow):
                 "00:22:10-00:44:30 Second episode. Leave END out to run to the end "
                 "of the title.")
         if hasattr(self, "split_text"):
+            # Switching mode with an empty box fills it in straight away, the way
+            # C0D3D expects it (2026-11-10): "before, if i clicked timestamps or
+            # chapters it also showed the info in the box". Anything already
+            # typed is never touched.
+            if mode != "whole" and not self.split_text_value().strip():
+                self.fill_split_for_mode(mode)
             self.split_text_changed()
         if getattr(self, "compact", False) and hasattr(self, "queue_paned"):
             self._apply_layout(True)
+
+    def fill_split_for_mode(self, mode):
+        """Write the default cut points into the box for the chosen split mode."""
+        title = self.focused_title()
+        if title is None or not getattr(title, "duration", 0):
+            return
+        parts = max(1, int(self.episode_parts.get_value()))
+        chapters = len(title.chapters)
+        if mode == "chapters":
+            if chapters < 2:
+                return
+            parts = min(parts, chapters)
+            step = chapters / float(parts)
+            ranges = []
+            for index in range(parts):
+                first = int(round(index * step)) + 1
+                last = int(round((index + 1) * step))
+                last = max(last, first)
+                ranges.append("%d-%d" % (first, last) if last > first else "%d" % first)
+            self.split_text.get_buffer().set_text(", ".join(ranges) + "\n")
+            return
+        total = float(title.duration)
+        step = total / parts
+        starts = [value for value in title.chapter_starts if 0.0 < value < total]
+        edges = [0.0]
+        for index in range(1, parts):
+            target = step * index
+            if starts:
+                nearest = min(starts, key=lambda value: abs(value - target))
+                if abs(nearest - target) <= 45.0:
+                    target = nearest
+            edges.append(target)
+        edges.append(total)
+        lines = ["%s-%s part %02d" % (ripper.fmt_clock(edges[index]),
+                                      ripper.fmt_clock(edges[index + 1]), index + 1)
+                 for index in range(parts)]
+        self.split_text.get_buffer().set_text("\n".join(lines) + "\n")
 
     def split_text_value(self):
         buffer = self.split_text.get_buffer()
