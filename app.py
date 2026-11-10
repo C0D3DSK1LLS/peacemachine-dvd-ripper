@@ -768,7 +768,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         browse.set_tooltip_text("See every episode and pick the starting one")
         browse.connect("clicked", lambda *_: self.open_episode_list(browse))
         self.episode_list_button = browse
-        start_row.append(browse)
+        self.browse_button = browse
 
         names_right = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         names_right.set_halign(Gtk.Align.START)
@@ -798,9 +798,13 @@ class RipperWindow(Gtk.ApplicationWindow):
         number_row.set_halign(Gtk.Align.START)
         # C0D3D (2026-11-10): the ticks sit right under the FIRST EPISODE row.
         names_right.append(number_row)
-        # …and the show dropdown under them.
+        # …and the show dropdown with List… beside it under them.
         self.show_dropdown.set_halign(Gtk.Align.START)
-        names_right.append(self.show_dropdown)
+        pick_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        pick_row.set_halign(Gtk.Align.START)
+        pick_row.append(self.show_dropdown)
+        pick_row.append(self.browse_button)
+        names_right.append(pick_row)
 
 
         # C0D3D (2026-11-10): the chapter-times dump and the episode status line
@@ -827,7 +831,6 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.episode_parts.set_tooltip_text(
             "How many episodes this disc holds — four is usual for Bleach.")
         parts_row.append(self.episode_parts)
-        self.parts_row = parts_row
 
         # C0D3D (2026-11-10): the episode count shares the line with the mode
         # buttons. Done with a plain Box — a FlowBox here swallowed the clicks.
@@ -1165,6 +1168,18 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.state["split_position"] = int(self.paned.get_position())
         save_state(self.state)
 
+    def match_dropdown_height(self):
+        """Give the show dropdown the same height as the buttons beside it."""
+        button = getattr(self, "browse_button", None)
+        if button is None:
+            return False
+        target = max(button.measure(Gtk.Orientation.VERTICAL, -1).minimum,
+                     self.show_dropdown.measure(Gtk.Orientation.VERTICAL, -1).minimum)
+        if target > 0:
+            self.show_dropdown.set_size_request(-1, target)
+            button.set_size_request(-1, target)
+        return False
+
     def restore_split(self):
         if self.dead or not hasattr(self, "paned"):
             return False
@@ -1397,6 +1412,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         GLib.timeout_add(1500, self.restore_queue_split)
         GLib.timeout_add(2700, self.restore_queue_split)
         GLib.timeout_add(300, self.watch_split)
+        GLib.timeout_add(400, self.match_dropdown_height)
         GLib.timeout_add(2000, self.watch_drive)
 
         # a fresh session: nothing scanned, nothing remembered
@@ -1741,7 +1757,6 @@ class RipperWindow(Gtk.ApplicationWindow):
             box.set_visible(mode != "whole"
                             and ripper.is_video_file(
                                 self.source_entry.get_text().strip()))
-        self.update_chapter_hint()
         if mode == "chapters":
             self.split_text.set_tooltip_text(
                 'Chapter ranges, comma separated — e.g. "1-4, 5-8" makes two files. '
@@ -1808,137 +1823,6 @@ class RipperWindow(Gtk.ApplicationWindow):
     def split_text_value(self):
         buffer = self.split_text.get_buffer()
         return buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False)
-
-    def detect_breaks(self):
-        """Find the real episode breaks by listening to the file itself."""
-        title = self.focused_title()
-        source = (self.source_entry.get_text() or self.source).strip()
-        if title is None or not os.path.exists(source or ""):
-            self.flash_status("Scan a disc or pick a file first.")
-            return
-        if not ripper.is_video_file(source):
-            self.episode_status.set_text(
-                "Break detection reads the whole title, which is far too slow "
-                "straight off a disc. Rip it to a file first, or use Split into "
-                "episodes — the chapter boundaries are exact there.")
-            return
-        self.episode_status.set_text("Listening for the gaps… this takes a minute.")
-        threading.Thread(target=self.detect_worker, args=(source, title),
-                         daemon=True).start()
-
-    def detect_worker(self, source, title):
-        chunks = []
-        for command in (ripper.detect_command(source),
-                        ripper.detect_black_command(source)):
-            try:
-                run = subprocess.run(command, capture_output=True, text=True)
-                chunks.append(run.stderr or "")
-            except OSError as error:
-                chunks.append("")
-                ripper.log("detect failed: %s" % error)
-        GLib.idle_add(self.apply_detection, "\n".join(chunks), title)
-
-    def apply_detection(self, text, title):
-        if self.dead:
-            return False
-        points = ripper.parse_break_times(text)
-        parts = int(self.episode_parts.get_value())
-        breaks = ripper.choose_breaks(points, parts, float(title.duration or 0))
-        segments = ripper.segments_from_breaks(breaks, float(title.duration or 0))
-        if len(segments) < 2:
-            self.episode_status.set_text(
-                "No clear gaps found — the episodes probably butt straight "
-                "together. Use Split into episodes instead.")
-            return False
-        lines = []
-        for index, segment in enumerate(segments, start=1):
-            lines.append("%s-%s part %02d"
-                         % (ripper.fmt_clock(segment["start"]),
-                            ripper.fmt_clock(segment["stop"]), index))
-        self.split_text.get_buffer().set_text("\n".join(lines) + "\n")
-        self.mode_buttons["timestamps"].set_active(True)
-        self.episode_status.set_text(
-            "%d breaks found from %d candidate gaps — check the times before "
-            "you start." % (len(segments) - 1, len(points)))
-        self.split_text_changed()
-        return False
-
-    def fill_episode_split(self):
-        """Turn one long title into N episode-sized jobs."""
-        title = self.focused_title()
-        if title is None or not title.duration:
-            self.flash_status("Scan a disc first.")
-            return
-        parts = int(self.episode_parts.get_value())
-        chapters = len(title.chapters)
-        if chapters >= parts and chapters % parts == 0:
-            # chapter boundaries line up with episodes: cut there, frame-exact
-            per_part = chapters // parts
-            ranges = ["%d-%d" % (index * per_part + 1, (index + 1) * per_part)
-                      for index in range(parts)]
-            self.split_text.get_buffer().set_text(", ".join(ranges) + "\n")
-            self.mode_buttons["chapters"].set_active(True)
-            self.episode_status.set_text(
-                "%s — %d chapters divide into %d episodes, so each file is cut "
-                "on a chapter boundary." % (self.episode_show or title.name,
-                                            chapters, parts))
-        else:
-            total = float(title.duration)
-            step = total / parts
-            starts = [value for value in title.chapter_starts if 0.0 < value < total]
-            edges, snapped = [0.0], 0
-            for index in range(1, parts):
-                target = step * index
-                if starts:
-                    nearest = min(starts, key=lambda value: abs(value - target))
-                    if abs(nearest - target) <= 45.0:
-                        target = nearest
-                        snapped += 1
-                edges.append(target)
-            edges.append(total)
-            lines = ["%s-%s" % (ripper.fmt_clock(edges[index]),
-                                ripper.fmt_clock(edges[index + 1]))
-                     for index in range(parts)]
-            self.split_text.get_buffer().set_text("\n".join(lines) + "\n")
-            self.mode_buttons["timestamps"].set_active(True)
-            if snapped:
-                self.episode_status.set_text(
-                    "%s — %d chapters, %d episodes, so each cut is snapped to the "
-                    "nearest chapter start." % (self.episode_show or title.name,
-                                                chapters, parts))
-            else:
-                self.episode_status.set_text(
-                    "%s — even %s slices. Nudge the times in the box if a break "
-                    "looks off." % (self.episode_show or title.name,
-                                    ripper.fmt_hms(step)))
-        self.split_text_changed()
-
-    def fill_even_parts(self):
-        title = self.focused_title()
-        if title is None or not title.duration:
-            self.flash_status("Scan a disc first.")
-            return
-        parts = int(self.episode_parts.get_value())
-        total = float(title.duration)
-        step = total / parts
-        lines = []
-        for index in range(parts):
-            start = step * index
-            stop = step * (index + 1) if index < parts - 1 else total
-            lines.append("%s-%s part %02d"
-                         % (ripper.fmt_clock(start), ripper.fmt_clock(stop),
-                            index + 1))
-        self.split_text.get_buffer().set_text("\n".join(lines) + "\n")
-        self.mode_buttons["timestamps"].set_active(True)
-        self.split_text_changed()
-
-    def update_chapter_hint(self):
-        """Kept as a no-op: the chapter-times dump is gone (C0D3D, 2026-11-10)."""
-        return
-
-    def title_ticked(self):
-        """A title's tick changed — refresh the preview."""
-        self.split_text_changed()
 
     def split_text_changed(self):
         titles = self.checked_titles()
