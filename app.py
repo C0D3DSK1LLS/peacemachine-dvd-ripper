@@ -646,12 +646,18 @@ class RipperWindow(Gtk.ApplicationWindow):
         find_row.append(find)
         find_row.set_halign(Gtk.Align.FILL)
         find_row.set_hexpand(False)
-        # C0D3D (2026-11-10): the show dropdown sits right beside Find.
+        # C0D3D (2026-11-10): the show dropdown sits right beside Find, in a slot
+        # that is always the same width so FIRST EPISODE never shifts when the
+        # dropdown appears.
+        self.show_slot = Gtk.Box()
+        self.show_slot.set_size_request(210, -1)
+        find_row.append(self.show_slot)
         self.show_dropdown = Gtk.DropDown(model=Gtk.StringList.new([]))
         self.show_dropdown.set_valign(Gtk.Align.CENTER)
+        self.show_dropdown.set_halign(Gtk.Align.START)
         self.show_dropdown.set_visible(False)
         self.show_dropdown.connect("notify::selected", lambda *_: self.on_show_selected())
-        find_row.append(self.show_dropdown)
+        self.show_slot.append(self.show_dropdown)
         folder_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         folder_row.set_hexpand(True)
         self.output_entry = Gtk.Entry()
