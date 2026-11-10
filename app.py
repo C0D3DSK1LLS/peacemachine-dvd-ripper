@@ -628,15 +628,15 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.sub_dropdown.set_halign(Gtk.Align.CENTER)
         self.name_entry = Gtk.Entry()
         self.name_entry.set_text("Disc")
-        self.name_entry.set_width_chars(22)
+        self.name_entry.set_width_chars(26)
         self.name_entry.set_hexpand(False)
-        self.name_entry.set_halign(Gtk.Align.CENTER)
+        self.name_entry.set_halign(Gtk.Align.START)
         self.name_entry.add_css_class("source-entry")
         find_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.show_entry = Gtk.Entry()
         self.show_entry.set_placeholder_text("Show name — e.g. Bleach")
         self.show_entry.add_css_class("source-entry")
-        self.show_entry.set_width_chars(24)
+        self.show_entry.set_width_chars(26)
         self.show_entry.set_hexpand(False)
         self.show_entry.connect("activate", lambda *_: self.lookup_show())
         find_row.append(self.show_entry)
@@ -644,7 +644,8 @@ class RipperWindow(Gtk.ApplicationWindow):
         find.set_tooltip_text("Look the show up and fetch its episode list")
         find.connect("clicked", lambda *_: self.lookup_show())
         find_row.append(find)
-        find_row.set_halign(Gtk.Align.CENTER)
+        find_row.set_halign(Gtk.Align.FILL)
+        find_row.set_hexpand(False)
         folder_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         folder_row.set_hexpand(True)
         self.output_entry = Gtk.Entry()
@@ -748,10 +749,31 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.show_dropdown.set_visible(False)
         self.show_dropdown.connect("notify::selected", lambda *_: self.on_show_selected())
 
+        # right-hand side of the block: the show dropdown, then FIRST EPISODE
+        start_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        start_row.set_halign(Gtk.Align.START)
+        start_row.append(caption_centred_temp("FIRST EPISODE"))
+        self.episode_start = Gtk.SpinButton.new_with_range(1, 5000, 1)
+        self.episode_start.set_value(1)
+        self.start_is_manual = False
+        self.auto_setting_start = False
+        self.episode_start.connect("value-changed", self.on_start_changed)
+        start_row.append(self.episode_start)
+        browse = Gtk.Button(label="List…")
+        browse.set_tooltip_text("See every episode and pick the starting one")
+        browse.connect("clicked", lambda *_: self.open_episode_list(browse))
+        self.episode_list_button = browse
+        start_row.append(browse)
+
+        names_right = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        names_right.set_halign(Gtk.Align.START)
+        names_right.append(self.show_dropdown)
+        names_right.append(start_row)
+
         names_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=18)
         names_row.set_halign(Gtk.Align.CENTER)
         names_row.append(names_left)
-        names_row.append(self.show_dropdown)
+        names_row.append(names_right)
         _block.append(names_row)
 
         number_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=14)
@@ -772,24 +794,6 @@ class RipperWindow(Gtk.ApplicationWindow):
         number_row.set_halign(Gtk.Align.CENTER)
         _block.append(number_row)
 
-
-        _block = []
-        _blocks["FIRST EPISODE"] = _block
-        start_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        start_row.set_halign(Gtk.Align.CENTER)
-        start_row.append(caption_centred_temp("FIRST EPISODE"))
-        self.episode_start = Gtk.SpinButton.new_with_range(1, 5000, 1)
-        self.episode_start.set_value(1)
-        self.start_is_manual = False
-        self.auto_setting_start = False
-        self.episode_start.connect("value-changed", self.on_start_changed)
-        start_row.append(self.episode_start)
-        browse = Gtk.Button(label="List…")
-        browse.set_tooltip_text("See every episode and pick the starting one")
-        browse.connect("clicked", lambda *_: self.open_episode_list(browse))
-        self.episode_list_button = browse
-        start_row.append(browse)
-        _block.append(start_row)
 
         # C0D3D (2026-11-10): the chapter-times dump and the episode status line
         # were clutter in this column. The hint is gone entirely and the status
