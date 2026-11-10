@@ -663,6 +663,9 @@ class RipperWindow(Gtk.ApplicationWindow):
             else:
                 mode_group = button
             button.connect("toggled", lambda *_: self.split_mode_changed())
+            # A re-click on the mode that is already active never emits "toggled",
+            # so the empty box stayed empty (C0D3D, 2026-11-10). Refresh on click too.
+            button.connect("clicked", lambda *_: self.split_mode_changed())
             modes.append(button)
             self.mode_buttons[key] = button
         self.mode_buttons["whole"].set_active(True)
