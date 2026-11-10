@@ -791,8 +791,9 @@ class RipperWindow(Gtk.ApplicationWindow):
             "The disc menu itself is never ripped — HandBrake writes only the "
             "title's video.")
         number_row.append(self.markers)
-        number_row.set_halign(Gtk.Align.CENTER)
-        _block.append(number_row)
+        number_row.set_halign(Gtk.Align.START)
+        # C0D3D (2026-11-10): the ticks sit right under the FIRST EPISODE row.
+        names_right.append(number_row)
 
 
         # C0D3D (2026-11-10): the chapter-times dump and the episode status line
