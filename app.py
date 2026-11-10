@@ -785,7 +785,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         parts_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         parts_row.set_halign(Gtk.Align.CENTER)
         parts_row.add_css_class("parts-row")
-        parts_row.append(caption_centred_temp("EPISODES ON DISC"))
+        parts_row.append(caption_centred_temp("EPISODES"))
         self.episode_parts = Gtk.SpinButton.new_with_range(2, 20, 1)
         self.episode_parts.set_value(4)
         self.episode_parts.set_tooltip_text(
@@ -793,12 +793,33 @@ class RipperWindow(Gtk.ApplicationWindow):
         parts_row.append(self.episode_parts)
         self.parts_row = parts_row
 
+        # C0D3D (2026-11-10): the episode count shares the line with the mode
+        # buttons. A FlowBox keeps them together as units, so a narrow window
+        # wraps the count underneath instead of clipping it off the edge.
+        parts_group = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        parts_group.append(Gtk.Box())          # small gap before the count
+        child = parts_row.get_first_child()
+        while child is not None:
+            following = child.get_next_sibling()
+            parts_row.remove(child)
+            parts_group.append(child)
+            child = following
+        del parts_row
+
+        self.split_row = Gtk.FlowBox()
+        self.split_row.set_selection_mode(Gtk.SelectionMode.NONE)
+        self.split_row.set_halign(Gtk.Align.CENTER)
+        self.split_row.set_valign(Gtk.Align.CENTER)
+        self.split_row.set_row_spacing(6)
+        self.split_row.set_column_spacing(6)
+        self.split_row.set_max_children_per_line(4)
+        self.split_row.insert(modes, -1)
+        self.split_row.insert(parts_group, -1)
 
         _block = []
         _blocks["SPLIT INTO SEPARATE FILES"] = _block
         _block.append(caption_centred_temp("SPLIT INTO SEPARATE FILES"))
-        _block.append(modes)
-        _block.append(parts_row)
+        _block.append(self.split_row)
 
         _block.append(self.section_rule())
 
