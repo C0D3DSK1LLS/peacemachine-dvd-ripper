@@ -658,7 +658,15 @@ class RipperWindow(Gtk.ApplicationWindow):
         pick.set_tooltip_text("Choose the output folder")
         pick.connect("clicked", lambda *_: self.pick_output_folder())
         folder_row.append(pick)
-        folder_row.set_halign(Gtk.Align.CENTER)
+        folder_row.set_halign(Gtk.Align.START)
+        folder_row.set_hexpand(False)
+
+        # C0D3D (2026-11-10): SAVE TO lives at the top, under the source row.
+        save_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        save_row.append(caption("SAVE TO"))
+        save_row.append(folder_row)
+        if hasattr(self, "top_status_box"):
+            self.top_status_box.append(save_row)
         modes = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         modes.set_halign(Gtk.Align.CENTER)
         mode_group = None
@@ -724,8 +732,27 @@ class RipperWindow(Gtk.ApplicationWindow):
 
         _block = []
         _blocks["FILE NAME"] = _block
-        _block.append(caption_centred_temp("FILE NAME"))
-        _block.append(self.name_entry)
+        # C0D3D (2026-11-10): the file name and show name boxes stack, with the
+        # show dropdown beside them on the right.
+        names_left = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        names_left.set_halign(Gtk.Align.CENTER)
+        names_left.append(caption_centred_temp("FILE NAME"))
+        names_left.append(self.name_entry)
+        names_left.append(caption_centred_temp("EPISODE NAMES"))
+        names_left.append(find_row)
+        self.names_left = names_left
+
+        self.show_dropdown = Gtk.DropDown(model=Gtk.StringList.new([]))
+        self.show_dropdown.set_halign(Gtk.Align.START)
+        self.show_dropdown.set_valign(Gtk.Align.CENTER)
+        self.show_dropdown.set_visible(False)
+        self.show_dropdown.connect("notify::selected", lambda *_: self.on_show_selected())
+
+        names_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=18)
+        names_row.set_halign(Gtk.Align.CENTER)
+        names_row.append(names_left)
+        names_row.append(self.show_dropdown)
+        _block.append(names_row)
 
         number_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=14)
         self.numbering = Gtk.CheckButton(label="Number files")
@@ -747,16 +774,7 @@ class RipperWindow(Gtk.ApplicationWindow):
 
 
         _block = []
-        _blocks["EPISODE NAMES"] = _block
-        _block.append(caption_centred_temp("EPISODE NAMES"))
-        _block.append(find_row)
-
-        self.show_dropdown = Gtk.DropDown(model=Gtk.StringList.new([]))
-        self.show_dropdown.set_halign(Gtk.Align.CENTER)
-        self.show_dropdown.set_visible(False)
-        self.show_dropdown.connect("notify::selected", lambda *_: self.on_show_selected())
-        _block.append(self.show_dropdown)
-
+        _blocks["FIRST EPISODE"] = _block
         start_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         start_row.set_halign(Gtk.Align.CENTER)
         start_row.append(caption_centred_temp("FIRST EPISODE"))
@@ -783,11 +801,6 @@ class RipperWindow(Gtk.ApplicationWindow):
         if hasattr(self, "top_status_box"):
             self.top_status_box.append(self.episode_status)
 
-
-        _block = []
-        _blocks["SAVE TO"] = _block
-        _block.append(caption_centred_temp("SAVE TO"))
-        _block.append(folder_row)
 
         # The three split actions used to live here; C0D3D removed them (2026-11-10)
         # — the mode buttons fill the box by themselves now.
@@ -933,7 +946,7 @@ class RipperWindow(Gtk.ApplicationWindow):
 
         # a fixed, sensible order: the settings you pick first at the top
         _order = ["AUDIO / QUALITY / SUBTITLES", "LANGUAGE / RESOLUTION",
-                  "FILE NAME / EPISODE NAMES", "ANIME CLEAN-UP", "SAVE TO",
+                  "FILE NAME", "ANIME CLEAN-UP", "FIRST EPISODE",
                   "SPLIT INTO SEPARATE FILES"]
         _ordered = [(_name, _blocks[_name]) for _name in _order if _name in _blocks]
         _ordered += [(name, items) for name, items in _blocks.items()
