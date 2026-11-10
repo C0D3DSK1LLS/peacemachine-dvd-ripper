@@ -774,11 +774,6 @@ class RipperWindow(Gtk.ApplicationWindow):
         names_right.set_halign(Gtk.Align.START)
         names_right.append(start_row)
 
-        # C0D3D (2026-11-10): the show dropdown sits under the Find row, inside the
-        # left column, so the FIRST EPISODE column can sit close to the name boxes
-        # and never moves when a show loads.
-        names_left.append(self.show_dropdown)
-
         names_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=34)
         names_row.set_halign(Gtk.Align.CENTER)
         names_row.append(names_left)
@@ -803,6 +798,9 @@ class RipperWindow(Gtk.ApplicationWindow):
         number_row.set_halign(Gtk.Align.START)
         # C0D3D (2026-11-10): the ticks sit right under the FIRST EPISODE row.
         names_right.append(number_row)
+        # …and the show dropdown under them.
+        self.show_dropdown.set_halign(Gtk.Align.START)
+        names_right.append(self.show_dropdown)
 
 
         # C0D3D (2026-11-10): the chapter-times dump and the episode status line
