@@ -646,6 +646,12 @@ class RipperWindow(Gtk.ApplicationWindow):
         find_row.append(find)
         find_row.set_halign(Gtk.Align.FILL)
         find_row.set_hexpand(False)
+        # C0D3D (2026-11-10): the show dropdown sits right beside Find.
+        self.show_dropdown = Gtk.DropDown(model=Gtk.StringList.new([]))
+        self.show_dropdown.set_valign(Gtk.Align.CENTER)
+        self.show_dropdown.set_visible(False)
+        self.show_dropdown.connect("notify::selected", lambda *_: self.on_show_selected())
+        find_row.append(self.show_dropdown)
         folder_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         folder_row.set_hexpand(True)
         self.output_entry = Gtk.Entry()
@@ -743,13 +749,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         names_left.append(find_row)
         self.names_left = names_left
 
-        self.show_dropdown = Gtk.DropDown(model=Gtk.StringList.new([]))
-        self.show_dropdown.set_halign(Gtk.Align.START)
-        self.show_dropdown.set_valign(Gtk.Align.CENTER)
-        self.show_dropdown.set_visible(False)
-        self.show_dropdown.connect("notify::selected", lambda *_: self.on_show_selected())
-
-        # right-hand side of the block: the show dropdown, then FIRST EPISODE
+        # right-hand side of the block: FIRST EPISODE and the ticks
         start_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         start_row.set_halign(Gtk.Align.START)
         start_row.append(caption_centred_temp("FIRST EPISODE"))
@@ -767,7 +767,6 @@ class RipperWindow(Gtk.ApplicationWindow):
 
         names_right = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         names_right.set_halign(Gtk.Align.START)
-        names_right.append(self.show_dropdown)
         names_right.append(start_row)
 
         names_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=18)
