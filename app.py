@@ -778,39 +778,10 @@ class RipperWindow(Gtk.ApplicationWindow):
         _block.append(caption_centred_temp("SAVE TO"))
         _block.append(folder_row)
 
-        # the three split actions on one line…
-        actions_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        actions_row.set_halign(Gtk.Align.CENTER)
+        # The three split actions used to live here; C0D3D removed them (2026-11-10)
+        # — the mode buttons fill the box by themselves now.
 
-        split_episodes = Gtk.Button(label="Split into episodes")
-        split_episodes.add_css_class("compact-button")
-        split_episodes.add_css_class("crimson-button")
-        split_episodes.set_tooltip_text(
-            "Cut this title into that many episodes — on chapter boundaries "
-            "when the chapters divide evenly, otherwise on even timestamps.")
-        split_episodes.connect("clicked", lambda *_: self.fill_episode_split())
-        actions_row.append(split_episodes)
-
-        detect = Gtk.Button(label="Detect breaks")
-        detect.add_css_class("compact-button")
-        detect.add_css_class("crimson-button")
-        detect.set_tooltip_text(
-            "Listen through the file for silence and black gaps and cut there. "
-            "Works on a ripped file — a disc is too slow to scan end to end.")
-        detect.connect("clicked", lambda *_: self.detect_breaks())
-        actions_row.append(detect)
-
-        even_times = Gtk.Button(label="Even times")
-        even_times.add_css_class("compact-button")
-        even_times.add_css_class("crimson-button")
-        even_times.set_tooltip_text(
-            "Plain even slices, no chapter maths — then nudge the times yourself.")
-        even_times.connect("clicked", lambda *_: self.fill_even_parts())
-        actions_row.append(even_times)
-
-        self.actions_row = actions_row
-
-        # …and the episode count on its own line underneath
+        # the episode count, used to work out the chapter ranges / cut times
         parts_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         parts_row.set_halign(Gtk.Align.CENTER)
         parts_row.add_css_class("parts-row")
@@ -826,7 +797,6 @@ class RipperWindow(Gtk.ApplicationWindow):
         _block = []
         _blocks["SPLIT INTO SEPARATE FILES"] = _block
         _block.append(caption_centred_temp("SPLIT INTO SEPARATE FILES"))
-        _block.append(actions_row)
         _block.append(modes)
         _block.append(parts_row)
 
