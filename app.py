@@ -460,6 +460,9 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.source_status = plain("No disc scanned yet.", "dim", ellipsize=True)
         self.source_status.set_width_chars(10)
         box.append(self.source_status)
+        # The episode status reports here, under the source row (C0D3D, 2026-11-10)
+        # instead of cluttering the settings column.
+        self.top_status_box = box
         return box
 
     def use_drive(self):
@@ -770,16 +773,15 @@ class RipperWindow(Gtk.ApplicationWindow):
         start_row.append(browse)
         _block.append(start_row)
 
-        self.chapter_hint = plain("", "dim")
-        self.chapter_hint.set_wrap(True)
-        self.chapter_hint.set_xalign(0.5)
-        self.chapter_hint.set_visible(False)
-        _block.append(self.chapter_hint)
-
+        # C0D3D (2026-11-10): the chapter-times dump and the episode status line
+        # were clutter in this column. The hint is gone entirely and the status
+        # text now reports at the top, under the source row.
         self.episode_status = plain("", "dim")
         self.episode_status.set_wrap(True)
-        self.episode_status.set_xalign(0.5)
-        _block.append(self.episode_status)
+        self.episode_status.set_xalign(0.0)
+        self.episode_status.set_ellipsize(Pango.EllipsizeMode.END)
+        if hasattr(self, "top_status_box"):
+            self.top_status_box.append(self.episode_status)
 
 
         _block = []
@@ -1906,33 +1908,11 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.split_text_changed()
 
     def update_chapter_hint(self):
-        if not hasattr(self, "chapter_hint"):
-            return
-        title = self.focused_title()
-        mode = self.current_mode()
-        # Worth showing in both split modes: chapters need the numbers to pick
-        # ranges from, timestamps need the clock times (C0D3D, 2026-11-10).
-        if mode not in ("chapters", "timestamps") or title is None or not title.chapters:
-            self.chapter_hint.set_visible(False)
-            return
-        starts = title.chapter_starts
-        pieces = ["%s" % ripper.fmt_clock(value) for value in starts[:12]]
-        more = "" if len(starts) <= 12 else " …"
-        if mode == "chapters":
-            numbers = ["%d %s" % (index, ripper.fmt_clock(value))
-                       for index, value in enumerate(starts[:12], start=1)]
-            self.chapter_hint.set_text(
-                "Chapters on this title (%d): %s%s — ranges like 1-3 go in the box."
-                % (len(starts), " · ".join(numbers), more))
-        else:
-            self.chapter_hint.set_text(
-                "Chapters on this title (%d): %s%s — copy the times you want into "
-                "the box above." % (len(starts), " · ".join(pieces), more))
-        self.chapter_hint.set_visible(True)
+        """Kept as a no-op: the chapter-times dump is gone (C0D3D, 2026-11-10)."""
+        return
 
     def title_ticked(self):
-        """A title's tick changed — refresh the chapter hint along with the preview."""
-        self.update_chapter_hint()
+        """A title's tick changed — refresh the preview."""
         self.split_text_changed()
 
     def split_text_changed(self):
@@ -2173,10 +2153,9 @@ class RipperWindow(Gtk.ApplicationWindow):
 
         if len(episodes) >= 2:
             self.episode_parts.set_value(min(20, len(episodes)))
-            self.chapter_hint.set_text(
+            self.episode_status.set_text(
                 "%d episode-length titles on this disc — so %d episodes."
                 % (len(episodes), len(episodes)))
-            self.chapter_hint.set_visible(True)
             return
 
         if len(longs) != 1:
@@ -2192,22 +2171,19 @@ class RipperWindow(Gtk.ApplicationWindow):
                     if any(abs(title.chapter_starts[index]
                                - title.duration * step / count) <= 45
                            for step in range(1, count))]
-            self.chapter_hint.set_text(
-                "One title of %s — its chapter marks break at %s, which is %d "
-                "episodes. Press Split into episodes."
-                % (ripper.fmt_hms(title.duration), ", ".join(cuts[:6]) or "even points",
-                   count))
-            self.chapter_hint.set_visible(True)
+            self.episode_status.set_text(
+                "One title of %s, %d episodes — cuts fall at %s."
+                % (ripper.fmt_hms(title.duration), count,
+                   ", ".join(cuts[:6]) or "even points"))
             return
 
         runtime = int(self.episode_runtime or 0) * 60
         if runtime:
             count = max(1, min(12, int(round(title.duration / float(runtime)))))
             self.episode_parts.set_value(count)
-            self.chapter_hint.set_text(
+            self.episode_status.set_text(
                 "Roughly %d episode%s on %s — worth checking before you start."
                 % (count, "" if count == 1 else "s", ripper.fmt_hms(title.duration)))
-            self.chapter_hint.set_visible(True)
 
     def episodes_per_disc(self):
         """How many episodes a disc of this show holds, for label maths."""
