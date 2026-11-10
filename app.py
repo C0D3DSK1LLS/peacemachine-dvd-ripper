@@ -649,9 +649,13 @@ class RipperWindow(Gtk.ApplicationWindow):
         # C0D3D (2026-11-10): the show dropdown lives in the right-hand column,
         # in the empty space beside the two name boxes — that way the left column
         # never changes width and FIRST EPISODE cannot move.
-        self.show_dropdown = Gtk.DropDown(model=Gtk.StringList.new([]))
+        # Always on show, starting with a placeholder, so the space between the
+        # name boxes and FIRST EPISODE is filled instead of an empty gap
+        # (C0D3D, 2026-11-10) and nothing moves when a show loads.
+        self.show_dropdown = Gtk.DropDown(
+            model=Gtk.StringList.new(["Show name…"]))
         self.show_dropdown.set_halign(Gtk.Align.START)
-        self.show_dropdown.set_visible(False)
+        self.show_dropdown.set_sensitive(False)
         self.show_dropdown.connect("notify::selected", lambda *_: self.on_show_selected())
         folder_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         folder_row.set_hexpand(True)
@@ -770,17 +774,14 @@ class RipperWindow(Gtk.ApplicationWindow):
         names_right.set_halign(Gtk.Align.START)
         names_right.append(start_row)
 
-        # the show dropdown sits in the gap between the name boxes and the
-        # FIRST EPISODE column, held in a fixed-width slot so nothing shifts
-        show_slot = Gtk.Box()
-        show_slot.set_size_request(210, -1)
-        show_slot.set_valign(Gtk.Align.CENTER)
-        show_slot.append(self.show_dropdown)
+        # C0D3D (2026-11-10): the show dropdown sits under the Find row, inside the
+        # left column, so the FIRST EPISODE column can sit close to the name boxes
+        # and never moves when a show loads.
+        names_left.append(self.show_dropdown)
 
-        names_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=14)
+        names_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=34)
         names_row.set_halign(Gtk.Align.CENTER)
         names_row.append(names_left)
-        names_row.append(show_slot)
         names_row.append(names_right)
         _block.append(names_row)
 
@@ -2084,7 +2085,7 @@ class RipperWindow(Gtk.ApplicationWindow):
                                (show["premiered"] or "")[:4] or "?")
                   for show in shows]
         self.show_dropdown.set_model(Gtk.StringList.new(labels))
-        self.show_dropdown.set_visible(True)
+        self.show_dropdown.set_sensitive(True)
         self.show_dropdown.set_selected(0)
         self.episode_status.set_text(
             "%d match%s — pick one in the list below."
