@@ -1737,11 +1737,13 @@ class RipperWindow(Gtk.ApplicationWindow):
                 "00:22:10-00:44:30 Second episode. Leave END out to run to the end "
                 "of the title.")
         if hasattr(self, "split_text"):
-            # Switching mode with an empty box fills it in straight away, the way
-            # C0D3D expects it (2026-11-10): "before, if i clicked timestamps or
-            # chapters it also showed the info in the box". Anything already
-            # typed is never touched.
-            if mode != "whole" and not self.split_text_value().strip():
+            # Switching to a different split mode always rewrites the box — chapter
+            # ranges out, timestamps in, and the other way round (C0D3D, 2026-11-10).
+            # Re-clicking the mode you are already on only fills it if it is empty,
+            # so a stray click cannot wipe times he has edited by hand.
+            switched = mode != getattr(self, "_last_fill_mode", None)
+            self._last_fill_mode = mode
+            if mode != "whole" and (switched or not self.split_text_value().strip()):
                 self.fill_split_for_mode(mode)
             self.split_text_changed()
         if getattr(self, "compact", False) and hasattr(self, "queue_paned"):
