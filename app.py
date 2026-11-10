@@ -446,6 +446,15 @@ class RipperWindow(Gtk.ApplicationWindow):
         row.append(self.folder_button)
         if hasattr(self, "theme_button"):
             row.append(self.theme_button)
+
+        # C0D3D (2026-11-10): About sits beside the theme selector in the source
+        # row, not down at the bottom of the split block.
+        self.about_button = Gtk.Button(label="About")
+        self.about_button.add_css_class("compact-button")
+        self.about_button.add_css_class("crimson-button")
+        self.about_button.set_tooltip_text("About Matrix DVD Ripper")
+        self.about_button.connect("clicked", lambda *_: self.show_about())
+        row.append(self.about_button)
         box.append(row)
 
         self.source_status = plain("No disc scanned yet.", "dim", ellipsize=True)
@@ -665,7 +674,7 @@ class RipperWindow(Gtk.ApplicationWindow):
             button.connect("toggled", lambda *_: self.split_mode_changed())
             # A re-click on the mode that is already active never emits "toggled",
             # so the empty box stayed empty (C0D3D, 2026-11-10). Refresh on click too.
-            button.connect("clicked", lambda *_: self.split_mode_changed())
+            button.connect("clicked", lambda _b, k=key: self.on_mode_clicked(k))
             modes.append(button)
             self.mode_buttons[key] = button
         self.mode_buttons["whole"].set_active(True)
@@ -794,8 +803,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.parts_row = parts_row
 
         # C0D3D (2026-11-10): the episode count shares the line with the mode
-        # buttons. A FlowBox keeps them together as units, so a narrow window
-        # wraps the count underneath instead of clipping it off the edge.
+        # buttons. Done with a plain Box — a FlowBox here swallowed the clicks.
         parts_group = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         parts_group.append(Gtk.Box())          # small gap before the count
         child = parts_row.get_first_child()
@@ -806,32 +814,15 @@ class RipperWindow(Gtk.ApplicationWindow):
             child = following
         del parts_row
 
-        self.split_row = Gtk.FlowBox()
-        self.split_row.set_selection_mode(Gtk.SelectionMode.NONE)
+        self.split_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         self.split_row.set_halign(Gtk.Align.CENTER)
-        self.split_row.set_valign(Gtk.Align.CENTER)
-        self.split_row.set_row_spacing(6)
-        self.split_row.set_column_spacing(6)
-        self.split_row.set_max_children_per_line(4)
-        self.split_row.insert(modes, -1)
-        self.split_row.insert(parts_group, -1)
+        self.split_row.append(modes)
+        self.split_row.append(parts_group)
 
         _block = []
         _blocks["SPLIT INTO SEPARATE FILES"] = _block
         _block.append(caption_centred_temp("SPLIT INTO SEPARATE FILES"))
         _block.append(self.split_row)
-
-        _block.append(self.section_rule())
-
-        about_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        about_row.set_halign(Gtk.Align.CENTER)
-        self.about_button = Gtk.Button(label="About")
-        self.about_button.add_css_class("compact-button")
-        self.about_button.add_css_class("crimson-button")
-        self.about_button.set_tooltip_text("About Matrix DVD Ripper")
-        self.about_button.connect("clicked", lambda *_: self.show_about())
-        about_row.append(self.about_button)
-        _block.append(about_row)
 
         self.lossless = Gtk.CheckButton(label="Lossless split")
         self.lossless.set_tooltip_text(
@@ -1706,8 +1697,15 @@ class RipperWindow(Gtk.ApplicationWindow):
                 and self.current_mode() != "whole"
                 and ripper.is_video_file(self.source_entry.get_text().strip()))
 
-    def split_mode_changed(self):
-        mode = self.current_mode()
+    def on_mode_clicked(self, key):
+        """A mode button was clicked: make sure it is the active one, then refill."""
+        button = self.mode_buttons.get(key)
+        if button is not None and not button.get_active():
+            button.set_active(True)          # fires toggled -> split_mode_changed
+        self.split_mode_changed(key)
+
+    def split_mode_changed(self, mode=None):
+        mode = mode or self.current_mode()
         scroller = getattr(self, "split_scroller", None)
         if scroller is not None:
             scroller.set_visible(mode != "whole")
@@ -1744,6 +1742,9 @@ class RipperWindow(Gtk.ApplicationWindow):
         """Write the default cut points into the box for the chosen split mode."""
         title = self.focused_title()
         if title is None or not getattr(title, "duration", 0):
+            # Silence here looked like a dead button (C0D3D, 2026-11-10).
+            self.flash_status("Scan a disc and tick a title first — "
+                              "there is nothing to cut up yet.")
             return
         parts = max(1, int(self.episode_parts.get_value()))
         chapters = len(title.chapters)
