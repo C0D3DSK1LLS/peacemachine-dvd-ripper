@@ -562,8 +562,13 @@ class RipperWindow(Gtk.ApplicationWindow):
             "DVDs hold 720x480 — upscaling cannot add detail, it just scales once "
             "with a decent filter instead of leaving it to your player.")
         self.resolution_dropdown.connect("notify::selected", lambda *_: self.split_text_changed())
-        clean_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        clean_row.set_halign(Gtk.Align.CENTER)
+        clean_row = Gtk.FlowBox()
+        clean_row.set_selection_mode(Gtk.SelectionMode.NONE)
+        clean_row.set_max_children_per_line(4)
+        clean_row.set_min_children_per_line(1)
+        clean_row.set_column_spacing(6)
+        clean_row.set_row_spacing(4)
+        clean_row.set_homogeneous(False)
         self.anime_check = Gtk.CheckButton(label="Anime tuning")
         self.anime_check.set_tooltip_text(
             "x264/x265 tune for line art: cleaner edges, less ringing. On the GPU "
@@ -680,6 +685,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         _block = []
         _blocks["ANIME CLEAN-UP"] = _block
         _block.append(caption_centred_temp("ANIME CLEAN-UP"))
+        self.hug_children(clean_row)
         _block.append(clean_row)
 
 
@@ -769,6 +775,39 @@ class RipperWindow(Gtk.ApplicationWindow):
         _block.append(caption_centred_temp("SAVE TO"))
         _block.append(folder_row)
 
+        # the three split actions on one line…
+        actions_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        actions_row.set_halign(Gtk.Align.CENTER)
+
+        split_episodes = Gtk.Button(label="Split into episodes")
+        split_episodes.add_css_class("compact-button")
+        split_episodes.add_css_class("crimson-button")
+        split_episodes.set_tooltip_text(
+            "Cut this title into that many episodes — on chapter boundaries "
+            "when the chapters divide evenly, otherwise on even timestamps.")
+        split_episodes.connect("clicked", lambda *_: self.fill_episode_split())
+        actions_row.append(split_episodes)
+
+        detect = Gtk.Button(label="Detect breaks")
+        detect.add_css_class("compact-button")
+        detect.add_css_class("crimson-button")
+        detect.set_tooltip_text(
+            "Listen through the file for silence and black gaps and cut there. "
+            "Works on a ripped file — a disc is too slow to scan end to end.")
+        detect.connect("clicked", lambda *_: self.detect_breaks())
+        actions_row.append(detect)
+
+        even_times = Gtk.Button(label="Even times")
+        even_times.add_css_class("compact-button")
+        even_times.add_css_class("crimson-button")
+        even_times.set_tooltip_text(
+            "Plain even slices, no chapter maths — then nudge the times yourself.")
+        even_times.connect("clicked", lambda *_: self.fill_even_parts())
+        actions_row.append(even_times)
+
+        self.actions_row = actions_row
+
+        # …and the episode count on its own line underneath
         parts_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         parts_row.set_halign(Gtk.Align.CENTER)
         parts_row.add_css_class("parts-row")
@@ -778,41 +817,17 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.episode_parts.set_tooltip_text(
             "How many episodes this disc holds — four is usual for Bleach.")
         parts_row.append(self.episode_parts)
-
-        split_episodes = Gtk.Button(label="Split into episodes")
-        split_episodes.add_css_class("compact-button")
-        split_episodes.add_css_class("crimson-button")
-        split_episodes.set_tooltip_text(
-            "Cut this title into that many episodes — on chapter boundaries "
-            "when the chapters divide evenly, otherwise on even timestamps.")
-        split_episodes.connect("clicked", lambda *_: self.fill_episode_split())
-        parts_row.append(split_episodes)
-
-        detect = Gtk.Button(label="Detect breaks")
-        detect.add_css_class("compact-button")
-        detect.add_css_class("crimson-button")
-        detect.set_tooltip_text(
-            "Listen through the file for silence and black gaps and cut there. "
-            "Works on a ripped file — a disc is too slow to scan end to end.")
-        detect.connect("clicked", lambda *_: self.detect_breaks())
-        parts_row.append(detect)
-
-        even_times = Gtk.Button(label="Even times")
-        even_times.add_css_class("compact-button")
-        even_times.add_css_class("crimson-button")
-        even_times.set_tooltip_text(
-            "Plain even slices, no chapter maths — then nudge the times yourself.")
-        even_times.connect("clicked", lambda *_: self.fill_even_parts())
-        parts_row.append(even_times)
-
         self.parts_row = parts_row
 
 
         _block = []
         _blocks["SPLIT INTO SEPARATE FILES"] = _block
         _block.append(caption_centred_temp("SPLIT INTO SEPARATE FILES"))
-        _block.append(parts_row)
+        _block.append(actions_row)
         _block.append(modes)
+        _block.append(parts_row)
+
+        _block.append(self.section_rule())
 
         about_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         about_row.set_halign(Gtk.Align.CENTER)
@@ -848,7 +863,6 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.preview_label = plain("", "preview")
         self.preview_label.set_wrap(True)
         self.preview_label.set_xalign(0.5)
-        _block.append(self.preview_label)
 
         settings_scroller = Gtk.ScrolledWindow()
         settings_scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
@@ -864,12 +878,17 @@ class RipperWindow(Gtk.ApplicationWindow):
 
 
         # one width for every dropdown so the column does not taper
-        for _dropdown in (self.resolution_dropdown, self.audio_dropdown,
-                          self.lang_dropdown, self.sub_dropdown,
-                          self.denoise_dropdown, self.deblock_dropdown,
+        # only the audio/subtitle pair is trimmed, by half an inch between them
+        pair_width = 266
+        self.audio_dropdown.set_size_request(pair_width, -1)
+        self.sub_dropdown.set_size_request(pair_width, -1)
+        for _dropdown in (self.resolution_dropdown, self.lang_dropdown):
+            _dropdown.set_size_request(290, -1)
+        # quality sits alone above the pair: about an inch (96 px) narrower
+        self.preset_dropdown.set_size_request(pair_width * 2 + 18 - 96, -1)
+        for _dropdown in (self.denoise_dropdown, self.deblock_dropdown,
                           self.deband_dropdown):
-            _dropdown.set_size_request(210, -1)
-        self.preset_dropdown.set_size_request(320, -1)   # the long preset names
+            _dropdown.set_size_request(160, -1)          # all three on one line
 
         # audio, quality and subtitles share one line
         def _column(title, items):
@@ -925,10 +944,20 @@ class RipperWindow(Gtk.ApplicationWindow):
                 widest = max(widest, natural)
             return widest
 
-        # narrow controls at the top, the wide ones down the bottom
+        # a fixed, sensible order: the settings you pick first at the top
+        _order = ["AUDIO / QUALITY / SUBTITLES", "LANGUAGE / RESOLUTION",
+                  "FILE NAME / EPISODE NAMES", "ANIME CLEAN-UP", "SAVE TO",
+                  "SPLIT INTO SEPARATE FILES"]
+        _ordered = [(_name, _blocks[_name]) for _name in _order if _name in _blocks]
+        _ordered += [(name, items) for name, items in _blocks.items()
+                     if name not in _order]
+
+        settings.append(self.preview_label)
+        self.preview_rule = self.section_rule()
+        settings.append(self.preview_rule)
+
         _first = True
-        for _name, _items in sorted(_blocks.items(),
-                                    key=lambda pair: _block_width(pair[1])):
+        for _name, _items in _ordered:
             if not _first:
                 settings.append(self.section_rule())
             _first = False
@@ -965,12 +994,14 @@ class RipperWindow(Gtk.ApplicationWindow):
 
         self.start_button = Gtk.Button(label="Start")
         self.start_button.add_css_class("compact-button")
+        self.start_button.add_css_class("orange-button")
         self.start_button.add_css_class("primary-action")
         self.start_button.connect("clicked", lambda *_: self.start_queue())
         buttons.append(self.start_button)
 
         self.stop_button = Gtk.Button(label="Stop")
         self.stop_button.add_css_class("compact-button")
+        self.stop_button.add_css_class("orange-button")
         self.stop_button.set_sensitive(False)
         self.stop_button.connect("clicked", lambda *_: self.stop_queue())
         buttons.append(self.stop_button)
@@ -978,17 +1009,20 @@ class RipperWindow(Gtk.ApplicationWindow):
         remove = Gtk.Button(label="Remove")
         remove.set_tooltip_text("Remove the ticked rips (Delete)")
         remove.add_css_class("compact-button")
+        remove.add_css_class("orange-button")
         remove.connect("clicked", lambda *_: self.remove_selected())
         buttons.append(remove)
 
         remove_all = Gtk.Button(label="Remove all")
         remove_all.set_tooltip_text("Empty the whole queue")
         remove_all.add_css_class("compact-button")
+        remove_all.add_css_class("orange-button")
         remove_all.connect("clicked", lambda *_: self.remove_all())
         buttons.append(remove_all)
 
         clear = Gtk.Button(label="Clear finished")
         clear.add_css_class("compact-button")
+        clear.add_css_class("orange-button")
         clear.connect("clicked", lambda *_: self.clear_finished())
         buttons.append(clear)
 
@@ -1507,7 +1541,9 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.titles = []
         self.main_feature = 0
         self.rebuild_titles()
-        self.preview_label.set_text("Tick at least one title above.")
+        self.preview_label.set_visible(False)
+        if hasattr(self, "preview_rule"):
+            self.preview_rule.set_visible(False)
         self.source_status.set_text("Title list cleared — scan a disc to load another.")
 
     def rebuild_titles(self):
@@ -1539,7 +1575,7 @@ class RipperWindow(Gtk.ApplicationWindow):
             if title.number in default_on:
                 check.set_active(True)
             check.title_info = title
-            check.connect("toggled", lambda *_: self.split_text_changed())
+            check.connect("toggled", lambda *_: self.title_ticked())
             line.append(check)
 
             number = Gtk.Label(label="%02d" % title.number, xalign=0.5, width_chars=2)
@@ -1834,16 +1870,30 @@ class RipperWindow(Gtk.ApplicationWindow):
             return
         title = self.focused_title()
         mode = self.current_mode()
-        if mode == "whole" or title is None or not title.chapters:
+        # Worth showing in both split modes: chapters need the numbers to pick
+        # ranges from, timestamps need the clock times (C0D3D, 2026-11-10).
+        if mode not in ("chapters", "timestamps") or title is None or not title.chapters:
             self.chapter_hint.set_visible(False)
             return
         starts = title.chapter_starts
-        pieces = ["%s" % ripper.fmt_clock(value) for value in starts[:40]]
-        more = "" if len(starts) <= 40 else " …"
-        self.chapter_hint.set_text(
-            "Chapters on this title (%d): %s%s — copy the times you want into "
-            "the box above." % (len(starts), " · ".join(pieces), more))
+        pieces = ["%s" % ripper.fmt_clock(value) for value in starts[:12]]
+        more = "" if len(starts) <= 12 else " …"
+        if mode == "chapters":
+            numbers = ["%d %s" % (index, ripper.fmt_clock(value))
+                       for index, value in enumerate(starts[:12], start=1)]
+            self.chapter_hint.set_text(
+                "Chapters on this title (%d): %s%s — ranges like 1-3 go in the box."
+                % (len(starts), " · ".join(numbers), more))
+        else:
+            self.chapter_hint.set_text(
+                "Chapters on this title (%d): %s%s — copy the times you want into "
+                "the box above." % (len(starts), " · ".join(pieces), more))
         self.chapter_hint.set_visible(True)
+
+    def title_ticked(self):
+        """A title's tick changed — refresh the chapter hint along with the preview."""
+        self.update_chapter_hint()
+        self.split_text_changed()
 
     def split_text_changed(self):
         titles = self.checked_titles()
@@ -1851,7 +1901,9 @@ class RipperWindow(Gtk.ApplicationWindow):
         preset = self.current_preset()
         if not titles:
             self.planned_jobs = 0
-            self.preview_label.set_text("Tick at least one title above.")
+            self.preview_label.set_visible(False)
+            if hasattr(self, "preview_rule"):
+                self.preview_rule.set_visible(False)
             self.refresh_start()
             return
         if mode == "whole":
@@ -1897,6 +1949,11 @@ class RipperWindow(Gtk.ApplicationWindow):
                     % (pieces, len(titles), "" if len(titles) == 1 else "s",
                        ripper.fmt_bytes(total)))
         self.planned_jobs = count if mode == "whole" else pieces
+        if hasattr(self, "preview_label"):
+            self.preview_label.set_visible(True)
+            if hasattr(self, "preview_rule"):
+                self.preview_rule.set_visible(True)
+
         mapping = {}
         if mode == "whole":
             ordered = sorted(titles, key=lambda item: item.number)
@@ -2540,7 +2597,10 @@ class RipperWindow(Gtk.ApplicationWindow):
 
     def run_deband_pass(self, job):
         """ffmpeg deband over the finished file, then swap it into place."""
-        temporary = job.path + ".deband.mkv"
+        # Hidden temp, so the output folder never shows a second copy of the
+        # episode while the second pass is still writing it (C0D3D, 2026-11-10).
+        temporary = os.path.join(os.path.dirname(job.path),
+                                 "." + os.path.basename(job.path) + ".deband.mkv")
         command = ripper.deband_command(job.path, temporary, job.deband)
         if not command:
             return "done"
