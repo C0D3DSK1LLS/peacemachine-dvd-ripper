@@ -646,18 +646,13 @@ class RipperWindow(Gtk.ApplicationWindow):
         find_row.append(find)
         find_row.set_halign(Gtk.Align.FILL)
         find_row.set_hexpand(False)
-        # C0D3D (2026-11-10): the show dropdown sits right beside Find, in a slot
-        # that is always the same width so FIRST EPISODE never shifts when the
-        # dropdown appears.
-        self.show_slot = Gtk.Box()
-        self.show_slot.set_size_request(210, -1)
-        find_row.append(self.show_slot)
+        # C0D3D (2026-11-10): the show dropdown lives in the right-hand column,
+        # in the empty space beside the two name boxes — that way the left column
+        # never changes width and FIRST EPISODE cannot move.
         self.show_dropdown = Gtk.DropDown(model=Gtk.StringList.new([]))
-        self.show_dropdown.set_valign(Gtk.Align.CENTER)
         self.show_dropdown.set_halign(Gtk.Align.START)
         self.show_dropdown.set_visible(False)
         self.show_dropdown.connect("notify::selected", lambda *_: self.on_show_selected())
-        self.show_slot.append(self.show_dropdown)
         folder_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         folder_row.set_hexpand(True)
         self.output_entry = Gtk.Entry()
@@ -775,9 +770,17 @@ class RipperWindow(Gtk.ApplicationWindow):
         names_right.set_halign(Gtk.Align.START)
         names_right.append(start_row)
 
-        names_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=18)
+        # the show dropdown sits in the gap between the name boxes and the
+        # FIRST EPISODE column, held in a fixed-width slot so nothing shifts
+        show_slot = Gtk.Box()
+        show_slot.set_size_request(210, -1)
+        show_slot.set_valign(Gtk.Align.CENTER)
+        show_slot.append(self.show_dropdown)
+
+        names_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=14)
         names_row.set_halign(Gtk.Align.CENTER)
         names_row.append(names_left)
+        names_row.append(show_slot)
         names_row.append(names_right)
         _block.append(names_row)
 
