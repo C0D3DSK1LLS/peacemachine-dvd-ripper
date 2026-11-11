@@ -20,7 +20,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
 
-from gi.repository import Gdk, Gio, GLib, Gtk, Pango  # noqa: E402
+from gi.repository import Gdk, Gio, GLib, GObject, Gtk, Pango  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
@@ -71,6 +71,72 @@ def save_state(data):
 # --------------------------------------------------------------------------
 # jobs
 # --------------------------------------------------------------------------
+class NumberBox(Gtk.Entry):
+    """A small integer field with no built-in steppers.
+
+    Gtk.SpinButton always draws its own up/down pair inside the box, and they
+    cannot be removed — hiding them with CSS left an invisible clickable strip
+    in the middle of the field (C0D3D, 2026-11-11: "the buttons shouldnt
+    interfere with the input box"). This keeps the same get_value()/set_value()
+    surface the app uses, driven by the round buttons beside it.
+    """
+
+    __gsignals__ = {"value-changed": (GObject.SignalFlags.RUN_FIRST, None, ())}
+
+    def __init__(self, low, high, value, step=1):
+        super().__init__()
+        self.low = low
+        self.high = high
+        self.step = step
+        self.value = int(value)
+        self.updating = False
+        self.set_width_chars(4)
+        self.set_max_width_chars(4)
+        self.set_alignment(0.5)
+        self.set_input_purpose(Gtk.InputPurpose.DIGITS)
+        self.connect("changed", self.on_text_changed)
+        self.connect("activate", lambda *_: self.refresh())
+        focus = Gtk.EventControllerFocus()
+        focus.connect("leave", lambda *_: self.refresh())
+        self.add_controller(focus)
+        self.refresh()
+
+    def refresh(self):
+        text = str(self.value)
+        if self.get_text() == text:
+            return
+        self.updating = True
+        self.set_text(text)
+        self.updating = False
+
+    def on_text_changed(self, *_args):
+        if self.updating:
+            return
+        text = self.get_text().strip()
+        if not text.isdigit():
+            return
+        self.value = max(self.low, min(self.high, int(text)))
+        self.emit("value-changed")
+
+    def get_value(self):
+        return float(self.value)
+
+    def set_value(self, value):
+        try:
+            value = int(value)
+        except (TypeError, ValueError):
+            return
+        value = max(self.low, min(self.high, value))
+        if value == self.value and self.get_text() == str(value):
+            return
+        self.value = value
+        self.refresh()
+        self.emit("value-changed")
+
+    def step_by(self, delta):
+        self.set_value(self.value + delta)
+
+
 class Job:
     def __init__(self, source, title, label, path, preset_key, audio_key,
                  sub_key, start=None, stop=None, chapters=None, method="encode",
@@ -380,6 +446,32 @@ class RipperWindow(Gtk.ApplicationWindow):
             child.set_halign(Gtk.Align.START)
             index += 1
 
+    def round_stepper(self, spin, step=1):
+        """Wrap a spin button in its own round − / + buttons.
+
+        The stock steppers are stretched by the spin button's height, which made
+        them ovals (C0D3D, 2026-11-10: "there not circles there fucking ovals").
+        Real buttons with a fixed square size stay circular at any font size.
+        """
+        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
+        box.set_halign(Gtk.Align.CENTER)
+        box.set_valign(Gtk.Align.CENTER)
+        # The pair sits to the right of the box (C0D3D, 2026-11-10: "put em both
+        # on the right side"), the way a stock spin button reads.
+        box.append(spin)
+        for text, delta in (("\u2212", -step), ("+", step)):
+            button = Gtk.Button(label=text)
+            button.add_css_class("round-step")
+            button.set_size_request(24, 24)
+            # Centred, not filled: a button stretched to the row height is an
+            # oval again, which is exactly what was wrong with the stock pair.
+            button.set_valign(Gtk.Align.CENTER)
+            button.connect("clicked",
+                           lambda _b, d=delta, target=spin:
+                           target.set_value(target.get_value() + d))
+            box.append(button)
+        return box
+
     def section_rule(self):
         rule = Gtk.Box()
         rule.set_size_request(-1, 2)
@@ -641,6 +733,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.show_entry.connect("activate", lambda *_: self.lookup_show())
         find_row.append(self.show_entry)
         self.find_button = Gtk.Button(label="Find")
+        self.find_button.add_css_class("orange-button")
         self.find_button.set_tooltip_text("Look the show up and fetch its episode list")
         self.find_button.connect("clicked", lambda *_: self.lookup_show())
         find_row.set_halign(Gtk.Align.FILL)
@@ -689,6 +782,7 @@ class RipperWindow(Gtk.ApplicationWindow):
             button.add_css_class("mode-button")
             button.add_css_class("compact-button")
             button.add_css_class("crimson-button")
+            button.add_css_class("orange-button")
             if mode_group is not None:
                 button.set_group(mode_group)
             else:
@@ -757,13 +851,14 @@ class RipperWindow(Gtk.ApplicationWindow):
         start_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         start_row.set_halign(Gtk.Align.START)
         start_row.append(caption_centred_temp("FIRST EPISODE"))
-        self.episode_start = Gtk.SpinButton.new_with_range(1, 5000, 1)
+        self.episode_start = NumberBox(1, 5000, 1)
         self.episode_start.set_value(1)
         self.start_is_manual = False
         self.auto_setting_start = False
         self.episode_start.connect("value-changed", self.on_start_changed)
-        start_row.append(self.episode_start)
+        start_row.append(self.round_stepper(self.episode_start))
         browse = Gtk.Button(label="List…")
+        browse.add_css_class("orange-button")
         browse.set_tooltip_text("See every episode and pick the starting one")
         browse.connect("clicked", lambda *_: self.open_episode_list(browse))
         self.episode_list_button = browse
@@ -826,11 +921,11 @@ class RipperWindow(Gtk.ApplicationWindow):
         parts_row.set_halign(Gtk.Align.CENTER)
         parts_row.add_css_class("parts-row")
         parts_row.append(caption_centred_temp("EPISODES"))
-        self.episode_parts = Gtk.SpinButton.new_with_range(2, 20, 1)
+        self.episode_parts = NumberBox(2, 20, 4)
         self.episode_parts.set_value(4)
         self.episode_parts.set_tooltip_text(
             "How many episodes this disc holds — four is usual for Bleach.")
-        parts_row.append(self.episode_parts)
+        parts_row.append(self.round_stepper(self.episode_parts))
 
         # C0D3D (2026-11-10): the episode count shares the line with the mode
         # buttons. Done with a plain Box — a FlowBox here swallowed the clicks.
@@ -2331,10 +2426,14 @@ class RipperWindow(Gtk.ApplicationWindow):
 
             mode = Gtk.Label(label=job.mode_text(), xalign=0.0, width_chars=22)
             mode.add_css_class("job-mode")
+            # a long span (or a "copy 00:00:00 → 00:23:20") must shrink, not
+            # spill past the card edge and get chopped mid-glyph on a narrow screen
+            mode.set_ellipsize(Pango.EllipsizeMode.END)
             line.append(mode)
 
             detail = Gtk.Label(label=self.job_detail_text(job), xalign=1.0, width_chars=26)
             detail.add_css_class("job-detail")
+            detail.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
             line.append(detail)
             row.detail_label = detail
 
