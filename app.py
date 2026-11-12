@@ -1047,6 +1047,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         _blocks["SUBTITLES"] = _block
         _block.append(caption_centred_temp("SUBTITLES"))
         _block.append(self.sub_dropdown)
+
         # C0D3D (2026-11-11): the disc's English subtitles translate the
         # Japanese script, so they do not say what the English dub says. This
         # listens to the dub in the rip itself and writes subtitles from it.
@@ -1060,6 +1061,11 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.transcript_dropdown.set_hexpand(False)
         self.transcript_dropdown.set_halign(Gtk.Align.CENTER)
         self.transcript_dropdown.set_size_request(210, -1)
+        # its own block so audio, subtitles and transcript share one line
+        # (C0D3D, 2026-11-12)
+        _block = []
+        _blocks["TRANSCRIPT"] = _block
+        _block.append(caption_centred_temp("TRANSCRIPT"))
         _block.append(self.transcript_dropdown)
 
 
@@ -1250,13 +1256,14 @@ class RipperWindow(Gtk.ApplicationWindow):
 
         # one width for every dropdown so the column does not taper
         # only the audio/subtitle pair is trimmed, by half an inch between them
-        pair_width = 266
-        self.audio_dropdown.set_size_request(pair_width, -1)
-        self.sub_dropdown.set_size_request(pair_width, -1)
+        pair_width = 200
+        for _dropdown in (self.audio_dropdown, self.sub_dropdown,
+                          self.transcript_dropdown):
+            _dropdown.set_size_request(pair_width, -1)
         for _dropdown in (self.resolution_dropdown, self.lang_dropdown):
             _dropdown.set_size_request(290, -1)
-        # quality sits alone above the pair: about an inch (96 px) narrower
-        self.preset_dropdown.set_size_request(pair_width * 2 + 18 - 96, -1)
+        # quality sits alone above the trio: about an inch (96 px) narrower
+        self.preset_dropdown.set_size_request(pair_width * 3 + 36 - 96, -1)
         for _dropdown in (self.denoise_dropdown, self.deblock_dropdown,
                           self.deband_dropdown):
             _dropdown.set_size_request(160, -1)          # all three on one line
@@ -1270,7 +1277,7 @@ class RipperWindow(Gtk.ApplicationWindow):
                 column.append(item)
             return column
 
-        _merged_names = ("AUDIO", "QUALITY", "SUBTITLES")
+        _merged_names = ("AUDIO", "QUALITY", "SUBTITLES", "TRANSCRIPT")
         if all(name in _blocks for name in _merged_names):
             stack = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
             stack.set_halign(Gtk.Align.CENTER)
@@ -1280,9 +1287,11 @@ class RipperWindow(Gtk.ApplicationWindow):
             top.append(_column("QUALITY", _blocks.pop("QUALITY")))
             stack.append(top)
 
+            # audio, subtitles and transcript all on one even line
+            # (C0D3D, 2026-11-12)
             bottom = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=18)
             bottom.set_halign(Gtk.Align.CENTER)
-            for name in ("AUDIO", "SUBTITLES"):
+            for name in ("AUDIO", "SUBTITLES", "TRANSCRIPT"):
                 bottom.append(_column(name, _blocks.pop(name)))
             stack.append(bottom)
 
