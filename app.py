@@ -1149,6 +1149,22 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.chapter_hint.set_visible(False)
         _block.append(self.chapter_hint)
 
+        # C0D3D (2026-11-12): "i want this to work right" — listen to the file and
+        # find where the episodes actually break, instead of trusting chapter maths.
+        detect_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        detect_row.set_halign(Gtk.Align.CENTER)
+        self.detect_button = Gtk.Button(label="Detect breaks")
+        self.detect_button.add_css_class("compact-button")
+        self.detect_button.add_css_class("orange-button")
+        self.detect_button.set_tooltip_text(
+            "Listen to the video for the silence and black between episodes and "
+            "write those cut times into the box. Works on a video file; a disc "
+            "has to be ripped in one piece first because reading the whole title "
+            "off the disc takes far too long.")
+        self.detect_button.connect("clicked", lambda *_: self.on_detect_breaks())
+        detect_row.append(self.detect_button)
+        _block.append(detect_row)
+
         self.preview_label = plain("", "preview")
         self.preview_label.set_wrap(True)
         self.preview_label.set_xalign(0.5)
@@ -2225,6 +2241,65 @@ class RipperWindow(Gtk.ApplicationWindow):
                                       ripper.fmt_clock(edges[index + 1]), index + 1)
                  for index in range(parts)]
         self.split_text.get_buffer().set_text("\n".join(lines) + "\n")
+
+    def on_detect_breaks(self):
+        """Find the episode breaks in the source file and fill the split box."""
+        source = self.source_entry.get_text().strip()
+        if not source:
+            self.flash_status("Pick a video file first.")
+            return
+        if not ripper.is_video_file(source):
+            self.flash_status(
+                "Break detection reads the whole title — far too slow off a disc. "
+                "Rip the title in one piece first, then detect on the file.")
+            return
+        title = self.focused_title()
+        duration = float(getattr(title, "duration", 0) or 0)
+        if duration <= 0:
+            self.flash_status("Scan the file first so its length is known.")
+            return
+        parts = max(2, int(self.episode_parts.get_value()))
+        self.detect_button.set_sensitive(False)
+        self.flash_status("Listening for the gaps between episodes…")
+
+        def work():
+            try:
+                points, breaks = ripper.find_breaks(source, duration, parts)
+            except Exception as error:  # noqa: BLE001 - reported, never fatal
+                GLib.idle_add(self.detect_finished, None, None, str(error))
+                return
+            GLib.idle_add(self.detect_finished, points, breaks, None)
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def detect_finished(self, points, breaks, error):
+        self.detect_button.set_sensitive(True)
+        if error:
+            self.flash_status("Break detection failed: %s" % error)
+            return False
+        if not breaks:
+            self.flash_status(
+                "No clear gaps found — the episodes may run straight into each "
+                "other. Use chapters, or type the times by hand.")
+            return False
+        lines = []
+        edges = [0.0] + list(breaks) + [None]
+        for index in range(len(edges) - 1):
+            start = edges[index]
+            stop = edges[index + 1]
+            span = "%s-%s" % (ripper.fmt_clock(start),
+                              ripper.fmt_clock(stop) if stop is not None else "")
+            lines.append("%s part %02d" % (span, index + 1))
+        buffer = self.split_text.get_buffer()
+        buffer.set_text("\n".join(lines) + "\n")
+        if self.current_mode() != "timestamps":
+            button = self.mode_buttons.get("timestamps")
+            if button is not None:
+                button.set_active(True)
+        self.flash_status(
+            "%d breaks found from %d gaps — check the first and last cut."
+            % (len(breaks), len(points or [])))
+        return False
 
     def refresh_chapter_hint(self):
         """List the ticked title's chapter marks, numbered, for chapter ranges."""

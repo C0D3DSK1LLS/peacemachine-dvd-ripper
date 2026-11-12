@@ -8,6 +8,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import time
 
 HANDBRAKE = shutil.which("HandBrakeCLI") or "/usr/bin/HandBrakeCLI"
@@ -705,6 +706,23 @@ def parse_break_times(text):
         except ValueError:
             continue
     return sorted(points)
+
+
+def find_breaks(path, duration, parts):
+    """Analyse a video file and return (candidate points, chosen breaks).
+
+    Two passes: the audio, for the silence where an episode ends and the next
+    begins, and the picture, for the black stretch between them. Both are needed
+    because a disc may cut on black with music over it, or on silence with the
+    picture still going.
+    """
+    points = []
+    for command in (detect_command(path), detect_black_command(path)):
+        result = subprocess.run(command, capture_output=True, text=True,
+                                check=False)
+        points.extend(parse_break_times(result.stderr or ""))
+    points = sorted({round(point, 2) for point in points if point > 0})
+    return points, choose_breaks(points, parts, duration)
 
 
 def choose_breaks(points, parts, duration):
