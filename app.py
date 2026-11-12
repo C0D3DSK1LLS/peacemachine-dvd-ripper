@@ -772,6 +772,7 @@ class RipperWindow(Gtk.ApplicationWindow):
 
         # ---- titles
         titles_box = card(6)
+        titles_box.add_css_class("titles-card")
         head = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         head.append(caption("TITLES ON THE DISC"))
         clear_titles = Gtk.Button(label="Clear")
