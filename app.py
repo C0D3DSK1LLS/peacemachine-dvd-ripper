@@ -9,6 +9,7 @@ into per-episode files by chapter range or by timestamp.
 import json
 import math
 import os
+import random
 import re
 import signal
 import subprocess
@@ -313,6 +314,45 @@ def card(spacing=8):
     return box
 
 
+# Every button's icon gets its own colour, different from its (red) text
+# (C0D3D, 2026-11-12: "all the icons on the buttons, a different color then the
+# text, random colors for each button"). The sequence is shuffled per launch so
+# neighbours never match, while one window keeps a stable set.
+ICON_TINTS = [
+    "#00ffff", "#ff00ff", "#ffff00", "#7cff00", "#ff8c00", "#b57cff",
+    "#ff69b4", "#00bfff", "#f5f5f5", "#7dffb0", "#ffa07a", "#c0ff00",
+]
+_icon_tint_index = [0]
+_icon_tints_shuffled = []
+
+
+def next_icon_tint():
+    if not _icon_tints_shuffled:
+        _icon_tints_shuffled.extend(sorted(ICON_TINTS))
+        random.shuffle(_icon_tints_shuffled)
+    tint = _icon_tints_shuffled[_icon_tint_index[0] % len(_icon_tints_shuffled)]
+    _icon_tint_index[0] += 1
+    return tint
+
+
+def tint_icon(image, colour):
+    """Recolour one symbolic icon without touching anything else."""
+    global _icon_tint_serial
+    _icon_tint_serial += 1
+    name = "tint-%d" % _icon_tint_serial
+    image.add_css_class(name)
+    provider = Gtk.CssProvider()
+    provider.load_from_data(
+        ("image.%s { color: %s; }" % (name, colour)).encode("utf-8"))
+    display = Gdk.Display.get_default()
+    if display is not None:
+        Gtk.StyleContext.add_provider_for_display(
+            display, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION + 1)
+
+
+_icon_tint_serial = 0
+
+
 def icon_button(label, icon, toggle=False):
     """A button with a symbolic icon beside its text.
 
@@ -323,6 +363,7 @@ def icon_button(label, icon, toggle=False):
     button = Gtk.ToggleButton() if toggle else Gtk.Button()
     row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
     image = Gtk.Image.new_from_icon_name(icon)
+    tint_icon(image, next_icon_tint())
     row.append(image)
     text = Gtk.Label(label=label)
     row.append(text)
