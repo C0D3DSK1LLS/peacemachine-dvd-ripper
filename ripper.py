@@ -37,7 +37,10 @@ def cpu_limit_prefix():
     run = shutil.which("systemd-run")
     guard = shutil.which("percore-cap") or os.path.expanduser("~/.local/bin/percore-cap")
     guard_prefix = [guard, "--percent", "75", "--"] if os.path.exists(guard) else []
-    if run:
+    # systemd-run --user needs the session bus; without it the whole command would
+    # fail instead of just losing the quota, so it is only used when we have one.
+    session = bool(os.environ.get("XDG_RUNTIME_DIR") or os.environ.get("DBUS_SESSION_BUS_ADDRESS"))
+    if run and session:
         return [run, "--user", "--scope", "--quiet", "--collect",
                 "-p", "CPUQuota=%d%%" % limit, "--"] + guard_prefix
     return guard_prefix
