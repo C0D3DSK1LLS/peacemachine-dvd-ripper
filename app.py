@@ -164,18 +164,24 @@ class CircleStep(Gtk.Widget):
         cr.set_source_rgba(red, green, blue, alpha)
         cr.fill()
 
-        # black rim around the disc (C0D3D, 2026-11-12)
+        # rim around the disc (C0D3D, 2026-11-12); on the plain themes it goes
+        # the opposite way from the disc so it stays visible
+        luma_rim = 0.299 * red + 0.587 * green + 0.114 * blue
+        rim = (0.0, 0.0, 0.0) if luma_rim > 0.55 else (1.0, 1.0, 1.0)
         cr.set_line_width(2.0)
         cr.arc(cx, cy, radius - 1.0, 0, 2 * math.pi)
-        cr.set_source_rgba(0, 0, 0, 1.0)
+        cr.set_source_rgba(rim[0], rim[1], rim[2], 1.0)
         cr.stroke()
 
-        # the − / + glyph is black so it reads on the orange disc
+        # the − / + glyph contrasts with the disc it is painted on: black on a
+        # bright disc, white on a dark one, so the plain themes still read
+        luma = 0.299 * red + 0.587 * green + 0.114 * blue
+        ink = (0.0, 0.0, 0.0) if luma > 0.55 else (1.0, 1.0, 1.0)
         arm = radius * 0.52
         thickness = max(1.5, min(width, height) * 0.09)
         cr.set_line_width(thickness)
         cr.set_line_cap(1)  # cairo.LINE_CAP_ROUND
-        cr.set_source_rgba(0, 0, 0, 1.0)
+        cr.set_source_rgba(ink[0], ink[1], ink[2], 1.0)
         cr.move_to(cx - arm, cy)
         cr.line_to(cx + arm, cy)
         if self._plus:
@@ -365,12 +371,43 @@ def tint_icon(image, colour):
     name = "tint-%d" % _icon_tint_serial
     image.add_css_class(name)
     provider = Gtk.CssProvider()
-    provider.load_from_data(
-        ("image.%s { color: %s; }" % (name, colour)).encode("utf-8"))
+    image._tint_class = name
+    image._tint_provider = provider
+    image._tint_colour = colour
+    _tinted_images.append(image)
+    _write_tint(image)
     display = Gdk.Display.get_default()
     if display is not None:
         Gtk.StyleContext.add_provider_for_display(
             display, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION + 1)
+
+
+# Every icon we have tinted, so a theme change can recolour the lot.
+_tinted_images = []
+_current_theme = "matrix"
+
+
+def _write_tint(image):
+    """Write the icon's colour for the current theme.
+
+    The Matrix skin gives each button its own colour (C0D3D, 2026-11-12); the
+    plain themes carry no colour at all, so the icons go plain black or white
+    with the rest of the text.
+    """
+    if _current_theme == "matrix":
+        colour = image._tint_colour
+    else:
+        colour = "#000000" if _current_theme == "light" else "#ffffff"
+    image._tint_provider.load_from_data(
+        ("image.%s { color: %s; }" % (image._tint_class, colour)).encode("utf-8"))
+
+
+def refresh_icon_tints():
+    for image in list(_tinted_images):
+        try:
+            _write_tint(image)
+        except Exception:
+            pass
 
 
 _icon_tint_serial = 0
@@ -1362,13 +1399,19 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.preview_rule = self.section_rule()
         settings.append(self.preview_rule)
 
+        # sections sit shoulder to shoulder: no air above or below, and the
+        # hairlines between them carry no padding of their own
+        # (C0D3D, 2026-11-12: "move all of this up ... just move it all up")
+        settings.set_spacing(0)
         _first = True
         for _name, _items in _ordered:
             if not _first:
-                settings.append(self.section_rule())
+                rule = self.section_rule()
+                rule.set_margin_top(0)
+                rule.set_margin_bottom(0)
+                settings.append(rule)
             _first = False
-            # no air above or below a section (C0D3D, 2026-11-12)
-            group = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+            group = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
             group.set_margin_top(0)
             group.set_margin_bottom(0)
             for _item in _items:
@@ -3524,7 +3567,12 @@ def css_path(name):
 
 def apply_theme(name):
     """Swap the whole stylesheet — Matrix, or one of the plain themes."""
-    global _theme_provider
+    global _theme_provider, _current_theme
+    _current_theme = name
+    try:
+        refresh_icon_tints()
+    except Exception:
+        pass
     display = Gdk.Display.get_default()
     if display is None:
         return
