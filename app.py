@@ -361,7 +361,17 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.theme_button.connect("clicked", lambda *_: theme_popover.popup())
         self.fill_theme_list()
 
-        root.append(self.build_source_card())
+        # SOURCE / SAVE TO card. It auto-hides (C0D3D, 2026-11-11): hovering it
+        # opens it, and it slides away 2 s after the pointer leaves. Wrapping it
+        # in a revealer means the space is handed back to the panes below.
+        self.source_card = self.build_source_card()
+        self.source_revealer = Gtk.Revealer()
+        self.source_revealer.set_transition_type(
+            Gtk.RevealerTransitionType.SLIDE_UP)
+        self.source_revealer.set_transition_duration(650)
+        self.source_revealer.set_child(self.source_card)
+        self.source_revealer.set_reveal_child(True)
+        root.append(self.source_revealer)
 
         # the rip queue lives in its own vertical paned so its height can be dragged
         self.queue_paned = Gtk.Paned(orientation=Gtk.Orientation.VERTICAL)
@@ -394,6 +404,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.set_child(outer)
         self.freeze_wheel(outer)
         self.install_wheel_fallback()
+        self.install_source_autohide()
 
         saved = self.state
         self.output_dir = saved.get("output_dir") or ripper.DEFAULT_OUTPUT_DIR
@@ -1227,6 +1238,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         """
         motion = Gtk.EventControllerMotion()
         motion.connect("motion", self.remember_pointer)
+        motion.connect("leave", self.forget_pointer)
         self.add_controller(motion)
         self.pointer = None
         controller = Gtk.EventControllerScroll(
@@ -1237,6 +1249,85 @@ class RipperWindow(Gtk.ApplicationWindow):
 
     def remember_pointer(self, _controller, x, y):
         self.pointer = (x, y)
+
+    def forget_pointer(self, _controller):
+        # pointer left the window: nothing is hovered any more
+        self.pointer = None
+
+    # ---------------------------------------------------------- auto-hiding
+    # C0D3D (2026-11-11): "can we make this top part auto hide, with a smooth
+    # slow hide animation" / "when i hover over it it opens" / "when i unhover
+    # over it, i want a 2 second delay before it hides". The SOURCE / SAVE TO
+    # card slides up out of the way and gives its height to the panes below.
+    SOURCE_HIDE_DELAY = 2.0     # seconds after the pointer leaves
+    SOURCE_REVEAL_ZONE = 56     # px from the top of the window that opens it
+
+    def install_source_autohide(self):
+        self.source_last_over = time.monotonic()
+        self.source_hold_until = 0.0
+        focus = Gtk.EventControllerFocus()
+        focus.connect("enter", self.on_source_focus_in)
+        focus.connect("leave", self.on_source_focus_out)
+        self.source_card.add_controller(focus)
+        GLib.timeout_add(120, self.watch_source_autohide)
+
+    def on_source_focus_in(self, _controller):
+        # typing a path must never yank the card away
+        self.source_hold_until = time.monotonic() + 30.0
+
+    def on_source_focus_out(self, _controller):
+        self.source_hold_until = 0.0
+        self.source_last_over = time.monotonic()
+
+    def source_is_shown(self):
+        return bool(self.source_revealer.get_reveal_child())
+
+    def set_source_shown(self, shown):
+        if self.dead or self.source_is_shown() == shown:
+            return
+        self.source_revealer.set_reveal_child(shown)
+
+    def pointer_over_source(self):
+        """True when the pointer is over the card, or in the strip that opens it."""
+        if self.pointer is None:
+            return False
+        # The top band both opens a hidden card and keeps a shown one open, so
+        # hovering there cannot make it flicker open/closed every 2 seconds.
+        if self.pointer[1] <= self.SOURCE_REVEAL_ZONE:
+            return True
+        if not self.source_is_shown():
+            return False
+        widget = self.pick(self.pointer[0], self.pointer[1],
+                           Gtk.PickFlags.DEFAULT)
+        while widget is not None:
+            if widget is self.source_card or widget is self.source_revealer:
+                return True
+            widget = widget.get_parent()
+        return False
+
+    def focus_inside_source(self):
+        widget = self.get_focus()
+        while widget is not None:
+            if widget is self.source_card:
+                return True
+            widget = widget.get_parent()
+        return False
+
+    def watch_source_autohide(self):
+        if self.dead:
+            return False
+        now = time.monotonic()
+        over = self.pointer_over_source()
+        popover_open = getattr(self, "theme_popover", None) is not None \
+            and self.theme_popover.get_visible()
+        if (over or popover_open or self.focus_inside_source()
+                or now < self.source_hold_until):
+            self.source_last_over = now
+            self.set_source_shown(True)
+        elif self.source_is_shown() and \
+                now - self.source_last_over >= self.SOURCE_HIDE_DELAY:
+            self.set_source_shown(False)
+        return True
 
     def scroller_under_pointer(self):
         if self.pointer is None:
@@ -1553,6 +1644,10 @@ class RipperWindow(Gtk.ApplicationWindow):
         else:
             self.source_status.set_text(
                 "No optical drive found. Plug one in, or browse to an ISO / VIDEO_TS folder.")
+        # Do not leave the caret parked in the source path: a focused widget
+        # holds the auto-hiding SOURCE card open (C0D3D, 2026-11-11), so the
+        # window would never hide it until something else took focus.
+        self.set_focus(None)
         return False
 
     # ---------------------------------------------------------------- scan
