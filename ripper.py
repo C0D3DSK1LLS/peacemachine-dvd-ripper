@@ -19,17 +19,28 @@ FFMPEG = shutil.which("ffmpeg") or "/usr/bin/ffmpeg"
 # scheduler spreads the work over the whole machine and the quota stops any core
 # from staying pegged at 100%.
 def cpu_limit_prefix():
-    """A prefix that runs a job under a cgroup quota of 80% of all cores."""
+    """Keep a job under 80% of every core, spread across all of them.
+
+    Two ceilings, because one is not enough: the cgroup quota caps the *total* at
+    80% of the machine, and `percore-cap` caps *each thread* at 75% duty so no
+    single core can sit pegged (a quota alone never bites while a job spawns
+    fewer threads than the machine has cores, which is exactly what HandBrake's
+    NVENC path does).
+    """
     try:
         cores = len(os.sched_getaffinity(0))
     except AttributeError:  # pragma: no cover - non-Linux
         cores = os.cpu_count() or 1
-    run = shutil.which("systemd-run")
-    if not run or cores < 2:
+    if cores < 2:
         return []
-    quota = max(1, int(cores * 4 / 5)) * 100  # 80% of the whole machine
-    return [run, "--user", "--scope", "--quiet", "--collect",
-            "-p", "CPUQuota=%d%%" % quota, "--"]
+    limit = max(1, int(cores * 4 / 5)) * 100  # 80% of the whole machine
+    run = shutil.which("systemd-run")
+    guard = shutil.which("percore-cap") or os.path.expanduser("~/.local/bin/percore-cap")
+    guard_prefix = [guard, "--percent", "75", "--"] if os.path.exists(guard) else []
+    if run:
+        return [run, "--user", "--scope", "--quiet", "--collect",
+                "-p", "CPUQuota=%d%%" % limit, "--"] + guard_prefix
+    return guard_prefix
 
 
 
