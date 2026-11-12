@@ -1109,6 +1109,20 @@ class RipperWindow(Gtk.ApplicationWindow):
         _block.append(caption_centred_temp("SPLIT INTO SEPARATE FILES"))
         _block.append(self.split_row)
 
+        # C0D3D (2026-11-12): say out loud that the automatic cut points are only a
+        # starting guess, and how to get exact ones.
+        self.split_note = Gtk.Label(xalign=0.5, label=(
+            "Sometimes the automatic timestamps or chapters aren't always 100% "
+            "accurate. You might have to input them manually. Ripping the file as "
+            "\u201cWhole title\u201d and opening it up in your media player will "
+            "show you your timestamps."))
+        self.split_note.set_wrap(True)
+        self.split_note.set_max_width_chars(64)
+        self.split_note.set_justify(Gtk.Justification.CENTER)
+        self.split_note.add_css_class("dim")
+        self.split_note.add_css_class("split-note")
+        _block.append(self.split_note)
+
 
         self.lossless = Gtk.CheckButton(label="Lossless split")
         self.lossless.set_tooltip_text(
