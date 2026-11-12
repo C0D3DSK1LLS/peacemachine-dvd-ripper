@@ -366,17 +366,18 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.theme_button.connect("clicked", lambda *_: theme_popover.popup())
         self.fill_theme_list()
 
-        # SOURCE / SAVE TO card. It auto-hides (C0D3D, 2026-11-11): hovering it
-        # opens it, and it slides away 2 s after the pointer leaves. Wrapping it
-        # in a revealer means the space is handed back to the panes below.
+        # SOURCE / SAVE TO card. It auto-hides (C0D3D, 2026-11-11): hovering the
+        # top band opens it, and it slides away 2 s after the pointer leaves.
         self.source_card = self.build_source_card()
+        # it floats over the panes, so it needs its own opaque face or the
+        # content underneath shows through it
+        self.source_card.add_css_class("source-floating")
         self.source_revealer = Gtk.Revealer()
         self.source_revealer.set_transition_type(
             Gtk.RevealerTransitionType.SLIDE_UP)
         self.source_revealer.set_transition_duration(650)
         self.source_revealer.set_child(self.source_card)
         self.source_revealer.set_reveal_child(True)
-        root.append(self.source_revealer)
 
         # the rip queue lives in its own vertical paned so its height can be dragged
         self.queue_paned = Gtk.Paned(orientation=Gtk.Orientation.VERTICAL)
@@ -390,7 +391,20 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.queue_card = self.build_queue_card()
         self.queue_paned.set_end_child(self.queue_card)
         self.queue_paned.set_vexpand(True)
-        root.append(self.queue_paned)
+
+        # The card floats OVER the panes instead of sitting in the box above them
+        # (C0D3D, 2026-11-11: "i dont want anything else to move when i hover over
+        # top"). An overlay child is given no layout space of its own, so showing
+        # and hiding it never re-flows the columns underneath — it just covers the
+        # top strip while it is open and slides out of view when it hides.
+        self.source_overlay = Gtk.Overlay()
+        self.source_overlay.set_child(self.queue_paned)
+        self.source_overlay.set_vexpand(True)
+        self.source_revealer.set_valign(Gtk.Align.START)
+        self.source_revealer.set_halign(Gtk.Align.FILL)
+        self.source_revealer.set_vexpand(False)
+        self.source_overlay.add_overlay(self.source_revealer)
+        root.append(self.source_overlay)
         self.build_keys()
 
         self.page = Gtk.ScrolledWindow()
