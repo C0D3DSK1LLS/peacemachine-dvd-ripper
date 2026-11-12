@@ -309,6 +309,9 @@ class RipperWindow(Gtk.ApplicationWindow):
     def __init__(self, app):
         super().__init__(application=app)
         self.state = load_state()
+        # C0D3D (2026-11-11): a value that is missing from the file must not
+        # fall back to "off" — the transcript is the default on this box.
+        self.state.setdefault("transcript", "best")
         self.titles = []
         self.episode_rows = []
         self.episode_show = ""
@@ -1628,8 +1631,9 @@ class RipperWindow(Gtk.ApplicationWindow):
         for index, mode in enumerate(ripper.DEBAND_MODES):
             if mode["key"] == saved.get("deband"):
                 self.deband_dropdown.set_selected(index)
+        wanted = saved.get("transcript") or "best"
         for index, mode in enumerate(ripper.TRANSCRIPT_MODES):
-            if mode["key"] == saved.get("transcript"):
+            if mode["key"] == wanted:
                 self.transcript_dropdown.set_selected(index)
         if saved.get("anime"):
             self.anime_check.set_active(True)
