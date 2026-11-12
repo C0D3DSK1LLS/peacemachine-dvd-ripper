@@ -753,3 +753,74 @@ def deband_command(source_path, output_path, mode_key, quality=18):
             "-map_metadata", "0", "-map_chapters", "0",
             "-progress", "pipe:1", "-nostats",
             output_path]
+
+
+# --- Transcript (speech-to-text of the English audio) -----------------------
+# C0D3D (2026-11-11): the disc's English subtitles are a translation of the
+# Japanese script, so they say something different from the English dub. The
+# transcript pass listens to the dub that is actually in the file and writes
+# subtitles from it, so the words match what is being said.
+
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+ASR_DIR = os.path.join(APP_DIR, "asr")
+ASR_PYTHON = os.path.join(ASR_DIR, "venv", "bin", "python")
+ASR_SCRIPT = os.path.join(ASR_DIR, "transcribe.py")
+
+TRANSCRIPT_MODES = [
+    {"key": "off", "short": "Transcript: off", "model": None},
+    {"key": "fast", "short": "Transcript: fast", "model": "small.en"},
+    {"key": "better", "short": "Transcript: better", "model": "medium.en"},
+    {"key": "best", "short": "Transcript: best", "model": "large-v3-turbo"},
+]
+
+TRANSCRIPT_BY_KEY = {mode["key"]: mode for mode in TRANSCRIPT_MODES}
+
+
+def asr_available():
+    return os.path.isfile(ASR_PYTHON) and os.path.isfile(ASR_SCRIPT)
+
+
+def transcript_command(video_path, srt_path, model, audio_stream=0):
+    """Speech-to-text over one audio stream, writing an SRT beside the video."""
+    return [ASR_PYTHON, ASR_SCRIPT,
+            "--input", video_path,
+            "--output", srt_path,
+            "--model", model,
+            "--audio-stream", str(audio_stream),
+            "--max-chars", "42"]
+
+
+def parse_transcript_progress(line):
+    """Return the percent from a "PROGRESS 42" line, else None."""
+    text = (line or "").strip()
+    if not text.startswith("PROGRESS "):
+        return None
+    try:
+        return max(0, min(100, int(text.split(None, 1)[1])))
+    except (IndexError, ValueError):
+        return None
+
+
+def mux_transcript_command(video_path, srt_path, output_path, keep_disc=True):
+    """Put the transcript into the file as the default English subtitle track.
+
+    The transcript is always mapped first, so it is stream 0 no matter how many
+    disc subtitle tracks the rip carried. keep_disc=True keeps the disc's
+    translation as an extra track; False drops it entirely.
+    """
+    command = [FFMPEG, "-hide_banner", "-nostdin", "-y",
+               "-i", video_path, "-i", srt_path,
+               "-map", "0:v", "-map", "0:a", "-map", "1:0"]
+    if keep_disc:
+        command += ["-map", "0:s?", "-c:s", "copy", "-c:s:0", "srt"]
+    else:
+        command += ["-c:s", "srt"]
+    command += [
+        "-c:v", "copy", "-c:a", "copy",
+        "-metadata:s:s:0", "language=eng",
+        "-metadata:s:s:0", "title=English (transcript)",
+        "-disposition:s:0", "default",
+        "-map_metadata", "0", "-map_chapters", "0",
+        output_path,
+    ]
+    return command

@@ -141,7 +141,8 @@ class Job:
     def __init__(self, source, title, label, path, preset_key, audio_key,
                  sub_key, start=None, stop=None, chapters=None, method="encode",
                  audio_lang="any", markers=True, resolution="native", size=None,
-                 anime=False, denoise="off", deblock="off", deband="off"):
+                 anime=False, denoise="off", deblock="off", deband="off",
+                 transcript="off"):
         self.source = source
         self.title_number = title.number
         self.title_duration = title.duration
@@ -158,6 +159,7 @@ class Job:
         self.denoise = denoise
         self.deblock = deblock
         self.deband = deband
+        self.transcript = transcript   # off / fast / better / best
         self.start = start
         self.stop = stop
         self.chapters = chapters
@@ -852,6 +854,20 @@ class RipperWindow(Gtk.ApplicationWindow):
         _blocks["SUBTITLES"] = _block
         _block.append(caption_centred_temp("SUBTITLES"))
         _block.append(self.sub_dropdown)
+        # C0D3D (2026-11-11): the disc's English subtitles translate the
+        # Japanese script, so they do not say what the English dub says. This
+        # listens to the dub in the rip itself and writes subtitles from it.
+        self.transcript_dropdown = Gtk.DropDown.new_from_strings(
+            [mode["short"] for mode in ripper.TRANSCRIPT_MODES])
+        self.transcript_dropdown.set_tooltip_text(
+            "Speech-to-text over the English audio in the rip, so the subtitles "
+            "say exactly what the dub says. Runs on the GPU after the encode "
+            "(a minute or so an episode) and becomes the default subtitle track; "
+            "the disc's translation is kept as a second track.")
+        self.transcript_dropdown.set_hexpand(False)
+        self.transcript_dropdown.set_halign(Gtk.Align.CENTER)
+        self.transcript_dropdown.set_size_request(210, -1)
+        _block.append(self.transcript_dropdown)
 
 
         _block = []
@@ -1612,6 +1628,9 @@ class RipperWindow(Gtk.ApplicationWindow):
         for index, mode in enumerate(ripper.DEBAND_MODES):
             if mode["key"] == saved.get("deband"):
                 self.deband_dropdown.set_selected(index)
+        for index, mode in enumerate(ripper.TRANSCRIPT_MODES):
+            if mode["key"] == saved.get("transcript"):
+                self.transcript_dropdown.set_selected(index)
         if saved.get("anime"):
             self.anime_check.set_active(True)
         self.set_theme(saved.get("theme") or "matrix", remember=False)
@@ -1946,6 +1965,11 @@ class RipperWindow(Gtk.ApplicationWindow):
         index = max(0, self.deband_dropdown.get_selected())
         return ripper.DEBAND_MODES[
             min(index, len(ripper.DEBAND_MODES) - 1)]["key"]
+
+    def current_transcript(self):
+        index = max(0, self.transcript_dropdown.get_selected())
+        return ripper.TRANSCRIPT_MODES[
+            min(index, len(ripper.TRANSCRIPT_MODES) - 1)]["key"]
 
     def current_deblock(self):
         index = max(0, self.deblock_dropdown.get_selected())
@@ -2487,7 +2511,8 @@ class RipperWindow(Gtk.ApplicationWindow):
                           anime=self.anime_check.get_active(),
                           denoise=self.current_denoise(),
                           deblock=self.current_deblock(),
-                          deband=self.current_deband())
+                          deband=self.current_deband(),
+                          transcript=self.current_transcript())
                 self.jobs.append(job)
                 added += 1
         if episode_by_title:
@@ -2501,6 +2526,7 @@ class RipperWindow(Gtk.ApplicationWindow):
                            "denoise": self.current_denoise(),
                            "deblock": self.current_deblock(),
                            "deband": self.current_deband(),
+                           "transcript": self.current_transcript(),
                            "markers": self.markers.get_active(),
                            "episode_show": self.episode_show,
                            "episode_style": self.name_style_key(),
@@ -2739,6 +2765,11 @@ class RipperWindow(Gtk.ApplicationWindow):
             if self.run_deband_pass(job) != "done":
                 job.detail = "deband pass failed"
                 return "failed"
+        if (process.returncode == 0
+                and job.transcript not in (None, "", "off")):
+            if self.run_transcript_pass(job) != "done":
+                job.detail = "transcript pass failed"
+                return "failed"
         if process.returncode != 0:
             job.detail = "exit %s" % process.returncode
             return "failed"
@@ -2803,6 +2834,86 @@ class RipperWindow(Gtk.ApplicationWindow):
             return "failed"
         return "done"
 
+    def run_transcript_pass(self, job):
+        """Listen to the dub in the finished file and write matching subs."""
+        if not ripper.asr_available():
+            ripper.log("transcript pass unavailable: ASR venv missing")
+            return "failed"
+        mode = ripper.TRANSCRIPT_BY_KEY.get(job.transcript) or {}
+        model = mode.get("model")
+        if not model:
+            return "done"
+        folder = os.path.dirname(job.path)
+        base = os.path.basename(job.path)
+        srt = os.path.join(folder, "." + base + ".srt")
+        temporary = os.path.join(folder, "." + base + ".transcript.mkv")
+        command = ripper.transcript_command(job.path, srt, model)
+        ripper.log("transcript start: %s" % " ".join(command))
+        try:
+            run = subprocess.Popen(command, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, text=True, bufsize=1,
+                                   start_new_session=True)
+        except OSError as error:
+            ripper.log("transcript failed to start: %s" % error)
+            return "failed"
+        self.current_proc = run
+        for line in run.stdout:
+            percent = ripper.parse_transcript_progress(line)
+            if percent is not None:
+                GLib.idle_add(self.progress_label.set_text,
+                              "%s — transcribing the dub %d%%"
+                              % (job.label, percent))
+                GLib.idle_add(self.job_progress, job,
+                              {"fraction": percent / 100.0, "transcript": True})
+                continue
+            text = line.rstrip()
+            if text:
+                ripper.log("transcript: %s" % text)
+        for line in run.stderr:
+            text = line.rstrip()
+            if text:
+                ripper.log("transcript: %s" % text)
+        run.wait()
+        self.current_proc = None
+        if self.cancel_requested:
+            for path in (srt, temporary):
+                try:
+                    os.unlink(path)
+                except OSError:
+                    pass
+            return "cancelled"
+        if run.returncode != 0 or not os.path.exists(srt):
+            for path in (srt, temporary):
+                try:
+                    os.unlink(path)
+                except OSError:
+                    pass
+            return "failed"
+        GLib.idle_add(self.progress_label.set_text,
+                      "%s — adding the transcript" % job.label)
+        mux = ripper.mux_transcript_command(job.path, srt, temporary,
+                                           keep_disc=job.sub_key != "none")
+        result = subprocess.run(mux, capture_output=True, text=True)
+        if result.returncode != 0:
+            ripper.log("transcript mux failed: %s" % result.stderr[-400:])
+            for path in (srt, temporary):
+                try:
+                    os.unlink(path)
+                except OSError:
+                    pass
+            return "failed"
+        try:
+            os.replace(temporary, job.path)
+        except OSError as error:
+            ripper.log("transcript swap failed: %s" % error)
+            return "failed"
+        try:
+            os.unlink(srt)
+        except OSError:
+            pass
+        ripper.log("transcript written for %s" % base)
+        return "done"
+
     def job_started(self, job):
         if self.dead:
             return False
@@ -2830,6 +2941,10 @@ class RipperWindow(Gtk.ApplicationWindow):
         if values.get("copy"):
             job.detail = "copying"
             self.progress_label.set_text("%s — %.0f%% (lossless copy)"
+                                         % (job.label, fraction * 100))
+        elif values.get("transcript"):
+            job.detail = "transcribing"
+            self.progress_label.set_text("%s — transcribing the dub %.0f%%"
                                          % (job.label, fraction * 100))
         else:
             eta = ripper.fmt_hms(values.get("eta") or 0)

@@ -2,3 +2,5 @@ __pycache__/
 *.pyc
 state.json
 episode-cache.json
+asr/venv/
+asr/models/
