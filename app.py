@@ -1086,15 +1086,6 @@ class RipperWindow(Gtk.ApplicationWindow):
             "How many episodes this disc holds — four is usual for Bleach.")
         parts_row.append(self.round_stepper(self.episode_parts))
 
-        # Cut times land a few seconds off when a disc's episodes are not exactly
-        # equal length (C0D3D, 2026-11-12: "ep 327 is 4 seconds behind"). This
-        # nudges every timestamp cut so the boundaries can be lined up by eye.
-        parts_row.append(caption_centred_temp("SHIFT"))
-        self.cut_shift = NumberBox(-30, 30, 0)
-        self.cut_shift.set_tooltip_text(
-            "Move every timestamp cut by this many seconds. Negative starts "
-            "earlier — use it when an episode begins a few seconds late.")
-        parts_row.append(self.round_stepper(self.cut_shift))
 
         # C0D3D (2026-11-10): the episode count shares the line with the mode
         # buttons. Done with a plain Box — a FlowBox here swallowed the clicks.
@@ -1773,10 +1764,6 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.set_theme(saved.get("theme") or "matrix", remember=False)
         if saved.get("markers") is False:
             self.markers.set_active(False)
-        try:
-            self.cut_shift.set_value(int(saved.get("cut_shift") or 0))
-        except (TypeError, ValueError):
-            pass
         if saved.get("episode_show"):
             self.show_entry.set_text(saved["episode_show"])
             if saved.get("episode_start"):
@@ -2641,13 +2628,6 @@ class RipperWindow(Gtk.ApplicationWindow):
                     if stop is None:
                         stop = title.duration
                     chapters = None
-                # timestamp cuts can be nudged; chapter cuts are already exact
-                if chapters is None and start is not None:
-                    shift = int(self.cut_shift.get_value())
-                    if shift:
-                        start = max(0.0, start + shift)
-                        if stop is not None:
-                            stop = max(start + 1.0, stop + shift)
                 job = Job(self.source, title, label, path, preset["key"],
                           self.current_audio(), self.current_subs(),
                           start, stop, chapters,
@@ -2676,7 +2656,6 @@ class RipperWindow(Gtk.ApplicationWindow):
                            "deband": self.current_deband(),
                            "transcript": self.current_transcript(),
                            "markers": self.markers.get_active(),
-                           "cut_shift": int(self.cut_shift.get_value()),
                            "episode_show": self.episode_show,
                            "episode_style": self.name_style_key(),
                            "episode_season": self.selected_season(),
