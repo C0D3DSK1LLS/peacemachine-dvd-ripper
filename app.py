@@ -1309,6 +1309,7 @@ class RipperWindow(Gtk.ApplicationWindow):
     # ---------------------------------------------------------------- queue
     def build_queue_card(self):
         box = card(2)   # C0D3D, 2026-11-11: compact queue card
+        box.add_css_class("queue-card")
 
         # Caption and buttons share one row (C0D3D, 2026-11-11) so the buttons sit
         # right at the top edge of the card and the list starts under them.
