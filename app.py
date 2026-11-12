@@ -398,6 +398,7 @@ class RipperWindow(Gtk.ApplicationWindow):
     def __init__(self, app):
         super().__init__(application=app)
         self.state = load_state()
+        self.auto_temp = None
         # C0D3D (2026-11-11): a value that is missing from the file must not
         # fall back to "off" — the transcript is the default on this box.
         self.state.setdefault("transcript", "best")
@@ -1163,6 +1164,19 @@ class RipperWindow(Gtk.ApplicationWindow):
             "off the disc takes far too long.")
         self.detect_button.connect("clicked", lambda *_: self.on_detect_breaks())
         detect_row.append(self.detect_button)
+
+        # C0D3D (2026-11-12): option 2 — rip the title whole, find the real breaks,
+        # then cut it. Nothing is guessed from chapter maths.
+        self.auto_button = Gtk.Button(label="Rip → detect → split")
+        self.auto_button.add_css_class("compact-button")
+        self.auto_button.add_css_class("orange-button")
+        self.auto_button.set_tooltip_text(
+            "Rip the ticked title in one piece, listen to it for the gaps between "
+            "episodes, then cut the result into those episodes with a lossless "
+            "copy. Slower to start than chapters, but the cuts are where the "
+            "episodes actually are. The intermediate file is deleted afterwards.")
+        self.auto_button.connect("clicked", lambda *_: self.on_auto_split())
+        detect_row.append(self.auto_button)
         _block.append(detect_row)
 
         self.preview_label = plain("", "preview")
@@ -2242,6 +2256,98 @@ class RipperWindow(Gtk.ApplicationWindow):
                  for index in range(parts)]
         self.split_text.get_buffer().set_text("\n".join(lines) + "\n")
 
+    def on_auto_split(self):
+        """One click: rip the title whole, detect the breaks, then copy-cut it."""
+        titles = self.checked_titles()
+        if len(titles) != 1:
+            self.flash_status("Tick exactly one title to auto-split.")
+            return
+        source = self.source_entry.get_text().strip()
+        if not source:
+            self.flash_status("Pick a disc or a video file first.")
+            return
+        title = titles[0]
+        duration = float(getattr(title, "duration", 0) or 0)
+        if duration <= 0:
+            self.flash_status("That title has no known length yet — rescan.")
+            return
+        parts = max(2, int(self.episode_parts.get_value()))
+        out_dir = self.output_entry.get_text().strip() or ripper.DEFAULT_OUTPUT_DIR
+        try:
+            os.makedirs(out_dir, exist_ok=True)
+        except OSError as error:
+            self.flash_status("Cannot create %s: %s" % (out_dir, error))
+            return
+        base = ripper.safe_filename(self.name_entry.get_text().strip(), "Disc")
+
+        if ripper.is_video_file(source):
+            # already a file: nothing to rip, just find the breaks and queue copies
+            self.split_auto_ripped(source, title, duration, parts, base, out_dir)
+            return
+
+        preset = self.current_preset()
+        temp = self.unique_path(
+            os.path.join(out_dir, "%s - whole.%s" % (base, preset["ext"])))
+        job = Job(source, title, "%s - whole" % base, temp, preset["key"],
+                  self.current_audio(), self.current_subs(),
+                  method="encode",
+                  audio_lang=self.current_audio_lang(),
+                  markers=False,
+                  resolution=self.current_resolution(),
+                  size=ripper.target_size(title, self.current_resolution()),
+                  anime=self.anime_check.get_active(),
+                  denoise=self.current_denoise(),
+                  deblock=self.current_deblock(),
+                  deband=self.current_deband(),
+                  transcript="off")
+        job.auto_rip = True
+        job.auto_title = title
+        job.auto_duration = duration
+        job.auto_parts = parts
+        job.auto_base = base
+        job.auto_dir = out_dir
+        self.auto_temp = temp
+        self.jobs.append(job)
+        self.rebuild_queue()
+        self.flash_status("Ripping the whole title first — the cut follows automatically.")
+        if not self.running:
+            self.start_queue()
+
+    def split_auto_ripped(self, path, title, duration, parts, base, out_dir):
+        """Find the breaks in `path` and queue one lossless copy per episode."""
+        self.flash_status("Listening for the gaps between episodes…")
+        try:
+            points, breaks = ripper.find_breaks(path, duration, parts)
+        except Exception as error:  # noqa: BLE001 - reported, never fatal
+            self.flash_status("Break detection failed: %s" % error)
+            return
+        if not breaks:
+            self.flash_status(
+                "No clear gaps found — the episodes run straight into each other. "
+                "Use chapters, or type the times by hand.")
+            return
+        segments = ripper.segments_from_breaks(breaks, duration)
+        names = self.episode_labels(len(segments))
+        preset = self.current_preset()
+        ext = os.path.splitext(path)[1].lstrip(".") or preset["ext"]
+        added = 0
+        for index, segment in enumerate(segments):
+            label = names[index] if index < len(names) else "%s - %02d" % (base, index + 1)
+            out_path = self.unique_path(
+                os.path.join(out_dir, ripper.safe_filename(label, "Rip") + "." + ext))
+            job = Job(path, title, label, out_path, preset["key"],
+                      self.current_audio(), self.current_subs(),
+                      start=segment["start"], stop=segment["stop"],
+                      method="copy")
+            self.jobs.append(job)
+            added += 1
+        self.rebuild_queue()
+        self.flash_status(
+            "%d breaks found — %d episode%s queued, cut with no re-encode."
+            % (len(breaks), added, "" if added == 1 else "s"))
+        if not self.running and added:
+            self.start_queue()
+
     def on_detect_breaks(self):
         """Find the episode breaks in the source file and fill the split box."""
         source = self.source_entry.get_text().strip()
@@ -2982,6 +3088,9 @@ class RipperWindow(Gtk.ApplicationWindow):
             self.current_job = job
             GLib.idle_add(self.job_started, job)
             result = self.run_job(job)
+            if getattr(job, "auto_rip", False) and result == "done":
+                self.split_auto_ripped(job.path, job.auto_title, job.auto_duration,
+                                       job.auto_parts, job.auto_base, job.auto_dir)
             self.current_job = None
             GLib.idle_add(self.job_finished, job, result)
             if self.cancel_requested:
@@ -3256,6 +3365,16 @@ class RipperWindow(Gtk.ApplicationWindow):
     def queue_finished(self):
         if self.dead:
             return False
+        if self.auto_temp and os.path.exists(self.auto_temp):
+            failed = any(job.status == "failed" and job.source == self.auto_temp
+                         for job in self.jobs)
+            if not failed:
+                try:
+                    os.remove(self.auto_temp)
+                    self.append_log("removed the intermediate %s" % self.auto_temp)
+                except OSError as error:
+                    self.append_log("could not remove %s: %s" % (self.auto_temp, error))
+            self.auto_temp = None
         self.running = False
         self.current_job = None
         self.update_counter()
