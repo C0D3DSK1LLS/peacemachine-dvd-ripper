@@ -135,6 +135,14 @@ class CircleStep(Gtk.Widget):
             alpha = 0.6
 
         cr.set_line_width(max(1.4, min(width, height) * 0.07))
+        # soft outer glow, so the disc reads like the CSS-framed buttons
+        # (C0D3D, 2026-11-12: "all the buttons to a deep orange with glow")
+        for grow, glow_alpha in ((3.2, 0.07), (2.1, 0.13), (1.0, 0.22)):
+            cr.set_line_width(max(1.4, min(width, height) * 0.07) + grow * 2)
+            cr.set_source_rgba(red, green, blue, glow_alpha * alpha)
+            cr.arc(cx, cy, radius, 0, 2 * math.pi)
+            cr.stroke()
+        cr.set_line_width(max(1.4, min(width, height) * 0.07))
         cr.arc(cx, cy, radius, 0, 2 * math.pi)
         cr.set_source_rgba(red, green, blue, alpha)
         cr.stroke()
