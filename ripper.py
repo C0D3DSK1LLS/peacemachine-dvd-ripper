@@ -94,12 +94,16 @@ PRESETS = [
     },
     {
         "key": "gpu",
-        "label": "Fast — NVENC H.264 (MKV)",
-        "short": "Fast — NVENC H.264",
+        "label": "Fast — H.264 x264 (MKV)",
+        "short": "Fast — H.264 x264",
         "ext": "mkv",
-        "note": "GPU encode, several times faster, slightly larger files.",
-        "args": ["-f", "av_mkv", "-e", "nvenc_h264", "-q", "22",
-                 "--encoder-preset", "p5"],
+        "note": "Quick software encode that spreads the work evenly over every core.",
+        # Software x264 rather than NVENC: the GPU path leaves one HandBrake thread
+        # doing ~73% of a core while the rest idle (measured 2026-11-12), so one
+        # core sits at ~65% and the others at ~30%.  x264 frame-threads across all
+        # cores instead, and under the 80%-per-core cap it is not slower in practice.
+        "args": ["-f", "av_mkv", "-e", "x264", "-q", "22",
+                 "--encoder-preset", "medium"],
     },
 ]
 
