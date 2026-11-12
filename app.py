@@ -804,7 +804,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         paned.set_start_child(titles_box)
 
         settings = card(4)
-        settings.add_css_class("settings-card")
+
         _blocks = {}
         self.settings_card = settings
 
