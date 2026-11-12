@@ -154,6 +154,24 @@ def split_segment(seg, max_chars, max_gap=1.2, min_dur=0.9):
     return cues
 
 
+def word_text(w):
+    """Text for one split_segment entry.
+
+    Whisper words carry .word; the no-word-timings fallback in split_segment
+    returns plain strings, so both shapes have to work here.
+    """
+    return (w.word if hasattr(w, "word") else str(w)).strip()
+
+
+def cues_from_segment(seg, max_chars):
+    """(start, end, text, wrapped_lines) for every cue in one segment."""
+    for start, end, words in split_segment(seg, max_chars):
+        text = " ".join(word_text(w) for w in words).strip()
+        if not text:
+            continue
+        yield start, end, text, wrap(text, max_chars)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--input", required=True)
@@ -217,11 +235,7 @@ def main():
                 continue
             if not seg.text.strip():
                 continue
-            for start, end, words in split_segment(seg, args.max_chars):
-                text = " ".join(w.word.strip() for w in words).strip()
-                if not text:
-                    continue
-                lines = wrap(text, args.max_chars)
+            for start, end, text, lines in cues_from_segment(seg, args.max_chars):
                 cues.append((start, max(end, start + 0.4), lines))
             pct = min(99, int(seg.end / total * 100))
             print("PROGRESS %d" % pct, flush=True)
