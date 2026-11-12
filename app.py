@@ -1118,6 +1118,22 @@ class RipperWindow(Gtk.ApplicationWindow):
         _block.append(caption_centred_temp("SPLIT INTO SEPARATE FILES"))
         _block.append(self.split_row)
 
+        # C0D3D (2026-11-12): strip the opening song / ending credits out of every
+        # piece while splitting, e.g. 90 s off the front and 90 s off the back.
+        trim_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        trim_row.set_halign(Gtk.Align.CENTER)
+        trim_row.append(caption_centred_temp("SKIP START"))
+        self.skip_start = NumberBox(0, 600, 0)
+        self.skip_start.set_tooltip_text(
+            "Seconds to drop from the start of every piece — the opening song.")
+        trim_row.append(self.round_stepper(self.skip_start))
+        trim_row.append(caption_centred_temp("SKIP END"))
+        self.skip_end = NumberBox(0, 600, 0)
+        self.skip_end.set_tooltip_text(
+            "Seconds to drop from the end of every piece — the ending credits.")
+        trim_row.append(self.round_stepper(self.skip_end))
+        _block.append(trim_row)
+
         self.lossless = Gtk.CheckButton(label="Lossless split")
         self.lossless.set_tooltip_text(
             "Only for an already-ripped video file: the pieces are copied straight "
@@ -1783,6 +1799,8 @@ class RipperWindow(Gtk.ApplicationWindow):
             self.markers.set_active(False)
         try:
             self.cut_shift.set_value(int(saved.get("cut_shift") or 0))
+            self.skip_start.set_value(int(saved.get("skip_start") or 0))
+            self.skip_end.set_value(int(saved.get("skip_end") or 0))
         except (TypeError, ValueError):
             pass
         if saved.get("episode_show"):
@@ -2671,6 +2689,21 @@ class RipperWindow(Gtk.ApplicationWindow):
                     if stop is None:
                         stop = title.duration
                     chapters = None
+                # drop the OP/ED from every piece (C0D3D, 2026-11-12)
+                skip_start = int(self.skip_start.get_value())
+                skip_end = int(self.skip_end.get_value())
+                if skip_start or skip_end:
+                    if chapters and getattr(title, "chapter_starts", None):
+                        # turning a chapter range into times is the only way to
+                        # trim inside it; the cut is then a timestamp one
+                        span = ripper.chapter_span(title, chapters)
+                        if span is not None:
+                            start, stop = span
+                            chapters = None
+                    if start is not None:
+                        start = start + skip_start
+                        if stop is not None:
+                            stop = max(start + 5.0, stop - skip_end)
                 # timestamp cuts can be nudged; chapter cuts are already exact
                 if chapters is None and start is not None:
                     shift = int(self.cut_shift.get_value())
@@ -2707,6 +2740,8 @@ class RipperWindow(Gtk.ApplicationWindow):
                            "transcript": self.current_transcript(),
                            "markers": self.markers.get_active(),
                            "cut_shift": int(self.cut_shift.get_value()),
+                           "skip_start": int(self.skip_start.get_value()),
+                           "skip_end": int(self.skip_end.get_value()),
                            "episode_show": self.episode_show,
                            "episode_style": self.name_style_key(),
                            "episode_season": self.selected_season(),
