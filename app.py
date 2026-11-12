@@ -7,6 +7,7 @@ into per-episode files by chapter range or by timestamp.
 """
 
 import json
+import math
 import os
 import re
 import signal
@@ -20,7 +21,8 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
 
-from gi.repository import Gdk, Gio, GLib, GObject, Gtk, Pango  # noqa: E402
+from gi.repository import (  # noqa: E402
+    Gdk, Gio, GLib, GObject, Graphene, Gtk, Pango)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
@@ -71,6 +73,90 @@ def save_state(data):
 # --------------------------------------------------------------------------
 # jobs
 # --------------------------------------------------------------------------
+class CircleStep(Gtk.Widget):
+    """A hand-drawn circular − / + button.
+
+    A real Gtk.Button kept getting stretched into an oval by CSS padding, the
+    font size or the desktop's fractional scale (C0D3D, 2026-11-11). This widget
+    paints its own circle instead: the radius is half of the SMALLER side, so it
+    stays round even if the box it is handed is not square.
+    """
+
+    def __init__(self, plus, on_click, size=24):
+        super().__init__()
+        self._plus = plus
+        self._on_click = on_click
+        self._square = size
+        self._hover = False
+        self._pressed = False
+        self.set_valign(Gtk.Align.CENTER)
+        self.add_css_class("circle-step")
+        try:
+            self.set_cursor(Gdk.Cursor.new_from_name("pointer", None))
+        except Exception:
+            pass
+        click = Gtk.GestureClick()
+        click.connect("pressed", self._pressed_in)
+        click.connect("released", self._released)
+        self.add_controller(click)
+        motion = Gtk.EventControllerMotion()
+        motion.connect("enter", lambda *_: self._set_hover(True))
+        motion.connect("leave", lambda *_: self._set_hover(False))
+        self.add_controller(motion)
+
+    # -- geometry ---------------------------------------------------------
+    def do_measure(self, orientation, for_size):
+        return (self._square, self._square, -1, -1)
+
+    def do_snapshot(self, snapshot):
+        width, height = self.get_width(), self.get_height()
+        if width < 3 or height < 3:
+            return
+        rect = Graphene.Rect().alloc()
+        rect.init(0, 0, width, height)
+        cr = snapshot.append_cairo(rect)
+
+        radius = min(width, height) / 2.0 - 1.0
+        cx, cy = width / 2.0, height / 2.0
+        colour = self.get_color()
+        red, green, blue = colour.red, colour.green, colour.blue
+        alpha = 1.0 if self._hover else 0.92
+        if self._pressed:
+            alpha = 0.6
+
+        cr.set_line_width(max(1.4, min(width, height) * 0.07))
+        cr.arc(cx, cy, radius, 0, 2 * math.pi)
+        cr.set_source_rgba(red, green, blue, alpha)
+        cr.stroke()
+
+        arm = radius * 0.52
+        thickness = max(1.5, min(width, height) * 0.09)
+        cr.set_line_width(thickness)
+        cr.set_line_cap(1)  # cairo.LINE_CAP_ROUND
+        cr.set_source_rgba(red, green, blue, alpha)
+        cr.move_to(cx - arm, cy)
+        cr.line_to(cx + arm, cy)
+        if self._plus:
+            cr.move_to(cx, cy - arm)
+            cr.line_to(cx, cy + arm)
+        cr.stroke()
+
+    # -- interaction ------------------------------------------------------
+    def _set_hover(self, state):
+        self._hover = state
+        self.queue_draw()
+
+    def _pressed_in(self, _gesture, _n_press, _x, _y):
+        self._pressed = True
+        self.queue_draw()
+
+    def _released(self, _gesture, _n_press, x, y):
+        self._pressed = False
+        self.queue_draw()
+        if 0 <= x <= self.get_width() and 0 <= y <= self.get_height():
+            self._on_click()
+
+
 class NumberBox(Gtk.Entry):
     """A small integer field with no built-in steppers.
 
@@ -480,8 +566,9 @@ class RipperWindow(Gtk.ApplicationWindow):
         """Wrap a spin button in its own round − / + buttons.
 
         The stock steppers are stretched by the spin button's height, which made
-        them ovals (C0D3D, 2026-11-10: "there not circles there fucking ovals").
-        Real buttons with a fixed square size stay circular at any font size.
+        them ovals (C0D3D, 2026-11-10), and CSS-sized real buttons did the same
+        again at a fractional desktop scale (2026-11-11). These are hand-drawn
+        circles, so their shape cannot be stretched by anything.
         """
         box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
         box.set_halign(Gtk.Align.CENTER)
@@ -489,16 +576,11 @@ class RipperWindow(Gtk.ApplicationWindow):
         # The pair sits to the right of the box (C0D3D, 2026-11-10: "put em both
         # on the right side"), the way a stock spin button reads.
         box.append(spin)
-        for text, delta in (("\u2212", -step), ("+", step)):
-            button = Gtk.Button(label=text)
-            button.add_css_class("round-step")
-            button.set_size_request(24, 24)
-            # Centred, not filled: a button stretched to the row height is an
-            # oval again, which is exactly what was wrong with the stock pair.
-            button.set_valign(Gtk.Align.CENTER)
-            button.connect("clicked",
-                           lambda _b, d=delta, target=spin:
-                           target.set_value(target.get_value() + d))
+        for plus, delta in ((False, -step), (True, step)):
+            button = CircleStep(
+                plus,
+                lambda d=delta, target=spin: target.set_value(
+                    target.get_value() + d))
             box.append(button)
         return box
 
@@ -754,13 +836,19 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.sub_dropdown.set_halign(Gtk.Align.CENTER)
         self.name_entry = Gtk.Entry()
         self.name_entry.set_text("Disc")
+        self.name_entry.set_tooltip_text(
+            "This will automatically name the show once u load the disk, "
+            "or manually name it whatever you want.")
         self.name_entry.set_width_chars(26)
         self.name_entry.set_hexpand(False)
         self.name_entry.set_halign(Gtk.Align.START)
         self.name_entry.add_css_class("source-entry")
         find_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.show_entry = Gtk.Entry()
-        self.show_entry.set_placeholder_text("Show name — e.g. Bleach")
+        self.show_entry.set_placeholder_text("Type ur show and hit find")
+        self.show_entry.set_tooltip_text(
+            "Type the name of the show and hit Find, choose your show for it "
+            "to auto name episodes.")
         self.show_entry.add_css_class("source-entry")
         self.show_entry.set_width_chars(26)
         self.show_entry.set_hexpand(False)
@@ -892,11 +980,14 @@ class RipperWindow(Gtk.ApplicationWindow):
         # C0D3D (2026-11-10): the file name and show name boxes stack, with the
         # show dropdown beside them on the right.
         names_left = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        names_left.set_halign(Gtk.Align.CENTER)
-        names_left.append(caption_centred_temp("FILE NAME"))
-        names_left.append(self.name_entry)
-        names_left.append(caption_centred_temp("EPISODE NAMES"))
-        names_left.append(find_row)
+        names_left.set_halign(Gtk.Align.START)
+        # C0D3D (2026-11-11): both boxes start on the same left edge, and each
+        # caption sits centred over its own box.
+        file_col = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        file_col.set_halign(Gtk.Align.START)
+        file_col.append(caption_centred_temp("FILE NAME"))
+        file_col.append(self.name_entry)
+        names_left.append(file_col)
         self.names_left = names_left
 
         # right-hand side of the block: FIRST EPISODE and the ticks
@@ -921,10 +1012,16 @@ class RipperWindow(Gtk.ApplicationWindow):
         names_right.append(start_row)
 
         names_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=26)
-        names_row.set_halign(Gtk.Align.CENTER)
+        names_row.set_halign(Gtk.Align.START)
         names_row.append(names_left)
         names_row.append(names_right)
-        _block.append(names_row)
+        # Both rows live in one box that is centred as a whole, and each row
+        # starts at the same left edge — so the FILE NAME box and the show box
+        # line up, while FIRST EPISODE stays exactly where it was, beside them.
+        self.names_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        self.names_box.set_halign(Gtk.Align.CENTER)
+        self.names_box.append(names_row)
+        _block.append(self.names_box)
 
         number_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=14)
         self.numbering = Gtk.CheckButton(label="Number files")
@@ -944,14 +1041,21 @@ class RipperWindow(Gtk.ApplicationWindow):
         number_row.set_halign(Gtk.Align.START)
         # C0D3D (2026-11-10): the ticks sit right under the FIRST EPISODE row.
         names_right.append(number_row)
-        # …and the show dropdown with List… beside it under them.
-        self.show_dropdown.set_halign(Gtk.Align.START)
-        pick_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        pick_row.set_halign(Gtk.Align.START)
-        pick_row.append(self.find_button)
-        pick_row.append(self.show_dropdown)
-        pick_row.append(self.browse_button)
-        names_right.append(pick_row)
+        # C0D3D (2026-11-11): the show box gets its own centred EPISODE NAMES
+        # caption and sits on the same left edge as the file name box, with
+        # Find, the show list and List… level with it on the same line. The
+        # FIRST EPISODE row above is left exactly where it was.
+        find_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        find_row.set_halign(Gtk.Align.START)
+        episode_col = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        episode_col.set_halign(Gtk.Align.START)
+        episode_col.append(caption_centred_temp("EPISODE NAMES"))
+        episode_col.append(self.show_entry)
+        find_row.append(episode_col)
+        for widget in (self.find_button, self.show_dropdown, self.browse_button):
+            widget.set_valign(Gtk.Align.END)
+            find_row.append(widget)
+        self.names_box.append(find_row)
 
 
         # C0D3D (2026-11-10): the chapter-times dump and the episode status line
