@@ -729,7 +729,7 @@ class RipperWindow(Gtk.ApplicationWindow):
 
     def section_rule(self):
         rule = Gtk.Box()
-        rule.set_size_request(-1, 2)
+        rule.set_size_request(-1, 1)
         rule.set_hexpand(True)
         rule.add_css_class("section-rule")
         return rule
