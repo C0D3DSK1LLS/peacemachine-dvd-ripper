@@ -1081,19 +1081,16 @@ class RipperWindow(Gtk.ApplicationWindow):
 
     # ---------------------------------------------------------------- queue
     def build_queue_card(self):
-        box = card(6)
+        box = card(2)   # C0D3D, 2026-11-11: compact queue card
 
-        head = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        # Caption and buttons share one row (C0D3D, 2026-11-11) so the buttons sit
+        # right at the top edge of the card and the list starts under them.
+        head = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
 
-        head_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        head_row.append(caption("RIP QUEUE"))
-        self.queue_summary = plain("Nothing queued.", "dim", ellipsize=True)
-        self.queue_summary.set_width_chars(10)
-        self.queue_summary.set_hexpand(True)
-        head_row.append(self.queue_summary)
-        head.append(head_row)
+        head.append(caption("RIP QUEUE"))
 
         buttons = Gtk.FlowBox()
+        buttons.add_css_class("queue-buttons")
         buttons.set_selection_mode(Gtk.SelectionMode.NONE)
         buttons.set_max_children_per_line(5)
         buttons.set_min_children_per_line(1)
@@ -1101,6 +1098,8 @@ class RipperWindow(Gtk.ApplicationWindow):
         buttons.set_row_spacing(4)
         buttons.set_homogeneous(False)
         buttons.set_halign(Gtk.Align.CENTER)
+        buttons.set_valign(Gtk.Align.CENTER)
+        buttons.set_hexpand(True)
 
         self.start_button = Gtk.Button(label="Start")
         self.start_button.add_css_class("compact-button")
@@ -1177,6 +1176,14 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.counter_label = plain("", "counter")
         self.counter_label.set_width_chars(10)
         strip.append(self.counter_label)
+
+        self.queue_summary = plain("Nothing queued.", "dim", ellipsize=True)
+        self.queue_summary.set_width_chars(10)
+        self.queue_summary.set_max_width_chars(52)
+        self.queue_summary.set_xalign(1.0)
+        self.queue_summary.set_ellipsize(Pango.EllipsizeMode.END)
+        self.queue_summary.set_margin_start(10)
+        strip.append(self.queue_summary)
         return strip
 
     # only these change value when the wheel passes over them
@@ -1209,31 +1216,51 @@ class RipperWindow(Gtk.ApplicationWindow):
             child = child.get_next_sibling()
 
     def install_wheel_fallback(self):
-        """If nothing else took the wheel, scroll the main panel."""
+        """Catch the wheel only for the pane the pointer is actually over.
+
+        C0D3D (2026-11-11): "i should only be able to scroll, where the pink
+        square is, when hovered over that section, but no matter where im
+        hovered, that part scrolls". The old fallback walked a fixed list of
+        panes and always landed on the settings column, so the whole window
+        drove it. It now scrolls the nearest scroller under the pointer, and
+        nothing at all when that one has nothing to scroll.
+        """
+        motion = Gtk.EventControllerMotion()
+        motion.connect("motion", self.remember_pointer)
+        self.add_controller(motion)
+        self.pointer = None
         controller = Gtk.EventControllerScroll(
             flags=Gtk.EventControllerScrollFlags.VERTICAL)
         controller.set_propagation_phase(Gtk.PropagationPhase.BUBBLE)
         controller.connect("scroll", self.on_wheel_fallback)
         self.add_controller(controller)
 
+    def remember_pointer(self, _controller, x, y):
+        self.pointer = (x, y)
+
+    def scroller_under_pointer(self):
+        if self.pointer is None:
+            return None
+        widget = self.pick(self.pointer[0], self.pointer[1],
+                           Gtk.PickFlags.DEFAULT)
+        while widget is not None:
+            if isinstance(widget, Gtk.ScrolledWindow):
+                return widget
+            widget = widget.get_parent()
+        return None
+
     def on_wheel_fallback(self, _controller, _dx, dy):
-        candidates = []
-        if getattr(self, "compact", False):
-            candidates.append(getattr(self, "page", None))
-        candidates.append(getattr(self, "settings_scroller", None))
-        candidates.append(getattr(self, "titles_scroller", None))
-        candidates.append(getattr(self, "queue_scroller", None))
-        for scroller in candidates:
-            if scroller is None:
-                continue
-            adjustment = scroller.get_vadjustment()
-            if adjustment is None:
-                continue
-            if adjustment.get_upper() > adjustment.get_page_size() + 1:
-                step = adjustment.get_step_increment() or 24.0
-                adjustment.set_value(adjustment.get_value() + dy * step * 2)
-                return True
-        return False
+        scroller = self.scroller_under_pointer()
+        if scroller is None:
+            return False
+        adjustment = scroller.get_vadjustment()
+        if adjustment is None:
+            return False
+        if adjustment.get_upper() <= adjustment.get_page_size() + 1:
+            return False
+        step = adjustment.get_step_increment() or 24.0
+        adjustment.set_value(adjustment.get_value() + dy * step * 2)
+        return True
 
     def on_wheel_over_control(self, controller, _dx, dy):
         """Send the scroll to the panel instead of changing this control."""
