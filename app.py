@@ -405,7 +405,6 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.freeze_wheel(outer)
         self.install_wheel_fallback()
         self.install_source_autohide()
-        self.install_titles_autohide()
 
         saved = self.state
         self.output_dir = saved.get("output_dir") or ripper.DEFAULT_OUTPUT_DIR
@@ -660,7 +659,6 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.titles_list.add_css_class("title-list")
         scroller.set_child(self.titles_list)
         titles_box.append(scroller)
-        self.titles_box = titles_box
         paned.set_start_child(titles_box)
 
         settings = card(4)
@@ -1339,126 +1337,6 @@ class RipperWindow(Gtk.ApplicationWindow):
             self.set_source_shown(False)
         return True
 
-    # --------------------------------------------------- titles auto-hiding
-    # C0D3D (2026-11-11): "can u also make this auto hide the same way u made the
-    # top auto hide? same delay and effect". The titles column closes by walking
-    # the paned divider to 0 (a Gtk.Revealer here would leave a hole where the
-    # paned keeps its divider), so the settings column takes the whole width.
-    TITLES_HIDE_DELAY = 2.0      # same 2 s as the SOURCE card
-    TITLES_SLIDE = 0.65          # same 650 ms glide
-    TITLES_REVEAL_ZONE = 40      # px from the left edge that reopens it
-
-    def install_titles_autohide(self):
-        self.titles_shown = True
-        self.titles_open_position = 0
-        self.titles_animating = False
-        self.titles_anim_running = False
-        self.titles_last_over = time.monotonic()
-        self.titles_hold_until = 0.0
-        focus = Gtk.EventControllerFocus()
-        focus.connect("enter", self.on_titles_focus_in)
-        focus.connect("leave", self.on_titles_focus_out)
-        self.titles_box.add_controller(focus)
-        GLib.timeout_add(120, self.watch_titles_autohide)
-
-    def on_titles_focus_in(self, _controller):
-        self.titles_hold_until = time.monotonic() + 30.0
-
-    def on_titles_focus_out(self, _controller):
-        self.titles_hold_until = 0.0
-        self.titles_last_over = time.monotonic()
-
-    def focus_inside_titles(self):
-        widget = self.get_focus()
-        while widget is not None:
-            if widget is self.titles_box:
-                return True
-            widget = widget.get_parent()
-        return False
-
-    def pointer_over_titles(self):
-        """True when the pointer is over the titles column, or its edge strip."""
-        if self.pointer is None:
-            return False
-        if self.pointer[0] <= self.TITLES_REVEAL_ZONE:
-            # the strip both opens a closed column and keeps an open one open,
-            # so hovering there cannot flicker it twice a second
-            return True
-        if not self.titles_shown:
-            return False
-        widget = self.pick(self.pointer[0], self.pointer[1],
-                           Gtk.PickFlags.DEFAULT)
-        while widget is not None:
-            if widget is self.titles_box:
-                return True
-            widget = widget.get_parent()
-        return False
-
-    def watch_titles_autohide(self):
-        if self.dead:
-            return False
-        if not hasattr(self, "paned") or \
-                self.paned.get_orientation() != Gtk.Orientation.HORIZONTAL:
-            # stacked (narrow) layout: the titles are part of one long page
-            if not self.titles_shown:
-                self.titles_shown = True
-            return True
-        now = time.monotonic()
-        over = self.pointer_over_titles()
-        if (over or self.focus_inside_titles() or now < self.titles_hold_until):
-            self.titles_last_over = now
-            self.set_titles_shown(True)
-        elif self.titles_shown and \
-                now - self.titles_last_over >= self.TITLES_HIDE_DELAY:
-            self.set_titles_shown(False)
-        return True
-
-    def set_titles_shown(self, shown, animate=True):
-        if self.dead or self.titles_shown == shown:
-            return
-        self.titles_shown = shown
-        if shown:
-            width = self.paned.get_width()
-            target = self.titles_open_position or int(
-                self.state.get("split_position") or 520)
-            if width > 0:
-                target = max(240, min(target, max(240, width - 320)))
-            self.slide_titles_to(target, animate)
-        else:
-            if self.paned.get_position() > 0:
-                self.titles_open_position = self.paned.get_position()
-            self.slide_titles_to(0, animate)
-
-    def slide_titles_to(self, target, animate=True):
-        if not animate or self.TITLES_SLIDE <= 0:
-            self.paned.set_position(target)
-            return
-        self.titles_anim_from = self.paned.get_position()
-        self.titles_anim_to = target
-        self.titles_anim_started = time.monotonic()
-        self.titles_animating = True
-        if not self.titles_anim_running:
-            self.titles_anim_running = True
-            GLib.timeout_add(16, self.step_titles_slide)
-
-    def step_titles_slide(self):
-        if self.dead:
-            self.titles_anim_running = False
-            self.titles_animating = False
-            return False
-        if not self.titles_animating:
-            self.titles_anim_running = False
-            return False
-        t = (time.monotonic() - self.titles_anim_started) / self.TITLES_SLIDE
-        if t >= 1.0:
-            t = 1.0
-            self.titles_animating = False
-        eased = t * t * (3 - 2 * t)          # smoothstep, no visible kick
-        position = self.titles_anim_from + \
-            (self.titles_anim_to - self.titles_anim_from) * eased
-        self.paned.set_position(int(round(position)))
-        return True
-
     def scroller_under_pointer(self):
         if self.pointer is None:
             return None
@@ -1528,9 +1406,6 @@ class RipperWindow(Gtk.ApplicationWindow):
             return False
         if self.paned.get_orientation() != Gtk.Orientation.HORIZONTAL:
             return False
-        if not getattr(self, "titles_shown", True):
-            # the column is auto-hidden; putting the divider back would pop it open
-            return False
         saved = int(self.state.get("split_position") or 0)
         width = self.paned.get_width()
         if saved > 0 and width > 0:
@@ -1571,9 +1446,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         now = time.monotonic()
 
         # --- sidebar / settings column (horizontal)
-        if (self.paned.get_orientation() == Gtk.Orientation.HORIZONTAL
-                and not getattr(self, "titles_animating", False)
-                and getattr(self, "titles_shown", True)):
+        if self.paned.get_orientation() == Gtk.Orientation.HORIZONTAL:
             width = self.paned.get_width()
             if width > 0 and self.get_width() > 400:
                 saved = int(self.state.get("split_position") or 0)
@@ -1678,8 +1551,6 @@ class RipperWindow(Gtk.ApplicationWindow):
             self.settings_scroller.set_policy(Gtk.PolicyType.NEVER,
                                               Gtk.PolicyType.AUTOMATIC)
             self.paned.set_orientation(Gtk.Orientation.HORIZONTAL)
-            if not getattr(self, "titles_shown", True):
-                self.paned.set_position(0)
             self.titles_scroller.set_min_content_height(120)
             self.queue_scroller.set_min_content_height(56)
 
@@ -1929,9 +1800,6 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.source_status.set_text("Title list cleared — scan a disc to load another.")
 
     def rebuild_titles(self):
-        if hasattr(self, "titles_hold_until") and self.titles:
-            # a fresh scan must not slide the list away while he is reading it
-            self.titles_hold_until = time.monotonic() + 6.0
         while True:
             child = self.titles_list.get_first_child()
             if child is None:
