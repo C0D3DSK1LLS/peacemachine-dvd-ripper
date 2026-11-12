@@ -1139,6 +1139,16 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.split_scroller.set_child(self.split_text)
         _block.append(self.split_scroller)
 
+        # The disc's own chapter marks, numbered, so ranges can be chosen by eye
+        # (C0D3D, 2026-11-12: with chapter cuts, "its playing the beginning song
+        # at the end of some episodes" — uneven chapter counts need real ranges).
+        self.chapter_hint = Gtk.Label(label="", xalign=0.0)
+        self.chapter_hint.add_css_class("chapter-hint")
+        self.chapter_hint.set_wrap(True)
+        self.chapter_hint.set_selectable(True)
+        self.chapter_hint.set_visible(False)
+        _block.append(self.chapter_hint)
+
         self.preview_label = plain("", "preview")
         self.preview_label.set_wrap(True)
         self.preview_label.set_xalign(0.5)
@@ -2216,12 +2226,34 @@ class RipperWindow(Gtk.ApplicationWindow):
                  for index in range(parts)]
         self.split_text.get_buffer().set_text("\n".join(lines) + "\n")
 
+    def refresh_chapter_hint(self):
+        """List the ticked title's chapter marks, numbered, for chapter ranges."""
+        titles = self.checked_titles()
+        if not titles or not hasattr(self, "chapter_hint"):
+            if hasattr(self, "chapter_hint"):
+                self.chapter_hint.set_visible(False)
+            return
+        title = sorted(titles, key=lambda item: item.number)[0]
+        starts = list(getattr(title, "chapter_starts", []) or [])
+        if not starts:
+            self.chapter_hint.set_visible(False)
+            return
+        longest = len(starts)
+        parts = ["%d %s" % (index + 1, ripper.fmt_clock(start))
+                 for index, start in enumerate(starts)]
+        if len(parts) > longest:
+            parts = parts[:longest]
+        self.chapter_hint.set_text(
+            "%d chapters — %s" % (len(starts), " · ".join(parts)))
+        self.chapter_hint.set_visible(True)
+
     def split_text_value(self):
         buffer = self.split_text.get_buffer()
         return buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False)
 
     def split_text_changed(self):
         titles = self.checked_titles()
+        self.refresh_chapter_hint()
         mode = self.current_mode()
         preset = self.current_preset()
         if not titles:
@@ -2778,6 +2810,14 @@ class RipperWindow(Gtk.ApplicationWindow):
                 % (len(self.jobs), "" if len(self.jobs) == 1 else "s",
                    done, queued, ripper.fmt_bytes(total)))
         self.update_counter()
+        self.refresh_start()
+
+    def title_ticked(self):
+        """A title was ticked: refresh the chapter list, preview and Start state."""
+        # The tick handler has always called this, but the method never existed -
+        # the AttributeError was swallowed by GTK, so nothing refreshed.
+        self.refresh_chapter_hint()
+        self.split_text_changed()
         self.refresh_start()
 
     def refresh_start(self):
