@@ -1821,7 +1821,11 @@ class RipperWindow(Gtk.ApplicationWindow):
             row = Gtk.ListBoxRow()
             row.add_css_class("title-row")
             row.title = title
-            line = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+            # 6px of spacing, not 10: in a narrow titles column (the 1080p at
+            # half width) the row used to come out ~28px wider than the pane, so
+            # the last deadline column sat flush against the clip edge and the
+            # badge was squeezed (C0D3D, 2026-11-11).
+            line = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
 
             check = Gtk.CheckButton()
             check.add_css_class("title-check")
@@ -1855,6 +1859,9 @@ class RipperWindow(Gtk.ApplicationWindow):
             summary = Gtk.Label(label=title.summary(), xalign=1.0)
             summary.add_css_class("title-summary")
             summary.set_ellipsize(Pango.EllipsizeMode.END)
+            # cap the natural width so the row can shrink instead of pushing the
+            # size column into the card edge
+            summary.set_max_width_chars(20)
             line.append(summary)
             row.summary_label = summary
             row.name_label = name
@@ -1863,6 +1870,7 @@ class RipperWindow(Gtk.ApplicationWindow):
             estimated = Gtk.Label(label=ripper.fmt_bytes(title.size_estimate()),
                                   xalign=1.0, width_chars=9)
             estimated.add_css_class("title-size")
+            estimated.set_ellipsize(Pango.EllipsizeMode.END)
             line.append(estimated)
 
             row.set_child(line)
