@@ -51,6 +51,16 @@ STATE_FILE = os.path.join(STATE_DIR, "state.json")
 # --------------------------------------------------------------------------
 # state
 # --------------------------------------------------------------------------
+def use_matrix_icons():
+    """Point this process at the crimson icon theme, without touching the desktop."""
+    try:
+        settings = Gtk.Settings.get_default()
+        if settings is not None:
+            settings.set_property("gtk-icon-theme-name", "C0D3D-Matrix")
+    except Exception:
+        pass
+
+
 def load_state():
     try:
         with open(STATE_FILE, encoding="utf-8") as handle:
@@ -3256,6 +3266,7 @@ def load_css():
 
 
 def main():
+    use_matrix_icons()
     load_css()
     return RipperApp().run(sys.argv[:1])
 
