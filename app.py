@@ -127,9 +127,9 @@ class CircleStep(Gtk.Widget):
         rect.init(0, 0, width, height)
         cr = snapshot.append_cairo(rect)
 
-        # leave room inside the widget for the halo, otherwise it is clipped
-        # (C0D3D, 2026-11-12: "no i dont see a halo")
-        radius = min(width, height) / 2.0 - 3.0
+        # the ring stays the same size it always was; the widget is bigger so
+        # the glow has room to spread without being clipped
+        radius = min(width, height) / 2.0 - 6.0
         cx, cy = width / 2.0, height / 2.0
         colour = self.get_color()
         red, green, blue = colour.red, colour.green, colour.blue
@@ -140,24 +140,36 @@ class CircleStep(Gtk.Widget):
         cr.set_line_width(max(1.4, min(width, height) * 0.07))
         # soft outer glow, so the disc reads like the CSS-framed buttons
         # (C0D3D, 2026-11-12: "all the buttons to a deep orange with glow")
-        # one halo hugging the ring, always on; brighter and wider on hover
-        boost = 1.7 if self._hover else 1.0
-        for step in (2.6, 1.6):
-            cr.set_line_width(step)
-            cr.set_source_rgba(red, green, blue,
-                               min(1.0, (0.22 if step > 2 else 0.40) * boost))
-            cr.arc(cx, cy, radius + 2.2, 0, 2 * math.pi)
+        # soft falloff: a stack of faint arcs fading outwards, so it reads as
+        # light rather than a second ring (C0D3D, 2026-11-12)
+        boost = 1.8 if self._hover else 1.0
+        layers = 22
+        span = 6.5
+        for index in range(layers):
+            t = index / (layers - 1.0)          # 0 at the ring, 1 outside
+            reach = radius + 0.6 + t * span
+            fade = (1.0 - t) ** 1.8 * 0.85 * boost
+            cr.set_line_width(span / layers + 1.6)
+            cr.set_source_rgba(red, green, blue, min(1.0, fade))
+            cr.arc(cx, cy, reach, 0, 2 * math.pi)
             cr.stroke()
-        cr.set_line_width(max(1.4, min(width, height) * 0.07))
-        cr.arc(cx, cy, radius, 0, 2 * math.pi)
-        cr.set_source_rgba(red, green, blue, alpha)
+        # a tight hot edge right against the ring
+        cr.set_line_width(2.4)
+        cr.set_source_rgba(red, green, blue, min(1.0, 0.85 * boost))
+        cr.arc(cx, cy, radius + 0.8, 0, 2 * math.pi)
         cr.stroke()
 
+        # solid disc (C0D3D, 2026-11-12: "make the whole button colored")
+        cr.arc(cx, cy, radius, 0, 2 * math.pi)
+        cr.set_source_rgba(red, green, blue, alpha)
+        cr.fill()
+
+        # the − / + glyph is black so it reads on the orange disc
         arm = radius * 0.52
         thickness = max(1.5, min(width, height) * 0.09)
         cr.set_line_width(thickness)
         cr.set_line_cap(1)  # cairo.LINE_CAP_ROUND
-        cr.set_source_rgba(red, green, blue, alpha)
+        cr.set_source_rgba(0, 0, 0, 1.0)
         cr.move_to(cx - arm, cy)
         cr.line_to(cx + arm, cy)
         if self._plus:
@@ -667,7 +679,8 @@ class RipperWindow(Gtk.ApplicationWindow):
             button = CircleStep(
                 plus,
                 lambda d=delta, target=spin: target.set_value(
-                    target.get_value() + d))
+                    target.get_value() + d),
+                size=34)   # room for the glow inside the widget
             box.append(button)
         return box
 
