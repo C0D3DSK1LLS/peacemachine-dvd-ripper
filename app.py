@@ -515,7 +515,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         about.present()
 
     def build_source_card(self):
-        box = card(4)
+        box = card(1)   # tight: SAVE TO sits right under SOURCE (C0D3D, 2026-11-11)
         row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         row.append(caption("SOURCE"))
 
@@ -562,7 +562,11 @@ class RipperWindow(Gtk.ApplicationWindow):
 
         self.source_status = plain("No disc scanned yet.", "dim", ellipsize=True)
         self.source_status.set_width_chars(10)
-        box.append(self.source_status)
+        # C0D3D (2026-11-11): the status line moved to the right-hand end of the
+        # SAVE TO row (under the button row) so the card is one line shorter.
+        self.source_status.set_xalign(1.0)
+        self.source_status.set_hexpand(True)
+        self.source_status.set_halign(Gtk.Align.END)
         # The episode status reports here, under the source row (C0D3D, 2026-11-10)
         # instead of cluttering the settings column.
         self.top_status_box = box
@@ -780,6 +784,10 @@ class RipperWindow(Gtk.ApplicationWindow):
         save_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         save_row.append(caption("SAVE TO"))
         save_row.append(folder_row)
+        # the source status rides at the right-hand end of this row, under the
+        # buttons (C0D3D, 2026-11-11), so the card keeps two lines
+        if hasattr(self, "source_status"):
+            save_row.append(self.source_status)
         if hasattr(self, "top_status_box"):
             self.top_status_box.append(save_row)
         modes = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
