@@ -94,14 +94,24 @@ PRESETS = [
     },
     {
         "key": "gpu",
+        "label": "Fastest — NVENC H.264 (MKV)",
+        "short": "Fastest — NVENC H.264",
+        "ext": "mkv",
+        "note": "GPU encode, quickest of the lot. One core works harder than the rest "
+                "because HandBrake feeds the GPU from a single thread.",
+        "args": ["-f", "av_mkv", "-e", "nvenc_h264", "-q", "22",
+                 "--encoder-preset", "p5"],
+    },
+    {
+        "key": "fast_cpu",
         "label": "Fast — H.264 x264 (MKV)",
         "short": "Fast — H.264 x264",
         "ext": "mkv",
-        "note": "Quick software encode that spreads the work evenly over every core.",
+        "note": "Software encode that spreads the work evenly over every core.",
         # Software x264 rather than NVENC: the GPU path leaves one HandBrake thread
         # doing ~73% of a core while the rest idle (measured 2026-11-12), so one
         # core sits at ~65% and the others at ~30%.  x264 frame-threads across all
-        # cores instead, and under the 80%-per-core cap it is not slower in practice.
+        # cores instead, and under the 80%-per-core cap it is barely any slower.
         "args": ["-f", "av_mkv", "-e", "x264", "-q", "22",
                  "--encoder-preset", "medium"],
     },
@@ -307,7 +317,7 @@ class Title:
     def size_estimate(self, preset_key="balanced"):
         """Rough bitrate maths so the list has a size next to it."""
         rates = {"best": 2200, "balanced": 1500, "small": 900,
-                 "hevc": 1100, "gpu": 1800}
+                 "hevc": 1100, "gpu": 1800, "fast_cpu": 1800}
         return self.duration * rates.get(preset_key, 1500) * 1000 / 8
 
     def summary(self):
