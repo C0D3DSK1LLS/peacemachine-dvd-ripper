@@ -305,6 +305,25 @@ def card(spacing=8):
     return box
 
 
+def icon_button(label, icon, toggle=False):
+    """A button with a symbolic icon beside its text.
+
+    GTK4's icon-name property *replaces* the label instead of adding to it, so
+    the content is built by hand (C0D3D, 2026-11-12: "give all these buttons an
+    appropriate icon").
+    """
+    button = Gtk.ToggleButton() if toggle else Gtk.Button()
+    row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+    image = Gtk.Image.new_from_icon_name(icon)
+    row.append(image)
+    text = Gtk.Label(label=label)
+    row.append(text)
+    button.set_child(row)
+    button.icon_image = image
+    button.text_label = text
+    return button
+
+
 def caption(text, centered=False):
     label = Gtk.Label(xalign=0.5 if centered else 0.0)
     label.set_markup("<span>%s</span>" % GLib.markup_escape_text(text))
@@ -521,6 +540,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         outer.append(self.build_progress_strip())
         self.set_child(outer)
         self.freeze_wheel(outer)
+        self.sky_frame_dropdowns(outer)
         self.install_wheel_fallback()
         self.install_source_autohide()
 
@@ -867,7 +887,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.show_entry.set_hexpand(False)
         self.show_entry.connect("activate", lambda *_: self.lookup_show())
         find_row.append(self.show_entry)
-        self.find_button = Gtk.Button(label="Find")
+        self.find_button = icon_button("Find", "edit-find-symbolic")
         self.find_button.add_css_class("orange-button")
         self.find_button.set_tooltip_text("Look the show up and fetch its episode list")
         self.find_button.connect("clicked", lambda *_: self.lookup_show())
@@ -914,10 +934,12 @@ class RipperWindow(Gtk.ApplicationWindow):
         modes.set_halign(Gtk.Align.CENTER)
         mode_group = None
         self.mode_buttons = {}
-        for key, text in (("whole", "Whole title"),
-                          ("chapters", "By chapters"),
-                          ("timestamps", "By timestamps")):
-            button = Gtk.ToggleButton(label=text)
+        for key, text, icon in (("whole", "Whole title", "media-optical-symbolic"),
+                                ("chapters", "By chapters", "view-paged-symbolic"),
+                                ("timestamps", "By timestamps", "alarm-symbolic")):
+            # an icon beside the label, so the three modes read at a glance
+            # (C0D3D, 2026-11-12)
+            button = icon_button(text, icon, toggle=True)
             button.add_css_class("mode-button")
             button.add_css_class("compact-button")
             button.add_css_class("crimson-button")
@@ -1013,7 +1035,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.auto_setting_start = False
         self.episode_start.connect("value-changed", self.on_start_changed)
         start_row.append(self.round_stepper(self.episode_start))
-        browse = Gtk.Button(label="List…")
+        browse = icon_button("List…", "view-list-symbolic")
         browse.add_css_class("orange-button")
         browse.set_tooltip_text("See every episode and pick the starting one")
         browse.connect("clicked", lambda *_: self.open_episode_list(browse))
@@ -1278,7 +1300,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         buttons = Gtk.FlowBox()
         buttons.add_css_class("queue-buttons")
         buttons.set_selection_mode(Gtk.SelectionMode.NONE)
-        buttons.set_max_children_per_line(5)
+        buttons.set_max_children_per_line(6)
         buttons.set_min_children_per_line(1)
         buttons.set_column_spacing(6)
         buttons.set_row_spacing(4)
@@ -1287,39 +1309,50 @@ class RipperWindow(Gtk.ApplicationWindow):
         buttons.set_valign(Gtk.Align.CENTER)
         buttons.set_hexpand(True)
 
-        self.start_button = Gtk.Button(label="Start")
+        self.start_button = icon_button("Start", "media-playback-start-symbolic")
         self.start_button.add_css_class("compact-button")
         self.start_button.add_css_class("orange-button")
         self.start_button.add_css_class("primary-action")
         self.start_button.connect("clicked", lambda *_: self.start_queue())
         buttons.append(self.start_button)
 
-        self.stop_button = Gtk.Button(label="Stop")
+        self.stop_button = icon_button("Stop", "media-playback-stop-symbolic")
         self.stop_button.add_css_class("compact-button")
         self.stop_button.add_css_class("orange-button")
         self.stop_button.set_sensitive(False)
         self.stop_button.connect("clicked", lambda *_: self.stop_queue())
         buttons.append(self.stop_button)
 
-        remove = Gtk.Button(label="Remove")
+        remove = icon_button("Remove", "list-remove-symbolic")
         remove.set_tooltip_text("Remove the ticked rips (Delete)")
         remove.add_css_class("compact-button")
         remove.add_css_class("orange-button")
         remove.connect("clicked", lambda *_: self.remove_selected())
         buttons.append(remove)
 
-        remove_all = Gtk.Button(label="Remove all")
+        remove_all = icon_button("Remove all", "edit-delete-symbolic")
         remove_all.set_tooltip_text("Empty the whole queue")
         remove_all.add_css_class("compact-button")
         remove_all.add_css_class("orange-button")
         remove_all.connect("clicked", lambda *_: self.remove_all())
         buttons.append(remove_all)
 
-        clear = Gtk.Button(label="Clear finished")
+        clear = icon_button("Clear finished", "edit-clear-symbolic")
         clear.add_css_class("compact-button")
         clear.add_css_class("orange-button")
         clear.connect("clicked", lambda *_: self.clear_finished())
         buttons.append(clear)
+
+        # C0D3D, 2026-11-12: redo the speech-to-text pass without re-ripping.
+        self.retry_button = icon_button("Retry transcript",
+                                        "view-refresh-symbolic")
+        self.retry_button.set_tooltip_text(
+            "Re-run the transcribe pass on a rip that is already finished "
+            "(tick it, or click the row first)")
+        self.retry_button.add_css_class("compact-button")
+        self.retry_button.add_css_class("orange-button")
+        self.retry_button.connect("clicked", lambda *_: self.retry_transcript())
+        buttons.append(self.retry_button)
 
         self.hug_children(buttons)
         head.append(buttons)
@@ -1399,6 +1432,15 @@ class RipperWindow(Gtk.ApplicationWindow):
         child = widget.get_first_child()
         while child is not None:
             self.freeze_wheel(child)
+            child = child.get_next_sibling()
+
+    def sky_frame_dropdowns(self, widget):
+        """Light blue frame on every picker (C0D3D, 2026-11-12)."""
+        if isinstance(widget, Gtk.DropDown):
+            widget.add_css_class("sky-frame")
+        child = widget.get_first_child()
+        while child is not None:
+            self.sky_frame_dropdowns(child)
             child = child.get_next_sibling()
 
     def install_wheel_fallback(self):
@@ -2706,6 +2748,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         return "%s (%d)%s" % (stem, counter, ext)
 
     def rebuild_queue(self):
+        self.close_job_menu()
         while True:
             child = self.queue_list.get_first_child()
             if child is None:
@@ -2780,6 +2823,13 @@ class RipperWindow(Gtk.ApplicationWindow):
             row.detail_label = detail
 
             row.set_child(line)
+            # right-click a row for a per-job action (C0D3D, 2026-11-12)
+            right = Gtk.GestureClick()
+            right.set_button(Gdk.BUTTON_SECONDARY)
+            right.connect("pressed",
+                          lambda gesture, n, x, y, target=row:
+                          self.open_job_menu(target))
+            row.add_controller(right)
             self.queue_list.append(row)
             self.rows.append(row)
         queued = sum(1 for job in self.jobs if job.status == "queued")
@@ -2827,9 +2877,7 @@ class RipperWindow(Gtk.ApplicationWindow):
 
     def remove_selected(self):
         """Delete the ticked jobs; with none ticked, the highlighted one."""
-        targets = [job for job in self.jobs if getattr(job, "checked", False)]
-        if not targets and self.selected_job is not None:
-            targets = [self.selected_job]
+        targets = self.queue_targets()
         if not targets:
             return
         if any(job.status == "running" for job in targets):
@@ -2854,6 +2902,101 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.jobs = [job for job in self.jobs
                      if job.status not in ("done", "failed", "cancelled")]
         self.rebuild_queue()
+
+    def queue_targets(self):
+        """The jobs a queue action acts on: ticked first, else the highlighted row."""
+        targets = [job for job in self.jobs if getattr(job, "checked", False)]
+        if not targets and self.selected_job is not None:
+            targets = [self.selected_job]
+        return targets
+
+    def retry_transcript(self, job=None):
+        """Re-run just the speech-to-text pass on a file that is already ripped.
+
+        Saves re-encoding an episode because the subtitle pass fell over.
+        """
+        if job is None:
+            finished = [item for item in self.queue_targets()
+                        if item.status in ("done", "failed", "cancelled")]
+            if not finished:
+                self.flash_status(
+                    "Tick the finished rip whose transcript you want redone.")
+                return
+            job = finished[0]
+        if self.running:
+            self.flash_status("A rip is running — let it finish or stop it first.")
+            return
+        if job.status == "running":
+            self.flash_status("That one is encoding right now.")
+            return
+        if not ripper.asr_available():
+            self.flash_status("The transcribe venv is missing — can't run the pass.")
+            return
+        if not os.path.exists(job.path):
+            self.flash_status("The file is gone: %s" % job.path)
+            return
+        if job.transcript in (None, "", "off"):
+            job.transcript = "best"     # asking for a retry is an explicit ask
+        ripper.log("transcript retry requested for %s" % job.path)
+        self.cancel_requested = False
+        self.running = True
+        self.current_job = job
+        self.stop_button.set_sensitive(True)
+        self.start_button.set_sensitive(False)
+        self.spinner.set_visible(True)
+        self.spinner.start()
+        job.status = "running"
+        job.fraction = 0.0
+        job.detail = "transcribing"
+        self.rebuild_queue()
+        threading.Thread(target=self.transcript_worker, args=(job,),
+                         daemon=True).start()
+
+    def transcript_worker(self, job):
+        GLib.idle_add(self.progress_label.set_text,
+                      "%s — transcribing the dub" % job.label)
+        result = self.run_transcript_pass(job)
+        self.current_job = None
+        GLib.idle_add(self.job_finished, job, result)
+        GLib.idle_add(self.queue_finished)
+
+    def open_job_menu(self, row):
+        """Right-click a queue row: redo that file's transcript."""
+        self.close_job_menu()
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        box.add_css_class("job-menu")
+        retry = icon_button("Retry transcript", "view-refresh-symbolic")
+        retry.set_halign(Gtk.Align.FILL)
+        retry.add_css_class("compact-button")
+        retry.set_tooltip_text("Re-run the transcribe pass on this file")
+        retry.set_sensitive(row.job.status in ("done", "failed", "cancelled"))
+        retry.connect("clicked", lambda *_: self.retry_from_menu(row.job))
+        box.append(retry)
+        pop = Gtk.Popover()
+        pop.set_child(box)
+        pop.set_has_arrow(False)
+        pop.set_parent(row)
+        pop.popup()
+        self.job_menu = pop
+        return False
+
+    def retry_from_menu(self, job):
+        self.close_job_menu()
+        self.retry_transcript(job)
+
+    def close_job_menu(self):
+        pop = getattr(self, "job_menu", None)
+        self.job_menu = None
+        if pop is None:
+            return
+        try:
+            pop.popdown()
+        except Exception:
+            pass
+        try:
+            pop.unparent()
+        except Exception:
+            pass
 
     # ---------------------------------------------------------------- running
     def start_queue(self):
