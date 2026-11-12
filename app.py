@@ -2736,6 +2736,8 @@ class RipperWindow(Gtk.ApplicationWindow):
             name = Gtk.Label(label=job.label, xalign=0.0)
             name.add_css_class("job-name")
             name.set_hexpand(True)
+            name.set_width_chars(34)
+            name.set_max_width_chars(60)
             name.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
             name.set_tooltip_text(job.path)
             line.append(name)
@@ -2746,14 +2748,22 @@ class RipperWindow(Gtk.ApplicationWindow):
             bar = Gtk.ProgressBar()
             bar.add_css_class("job-bar")
             bar.set_valign(Gtk.Align.CENTER)
-            bar.set_size_request(110, -1)
+            bar.set_hexpand(False)
+            bar.set_halign(Gtk.Align.FILL)
+            bar.set_size_request(120, -1)
             bar.set_fraction(1.0 if job.status == "done" else
                              (job.fraction if job.status == "running" else 0.0))
             if job.status in ("queued",):
                 bar.add_css_class("job-bar-idle")
             elif job.status in ("failed", "cancelled"):
                 bar.add_css_class("job-bar-failed")
-            line.append(bar)
+            # a fixed-width slot keeps every row's bar in the same place, whatever
+            # the label lengths are (C0D3D, 2026-11-12: "line up the loading bars")
+            bar_slot = Gtk.Box()
+            bar_slot.set_size_request(120, -1)
+            bar_slot.set_valign(Gtk.Align.CENTER)
+            bar_slot.append(bar)
+            line.append(bar_slot)
             row.bar = bar
 
             mode = Gtk.Label(label=job.mode_text(), xalign=0.0, width_chars=22)
@@ -2808,7 +2818,9 @@ class RipperWindow(Gtk.ApplicationWindow):
             return ripper.fmt_bytes(job.size) if job.size else "finished"
         if job.status in ("failed", "cancelled"):
             return job.detail or job.status
-        return os.path.basename(job.path)
+        # queued: the row's label already carries the name, so no filename here
+        # (C0D3D, 2026-11-12: "why is the names shown on the left side and the right")
+        return ""
 
     def on_job_selected(self, _listbox, row):
         self.selected_job = row.job if row is not None else None
