@@ -1467,6 +1467,18 @@ class RipperWindow(Gtk.ApplicationWindow):
         motion.connect("leave", self.forget_pointer)
         self.add_controller(motion)
         self.pointer = None
+        # C0D3D (2026-11-12): "when i click top source/browse and search an mkv
+        # file, and then i click below in the settings portion, the top portion
+        # doesnt auto hide". The file chooser swallows the pointer motion, so
+        # the cached position stayed at the last spot over the SOURCE card and
+        # the card thought it was still hovered. A press is a reliable update
+        # that no popup can eat, so clicks refresh the position too. A legacy
+        # controller is used on purpose: it never claims the sequence, so no
+        # button in the window loses its own click.
+        press = Gtk.GestureClick()
+        press.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+        press.connect("pressed", self.on_pointer_press)
+        self.add_controller(press)
         controller = Gtk.EventControllerScroll(
             flags=Gtk.EventControllerScrollFlags.VERTICAL)
         controller.set_propagation_phase(Gtk.PropagationPhase.BUBBLE)
@@ -1480,6 +1492,19 @@ class RipperWindow(Gtk.ApplicationWindow):
         # pointer left the window: nothing is hovered any more
         self.pointer = None
 
+    def on_pointer_press(self, _gesture, _n_press, x, y):
+        """Take the pointer position from a click as well as from motion."""
+        self.pointer = (x, y)
+        if self.dead or not hasattr(self, "source_card"):
+            return
+        if self.point_over_source(x, y):
+            return
+        # A click away from the card ends any focus hold on it, even when the
+        # widget clicked does not take focus away from the source entry.
+        self.source_hold_until = 0.0
+        self.source_focus_released = True
+        self.source_last_over = time.monotonic()
+
     # ---------------------------------------------------------- auto-hiding
     # C0D3D (2026-11-11): "can we make this top part auto hide, with a smooth
     # slow hide animation" / "when i hover over it it opens" / "when i unhover
@@ -1491,6 +1516,7 @@ class RipperWindow(Gtk.ApplicationWindow):
     def install_source_autohide(self):
         self.source_last_over = time.monotonic()
         self.source_hold_until = 0.0
+        self.source_focus_released = False
         focus = Gtk.EventControllerFocus()
         focus.connect("enter", self.on_source_focus_in)
         focus.connect("leave", self.on_source_focus_out)
@@ -1499,6 +1525,7 @@ class RipperWindow(Gtk.ApplicationWindow):
 
     def on_source_focus_in(self, _controller):
         # typing a path must never yank the card away
+        self.source_focus_released = False
         self.source_hold_until = time.monotonic() + 30.0
 
     def on_source_focus_out(self, _controller):
@@ -1513,23 +1540,26 @@ class RipperWindow(Gtk.ApplicationWindow):
             return
         self.source_revealer.set_reveal_child(shown)
 
-    def pointer_over_source(self):
-        """True when the pointer is over the card, or in the strip that opens it."""
-        if self.pointer is None:
-            return False
+    def point_over_source(self, x, y):
+        """True when that window point is the card, or in the strip that opens it."""
         # The top band both opens a hidden card and keeps a shown one open, so
         # hovering there cannot make it flicker open/closed every 2 seconds.
-        if self.pointer[1] <= self.SOURCE_REVEAL_ZONE:
+        if y <= self.SOURCE_REVEAL_ZONE:
             return True
         if not self.source_is_shown():
             return False
-        widget = self.pick(self.pointer[0], self.pointer[1],
-                           Gtk.PickFlags.DEFAULT)
+        widget = self.pick(x, y, Gtk.PickFlags.DEFAULT)
         while widget is not None:
             if widget is self.source_card or widget is self.source_revealer:
                 return True
             widget = widget.get_parent()
         return False
+
+    def pointer_over_source(self):
+        """True when the pointer is over the card, or in the strip that opens it."""
+        if self.pointer is None:
+            return False
+        return self.point_over_source(self.pointer[0], self.pointer[1])
 
     def focus_inside_source(self):
         widget = self.get_focus()
@@ -1546,7 +1576,8 @@ class RipperWindow(Gtk.ApplicationWindow):
         over = self.pointer_over_source()
         popover_open = getattr(self, "theme_popover", None) is not None \
             and self.theme_popover.get_visible()
-        if (over or popover_open or self.focus_inside_source()
+        focused = self.focus_inside_source() and not self.source_focus_released
+        if (over or popover_open or focused
                 or now < self.source_hold_until):
             self.source_last_over = now
             self.set_source_shown(True)
