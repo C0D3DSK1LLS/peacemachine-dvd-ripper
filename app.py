@@ -180,6 +180,9 @@ class NumberBox(Gtk.Entry):
         self.set_max_width_chars(4)
         self.set_alignment(0.5)
         self.set_input_purpose(Gtk.InputPurpose.DIGITS)
+        # C0D3D (2026-11-11): the two number fields carry a light blue frame so
+        # they read as the editable values on the row.
+        self.add_css_class("number-box")
         self.connect("changed", self.on_text_changed)
         self.connect("activate", lambda *_: self.refresh())
         focus = Gtk.EventControllerFocus()
@@ -2710,6 +2713,22 @@ class RipperWindow(Gtk.ApplicationWindow):
             name.set_tooltip_text(job.path)
             line.append(name)
 
+            # a per-row progress bar (C0D3D, 2026-11-12: "can u put a loading bar
+            # next to each queue item") so the running job's place in its own file
+            # is visible without reading the percentage text
+            bar = Gtk.ProgressBar()
+            bar.add_css_class("job-bar")
+            bar.set_valign(Gtk.Align.CENTER)
+            bar.set_size_request(110, -1)
+            bar.set_fraction(1.0 if job.status == "done" else
+                             (job.fraction if job.status == "running" else 0.0))
+            if job.status in ("queued",):
+                bar.add_css_class("job-bar-idle")
+            elif job.status in ("failed", "cancelled"):
+                bar.add_css_class("job-bar-failed")
+            line.append(bar)
+            row.bar = bar
+
             mode = Gtk.Label(label=job.mode_text(), xalign=0.0, width_chars=22)
             mode.add_css_class("job-mode")
             # a long span (or a "copy 00:00:00 → 00:23:20") must shrink, not
@@ -3076,8 +3095,11 @@ class RipperWindow(Gtk.ApplicationWindow):
                 "%s — %.0f%% · ETA %s · %.0f fps"
                 % (job.label, fraction * 100, eta, rate))
         for row in self.rows:
-            if row.job is job and hasattr(row, "detail_label"):
-                row.detail_label.set_text(self.job_detail_text(job))
+            if row.job is job:
+                if hasattr(row, "detail_label"):
+                    row.detail_label.set_text(self.job_detail_text(job))
+                if hasattr(row, "bar"):
+                    row.bar.set_fraction(fraction)
         return False
 
     def job_finished(self, job, result):
