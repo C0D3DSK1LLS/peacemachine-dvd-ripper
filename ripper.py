@@ -13,23 +13,24 @@ import time
 
 HANDBRAKE = shutil.which("HandBrakeCLI") or "/usr/bin/HandBrakeCLI"
 FFMPEG = shutil.which("ffmpeg") or "/usr/bin/ffmpeg"
-# C0D3D (2026-11-12): "dont ever let anything run the cpu past 80%, always leave
-# 20% reserve". HandBrake, ffmpeg and the transcriber all take every core by
-# default, so their commands are pinned to the first 80% of this machine's CPUs
-# and the desktop stays responsive while a rip runs.
+# C0D3D (2026-11-12): "I DONT WANT ANY SINGLE CORE GOING PAST 80%" and "I WANT THE
+# RIP SPREAD ACROSS ALL 20". Pinning a job to a subset of cores was the wrong tool:
+# the pinned cores sat pegged at 100% while the rest idled. Jobs now run UNPINNED
+# inside a transient cgroup with a total quota of 80% of every core, so the
+# scheduler spreads the work over the whole machine and the quota stops any core
+# from staying pegged at 100%.
 def cpu_limit_prefix():
-    """A `taskset` prefix that holds a job to 80% of the cores."""
+    """A prefix that runs a job under a cgroup quota of 80% of all cores."""
     try:
-        cores = sorted(os.sched_getaffinity(0))
+        cores = len(os.sched_getaffinity(0))
     except AttributeError:  # pragma: no cover - non-Linux
-        cores = list(range(os.cpu_count() or 1))
-    if len(cores) < 2:
+        cores = os.cpu_count() or 1
+    run = shutil.which("systemd-run")
+    if not run or cores < 2:
         return []
-    limit = max(1, int(len(cores) * 4 / 5))
-    taskset = shutil.which("taskset")
-    if limit >= len(cores) or not taskset:
-        return []
-    return [taskset, "-c", ",".join(str(core) for core in cores[:limit])]
+    quota = max(1, int(cores * 4 / 5)) * 100  # 80% of the whole machine
+    return [run, "--user", "--scope", "--quiet", "--collect",
+            "-p", "CPUQuota=%d%%" % quota, "--"]
 
 
 
