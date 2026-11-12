@@ -1026,9 +1026,8 @@ class RipperWindow(Gtk.ApplicationWindow):
         _blocks["ANIME CLEAN-UP"] = _block
         _block.append(caption_centred_temp("ANIME CLEAN-UP"))
         self.hug_children(clean_row)
-        # a little air above and below the row (C0D3D, 2026-11-12)
-        clean_row.set_margin_top(8)
-        clean_row.set_margin_bottom(8)
+        clean_row.set_margin_top(0)
+        clean_row.set_margin_bottom(0)
         _block.append(clean_row)
 
 
@@ -1333,11 +1332,10 @@ class RipperWindow(Gtk.ApplicationWindow):
             if not _first:
                 settings.append(self.section_rule())
             _first = False
-            # each section gets a little air above and below it
-            # (C0D3D, 2026-11-12)
+            # no air above or below a section (C0D3D, 2026-11-12)
             group = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-            group.set_margin_top(14)
-            group.set_margin_bottom(14)
+            group.set_margin_top(0)
+            group.set_margin_bottom(0)
             for _item in _items:
                 group.append(_item)
             settings.append(group)
