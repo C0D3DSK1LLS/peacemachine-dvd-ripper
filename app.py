@@ -1010,10 +1010,12 @@ class RipperWindow(Gtk.ApplicationWindow):
         _blocks["QUALITY"] = _block
         _block.append(caption_centred_temp("QUALITY"))
         _block.append(self.preset_dropdown)
+        # the preset blurb is gone from the window (C0D3D, 2026-11-12); it is
+        # kept as a tooltip on the dropdown instead
         self.preset_note = plain("", "dim")
         self.preset_note.set_wrap(True)
         self.preset_note.set_xalign(0.5)
-        _block.append(self.preset_note)
+        self.preset_note.set_visible(False)
 
 
         _block = []
