@@ -12,6 +12,25 @@ import time
 
 HANDBRAKE = shutil.which("HandBrakeCLI") or "/usr/bin/HandBrakeCLI"
 FFMPEG = shutil.which("ffmpeg") or "/usr/bin/ffmpeg"
+# C0D3D (2026-11-12): "dont ever let anything run the cpu past 80%, always leave
+# 20% reserve". HandBrake, ffmpeg and the transcriber all take every core by
+# default, so their commands are pinned to the first 80% of this machine's CPUs
+# and the desktop stays responsive while a rip runs.
+def cpu_limit_prefix():
+    """A `taskset` prefix that holds a job to 80% of the cores."""
+    try:
+        cores = sorted(os.sched_getaffinity(0))
+    except AttributeError:  # pragma: no cover - non-Linux
+        cores = list(range(os.cpu_count() or 1))
+    if len(cores) < 2:
+        return []
+    limit = max(1, int(len(cores) * 4 / 5))
+    taskset = shutil.which("taskset")
+    if limit >= len(cores) or not taskset:
+        return []
+    return [taskset, "-c", ",".join(str(core) for core in cores[:limit])]
+
+
 
 DIAG_DIR = os.path.expanduser("~/.local/state/ralph/diagnostics")
 DIAG_LOG = os.path.join(DIAG_DIR, "dvd-ripper.log")
@@ -337,8 +356,9 @@ def parse_scan(text):
 
 
 def scan_command(source, min_duration=10):
-    return [HANDBRAKE, "--json", "-i", source, "-t", "0", "--scan",
-            "--min-duration", str(min_duration)]
+    return cpu_limit_prefix() + [
+        HANDBRAKE, "--json", "-i", source, "-t", "0", "--scan",
+        "--min-duration", str(min_duration)]
 
 
 def list_sources():
@@ -378,8 +398,9 @@ def build_encode_command(source, title_number, output_path, preset_key,
     subs = SUB_BY_KEY.get(sub_key, SUB_BY_KEY["none"])
     language = AUDIO_LANG_BY_KEY.get(audio_lang, AUDIO_LANG_BY_KEY["any"])
 
-    command = [HANDBRAKE, "--json", "-i", source, "-t", str(title_number),
-               "-o", output_path]
+    command = cpu_limit_prefix() + [
+        HANDBRAKE, "--json", "-i", source, "-t", str(title_number),
+        "-o", output_path]
     preset_args = list(preset["args"])
     if anime:
         # x264/x265 tune for line art; replaces whatever tune the preset set
@@ -448,8 +469,9 @@ def is_video_file(path):
 def build_copy_command(source, output_path, start, stop):
     """Lossless split: stream copy, no re-encode, cuts at the nearest keyframe."""
     duration = max(0.5, float(stop) - float(start))
-    return [FFMPEG, "-hide_banner", "-nostdin", "-y",
-            "-ss", "%.3f" % float(start),
+    return cpu_limit_prefix() + [
+        FFMPEG, "-hide_banner", "-nostdin", "-y",
+        "-ss", "%.3f" % float(start),
             "-i", source,
             "-t", "%.3f" % duration,
             "-map", "0", "-c", "copy", "-avoid_negative_ts", "make_zero",
@@ -654,15 +676,17 @@ BLACK_RE = re.compile(r"black_start:(\d+(?:\.\d+)?)\s+black_end:(\d+(?:\.\d+)?)"
 
 def detect_command(path, noise_db=-35.0, silence_seconds=0.8):
     """ffmpeg analyses the audio for gaps and the picture for black stretches."""
-    return [FFMPEG, "-hide_banner", "-nostdin", "-i", path,
-            "-map", "0:a:0", "-af",
+    return cpu_limit_prefix() + [
+        FFMPEG, "-hide_banner", "-nostdin", "-i", path,
+        "-map", "0:a:0", "-af",
             "silencedetect=noise=%sdB:d=%s" % (noise_db, silence_seconds),
             "-f", "null", "-"]
 
 
 def detect_black_command(path):
-    return [FFMPEG, "-hide_banner", "-nostdin", "-i", path,
-            "-map", "0:v:0", "-vf", "blackdetect=d=0.5:pix_th=0.10",
+    return cpu_limit_prefix() + [
+        FFMPEG, "-hide_banner", "-nostdin", "-i", path,
+        "-map", "0:v:0", "-vf", "blackdetect=d=0.5:pix_th=0.10",
             "-f", "null", "-"]
 
 
@@ -745,9 +769,10 @@ def deband_command(source_path, output_path, mode_key, quality=18):
     filter_spec = mode.get("value")
     if not filter_spec:
         return None
-    return [FFMPEG, "-hide_banner", "-nostdin", "-y",
-            "-i", source_path,
-            "-map", "0", "-c:v", "libx264", "-crf", str(quality),
+    return cpu_limit_prefix() + [
+        FFMPEG, "-hide_banner", "-nostdin", "-y",
+        "-i", source_path,
+        "-map", "0", "-c:v", "libx264", "-crf", str(quality),
             "-preset", "medium", "-vf", filter_spec,
             "-c:a", "copy", "-c:s", "copy",
             "-map_metadata", "0", "-map_chapters", "0",
@@ -782,8 +807,9 @@ def asr_available():
 
 def transcript_command(video_path, srt_path, model, audio_stream=0):
     """Speech-to-text over one audio stream, writing an SRT beside the video."""
-    return [ASR_PYTHON, ASR_SCRIPT,
-            "--input", video_path,
+    return cpu_limit_prefix() + [
+        ASR_PYTHON, ASR_SCRIPT,
+        "--input", video_path,
             "--output", srt_path,
             "--model", model,
             "--audio-stream", str(audio_stream),
@@ -808,8 +834,9 @@ def mux_transcript_command(video_path, srt_path, output_path, keep_disc=True):
     disc subtitle tracks the rip carried. keep_disc=True keeps the disc's
     translation as an extra track; False drops it entirely.
     """
-    command = [FFMPEG, "-hide_banner", "-nostdin", "-y",
-               "-i", video_path, "-i", srt_path,
+    command = cpu_limit_prefix() + [
+        FFMPEG, "-hide_banner", "-nostdin", "-y",
+        "-i", video_path, "-i", srt_path,
                "-map", "0:v", "-map", "0:a", "-map", "1:0"]
     if keep_disc:
         command += ["-map", "0:s?", "-c:s", "copy", "-c:s:0", "srt"]
