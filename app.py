@@ -164,6 +164,12 @@ class CircleStep(Gtk.Widget):
         cr.set_source_rgba(red, green, blue, alpha)
         cr.fill()
 
+        # black rim around the disc (C0D3D, 2026-11-12)
+        cr.set_line_width(2.0)
+        cr.arc(cx, cy, radius - 1.0, 0, 2 * math.pi)
+        cr.set_source_rgba(0, 0, 0, 1.0)
+        cr.stroke()
+
         # the − / + glyph is black so it reads on the orange disc
         arm = radius * 0.52
         thickness = max(1.5, min(width, height) * 0.09)
