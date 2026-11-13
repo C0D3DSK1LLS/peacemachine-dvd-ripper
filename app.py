@@ -1089,9 +1089,11 @@ class RipperWindow(Gtk.ApplicationWindow):
         _blocks["ANIME CLEAN-UP"] = _block
         _block.append(caption_centred_temp("ANIME CLEAN-UP"))
         self.hug_children(clean_row)
-        # a little air above and below the row (C0D3D, 2026-11-12)
-        clean_row.set_margin_top(8)
-        clean_row.set_margin_bottom(8)
+        # no air above or below the clean-up row (C0D3D, 2026-11-12): the
+        # caption sits straight on the dropdowns and the separator straight
+        # under them
+        clean_row.set_margin_top(-7)
+        clean_row.set_margin_bottom(-6)
         _block.append(clean_row)
 
 
