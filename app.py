@@ -1087,13 +1087,15 @@ class RipperWindow(Gtk.ApplicationWindow):
 
         _block = []
         _blocks["ANIME CLEAN-UP"] = _block
-        _block.append(caption_centred_temp("ANIME CLEAN-UP"))
+        _anime_cap = caption_centred_temp("ANIME CLEAN-UP")
+        _anime_cap.add_css_class("anime-cap")
+        _block.append(_anime_cap)
         self.hug_children(clean_row)
         # no air above or below the clean-up row (C0D3D, 2026-11-12): the
         # caption sits straight on the dropdowns and the separator straight
         # under them
-        clean_row.set_margin_top(-7)
-        clean_row.set_margin_bottom(-6)
+        clean_row.set_margin_top(0)
+        clean_row.set_margin_bottom(0)
         _block.append(clean_row)
 
 
@@ -1418,18 +1420,25 @@ class RipperWindow(Gtk.ApplicationWindow):
         # only the gap above EPISODE NAMES is closed (C0D3D, 2026-11-12:
         # "remove whats inside that, the fucking gap, there and only there");
         # every other section keeps its hairline and its air
-        TIGHT_TOP = ()
+        TIGHT_TOP = ("ANIME CLEAN-UP",)
         # no air above or below any section (C0D3D, 2026-11-12)
         _first = True
+        _previous = None
         for _name, _items in _ordered:
             tight = _name in TIGHT_TOP
             if not _first and not tight:
-                settings.append(self.section_rule())
+                _rule = self.section_rule()
+                if _previous == "ANIME CLEAN-UP":
+                    _rule.add_css_class("rule-tight")
+                settings.append(_rule)
+            _previous = _name
             _first = False
             group = Gtk.Box(orientation=Gtk.Orientation.VERTICAL,
                             spacing=0 if tight else 4)
             group.set_margin_top(0)
             group.set_margin_bottom(0)
+            if _name == "ANIME CLEAN-UP":
+                group.add_css_class("anime-group")
             if tight:
                 # the caption hugs the input above it (C0D3D, 2026-11-12)
                 group.add_css_class("tight-top")
