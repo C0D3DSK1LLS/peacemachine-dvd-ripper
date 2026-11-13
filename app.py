@@ -1408,7 +1408,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         # these two sections sit tight against the row above them and get no
         # hairline or air of their own (C0D3D, 2026-11-12); everything else
         # keeps the spacing it had
-        TIGHT = ("FILE NAME", "EPISODE NAMES", "ANIME CLEAN-UP")
+        TIGHT = ()   # undone at C0D3D's request (2026-11-12)
         _first = True
         for _name, _items in _ordered:
             tight = _name in TIGHT
