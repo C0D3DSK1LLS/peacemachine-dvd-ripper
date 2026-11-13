@@ -2168,8 +2168,8 @@ class RipperWindow(Gtk.ApplicationWindow):
         saved = self.state
         # fixed startup choices, never restored from the file
         self.apply_startup_choices()
-        if saved.get("anime"):
-            self.anime_check.set_active(True)
+        # anime tuning is always ticked on startup (C0D3D, 2026-11-12)
+        self.anime_check.set_active(True)
         self.set_theme(saved.get("theme") or "matrix", remember=False)
         if saved.get("markers") is False:
             self.markers.set_active(False)
