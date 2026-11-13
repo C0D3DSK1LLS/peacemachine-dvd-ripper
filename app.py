@@ -1570,9 +1570,9 @@ class RipperWindow(Gtk.ApplicationWindow):
             # column shifts (C0D3D, 2026-11-12: "move these 3 buttons up 1 mm").
             _anime = _name == "ANIME CLEAN-UP"
             group = Gtk.Box(orientation=Gtk.Orientation.VERTICAL,
-                            spacing=0 if tight else (2 if _anime else 4))
+                            spacing=0 if tight else (0 if _anime else 4))
             group.set_margin_top(0)
-            group.set_margin_bottom(2 if _anime else 0)
+            group.set_margin_bottom(4 if _anime else 0)
             if _name == "ANIME CLEAN-UP":
                 group.add_css_class("anime-group")
             if tight:
