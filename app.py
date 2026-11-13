@@ -1420,7 +1420,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         # only the gap above EPISODE NAMES is closed (C0D3D, 2026-11-12:
         # "remove whats inside that, the fucking gap, there and only there");
         # every other section keeps its hairline and its air
-        TIGHT_TOP = ("ANIME CLEAN-UP",)
+        TIGHT_TOP = ()
         # no air above or below any section (C0D3D, 2026-11-12)
         _first = True
         _previous = None
