@@ -34,6 +34,11 @@ import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
 APP_VERSION = "1.0.0"
+
+# Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
+# size and position ... the default, and open it to that on launch").
+DEFAULT_SPLIT_POSITION = 400     # titles column width
+DEFAULT_QUEUE_HEIGHT = 118       # rip queue height
 THEMES = [
     {"key": "matrix", "short": "Matrix"},
     {"key": "basic-light", "short": "Basic (light)"},
@@ -1965,7 +1970,7 @@ class RipperWindow(Gtk.ApplicationWindow):
             return False
         if self.paned.get_orientation() != Gtk.Orientation.HORIZONTAL:
             return False
-        saved = int(self.state.get("split_position") or 0)
+        saved = int(self.state.get("split_position") or DEFAULT_SPLIT_POSITION)
         width = self.paned.get_width()
         if saved > 0 and width > 0:
             self.paned.set_position(max(240, min(saved, max(240, width - 320))))
@@ -1985,7 +1990,7 @@ class RipperWindow(Gtk.ApplicationWindow):
     def restore_queue_split(self):
         if self.dead or not hasattr(self, "queue_paned"):
             return False
-        saved = int(self.state.get("queue_height") or 0)
+        saved = int(self.state.get("queue_height") or DEFAULT_QUEUE_HEIGHT)
         height = self.queue_paned.get_height()
         if saved > 0 and height > 0:
             self.queue_paned.set_position(max(120, height - saved))
@@ -2008,7 +2013,8 @@ class RipperWindow(Gtk.ApplicationWindow):
         if self.paned.get_orientation() == Gtk.Orientation.HORIZONTAL:
             width = self.paned.get_width()
             if width > 0 and self.get_width() > 400:
-                saved = int(self.state.get("split_position") or 0)
+                saved = int(self.state.get("split_position")
+                            or DEFAULT_SPLIT_POSITION)
                 if width != getattr(self, "last_paned_width", None):
                     self.last_paned_width = width
                     self.paned_resized_at = now
@@ -2028,7 +2034,8 @@ class RipperWindow(Gtk.ApplicationWindow):
         if hasattr(self, "queue_paned"):
             height = self.queue_paned.get_height()
             if height > 0:
-                saved_queue = int(self.state.get("queue_height") or 0)
+                saved_queue = int(self.state.get("queue_height")
+                                  or DEFAULT_QUEUE_HEIGHT)
                 if height != getattr(self, "last_queue_height", None):
                     self.last_queue_height = height
                     self.queue_resized_at = now
