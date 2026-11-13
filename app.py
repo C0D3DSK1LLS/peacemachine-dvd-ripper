@@ -993,7 +993,9 @@ class RipperWindow(Gtk.ApplicationWindow):
         titles_box = card(6)
         titles_box.add_css_class("titles-card")
         head = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        head.append(caption("TITLES ON THE DISC"))
+        _titles_cap = caption("TITLES ON THE DISC")
+        _titles_cap.add_css_class("cap-green")
+        head.append(_titles_cap)
         clear_titles = Gtk.Button(label="Clear")
         clear_titles.add_css_class("tiny-button")
         clear_titles.set_tooltip_text("Empty the title list")
@@ -1581,6 +1583,20 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.bottom_rule = self.section_rule()
         settings.append(self.bottom_rule)
 
+        # four captions wear green instead of the aqua the rest use
+        # (C0D3D, 2026-11-12)
+        _green_caps = {"FILE NAME", "FIRST EPISODE", "EPISODE NAMES", "EPISODES"}
+
+        def _tag_green(widget):
+            if isinstance(widget, Gtk.Label) and widget.has_css_class("eyebrow") \
+                    and widget.get_text() in _green_caps:
+                widget.add_css_class("cap-green")
+            child = widget.get_first_child()
+            while child is not None:
+                _tag_green(child)
+                child = child.get_next_sibling()
+
+        _tag_green(settings)
         paned.set_end_child(settings_scroller)
         self.preset_changed()
         self.split_text_changed()
