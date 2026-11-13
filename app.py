@@ -1412,6 +1412,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         # "remove whats inside that, the fucking gap, there and only there");
         # every other section keeps its hairline and its air
         TIGHT_TOP = ()   # reverted at C0D3D's request (2026-11-12)
+        # no air above or below any section (C0D3D, 2026-11-12)
         _first = True
         for _name, _items in _ordered:
             tight = _name in TIGHT_TOP
@@ -1420,8 +1421,8 @@ class RipperWindow(Gtk.ApplicationWindow):
             _first = False
             group = Gtk.Box(orientation=Gtk.Orientation.VERTICAL,
                             spacing=0 if tight else 4)
-            group.set_margin_top(0 if tight else 14)
-            group.set_margin_bottom(14)
+            group.set_margin_top(0)
+            group.set_margin_bottom(0)
             for _item in _items:
                 group.append(_item)
             settings.append(group)
