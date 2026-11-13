@@ -1586,11 +1586,14 @@ class RipperWindow(Gtk.ApplicationWindow):
         # four captions wear green instead of the aqua the rest use
         # (C0D3D, 2026-11-12)
         _green_caps = {"FILE NAME", "FIRST EPISODE", "EPISODE NAMES", "EPISODES"}
+        _orange_caps = {"ANIME CLEAN-UP", "SPLIT INTO SEPARATE FILES"}
 
         def _tag_green(widget):
-            if isinstance(widget, Gtk.Label) and widget.has_css_class("eyebrow") \
-                    and widget.get_text() in _green_caps:
-                widget.add_css_class("cap-green")
+            if isinstance(widget, Gtk.Label) and widget.has_css_class("eyebrow"):
+                if widget.get_text() in _green_caps:
+                    widget.add_css_class("cap-green")
+                elif widget.get_text() in _orange_caps:
+                    widget.add_css_class("cap-orange")
             child = widget.get_first_child()
             while child is not None:
                 _tag_green(child)
