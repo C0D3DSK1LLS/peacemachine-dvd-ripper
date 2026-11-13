@@ -104,7 +104,7 @@ class SpinFolder(Gtk.DrawingArea):
     def do_measure(self, orientation, for_size):
         # can shrink when the column is short, so the titles header never gets
         # squeezed off (C0D3D, 2026-11-12)
-        return (0, 340, -1, -1)
+        return (0, 680, -1, -1)
 
     def start(self):
         self.running = True
@@ -1025,7 +1025,7 @@ class RipperWindow(Gtk.ApplicationWindow):
 
         # the folder spinny rides at the bottom of the column, centred, so it
         # follows the panes as they are dragged (C0D3D, 2026-11-12)
-        self.folder_spin = SpinFolder(size=340)
+        self.folder_spin = SpinFolder(size=680)
         self.folder_spin.set_halign(Gtk.Align.CENTER)
         self.folder_spin.set_valign(Gtk.Align.END)
         self.folder_spin.set_margin_top(4)
@@ -1540,6 +1540,10 @@ class RipperWindow(Gtk.ApplicationWindow):
         settings.append(self.preview_label)
         self.preview_rule = self.section_rule()
         settings.append(self.preview_rule)
+
+        # a separator above the first section too (C0D3D, 2026-11-12)
+        self.top_rule = self.section_rule()
+        settings.append(self.top_rule)
 
         # these two sections sit tight against the row above them and get no
         # hairline or air of their own (C0D3D, 2026-11-12); everything else
