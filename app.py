@@ -133,37 +133,45 @@ class SpinFolder(Gtk.DrawingArea):
         cr.close_path()
 
     def _draw(self, area, cr, width, height):
+        """Drawn in the 62px design space and scaled up, so a bigger widget is
+        the same shape with the same glow, just larger (C0D3D, 2026-11-12)."""
         import cairo
 
         if width < 8 or height < 8:
             return
-        cx, cy = width / 2, height / 2
-        ring = min(width, height) / 2 - 11
+        scale = min(width, height) / 62.0
         angle = self.phase * 2 * math.pi
         done = not self.running
+        ring = 20.0                      # radius in design space
+
+        cr.save()
+        cr.translate(width / 2, height / 2)
+        cr.scale(scale, scale)
 
         cr.set_line_width(1.0)
         cr.set_source_rgba(0.11, 0.29, 0.18, 1.0)
-        cr.arc(cx, cy, ring, 0, 2 * math.pi)
+        cr.arc(0, 0, ring, 0, 2 * math.pi)
         cr.stroke()
 
         if not done:
             for step in range(1, 7):
                 trail = angle - step * 0.32
                 cr.set_source_rgba(0.0, 1.0, 0.255, 0.55 * (1 - step / 8))
-                cr.arc(cx + math.cos(trail) * ring, cy + math.sin(trail) * ring,
+                cr.arc(math.cos(trail) * ring, math.sin(trail) * ring,
                        max(0.7, 2.6 - step * 0.28), 0, 2 * math.pi)
                 cr.fill()
 
-        fx = cx + (0 if done else math.cos(angle) * ring)
-        fy = cy + (0 if done else math.sin(angle) * ring) - (ring + 2 if done else 0)
+        fx = 0.0 if done else math.cos(angle) * ring
+        fy = (0.0 if done else math.sin(angle) * ring) - (ring + 2 if done else 0)
         tilt = 0.0 if done else math.sin(angle) * 0.22
 
-        glow = cairo.RadialGradient(fx, fy, 1, fx, fy, 15)
-        glow.add_color_stop_rgba(0.0, 0.0, 1.0, 0.255, 0.22)
+        # the folder's own bloom, wider and brighter than the copy window's
+        glow = cairo.RadialGradient(fx, fy, 1, fx, fy, 22)
+        glow.add_color_stop_rgba(0.0, 0.0, 1.0, 0.255, 0.55)
+        glow.add_color_stop_rgba(0.45, 0.0, 1.0, 0.255, 0.20)
         glow.add_color_stop_rgba(1.0, 0.0, 1.0, 0.255, 0.0)
         cr.set_source(glow)
-        cr.arc(fx, fy, 15, 0, 2 * math.pi)
+        cr.arc(fx, fy, 22, 0, 2 * math.pi)
         cr.fill()
 
         cr.save()
@@ -184,6 +192,7 @@ class SpinFolder(Gtk.DrawingArea):
         cr.fill()
         self._round_rect(cr, -5.2, 1.2, 7.0, 1.2, 0.6)
         cr.fill()
+        cr.restore()
         cr.restore()
 
 
@@ -1016,7 +1025,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         spin_row.set_valign(Gtk.Align.END)
         spin_row.set_margin_top(4)
         spin_row.set_margin_bottom(4)
-        self.folder_spin = SpinFolder()
+        self.folder_spin = SpinFolder(size=170)
         spin_row.append(self.folder_spin)
         titles_box.append(spin_row)
         paned.set_start_child(titles_box)
