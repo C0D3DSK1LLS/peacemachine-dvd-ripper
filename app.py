@@ -1565,10 +1565,14 @@ class RipperWindow(Gtk.ApplicationWindow):
                 settings.append(_rule)
             _previous = _name
             _first = False
+            # The three ANIME CLEAN-UP dropdowns sit 1mm higher than the caption,
+            # with the same 2px moved below the group so nothing further down the
+            # column shifts (C0D3D, 2026-11-12: "move these 3 buttons up 1 mm").
+            _anime = _name == "ANIME CLEAN-UP"
             group = Gtk.Box(orientation=Gtk.Orientation.VERTICAL,
-                            spacing=0 if tight else 4)
+                            spacing=0 if tight else (2 if _anime else 4))
             group.set_margin_top(0)
-            group.set_margin_bottom(0)
+            group.set_margin_bottom(2 if _anime else 0)
             if _name == "ANIME CLEAN-UP":
                 group.add_css_class("anime-group")
             if tight:
