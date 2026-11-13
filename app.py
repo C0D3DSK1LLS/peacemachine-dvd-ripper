@@ -50,7 +50,10 @@ THEME_FILES = {
     "basic-dark": "basic-dark.css",
 }
 _theme_provider = None
-STATE_DIR = os.path.join(os.path.expanduser("~"), ".local/share/c0d3d/dvd-ripper")
+# tests and probes point this somewhere else so they can never overwrite his
+# real settings (that happened once: C0D3D, 2026-11-12)
+STATE_DIR = os.environ.get("DVD_RIPPER_STATE_DIR") or os.path.join(
+    os.path.expanduser("~"), ".local/share/c0d3d/dvd-ripper")
 STATE_FILE = os.path.join(STATE_DIR, "state.json")
 
 
@@ -2121,37 +2124,50 @@ class RipperWindow(Gtk.ApplicationWindow):
         return False
 
     # ---------------------------------------------------------------- bootstrap
-    def bootstrap(self):
-        # restore the saved settings
-        saved = self.state
-        for index, preset in enumerate(ripper.PRESETS):
-            if preset["key"] == saved.get("preset"):
-                self.preset_dropdown.set_selected(index)
-        for index, mode in enumerate(ripper.AUDIO_MODES):
-            if mode["key"] == saved.get("audio"):
-                self.audio_dropdown.set_selected(index)
-        for index, mode in enumerate(ripper.SUB_MODES):
-            if mode["key"] == saved.get("subs"):
-                self.sub_dropdown.set_selected(index)
-        for index, mode in enumerate(ripper.AUDIO_LANGUAGES):
-            if mode["key"] == saved.get("audio_lang"):
-                self.lang_dropdown.set_selected(index)
-        for index, mode in enumerate(ripper.RESOLUTIONS):
-            if mode["key"] == saved.get("resolution"):
-                self.resolution_dropdown.set_selected(index)
-        for index, mode in enumerate(ripper.DENOISE_MODES):
-            if mode["key"] == saved.get("denoise"):
-                self.denoise_dropdown.set_selected(index)
-        for index, mode in enumerate(ripper.DEBLOCK_MODES):
-            if mode["key"] == saved.get("deblock"):
-                self.deblock_dropdown.set_selected(index)
-        for index, mode in enumerate(ripper.DEBAND_MODES):
-            if mode["key"] == saved.get("deband"):
-                self.deband_dropdown.set_selected(index)
-        wanted = saved.get("transcript") or "best"
+    # These are the settings every launch starts with (C0D3D, 2026-11-12):
+    # subtitles English, transcript best, passthrough best audio, fastest NVENC,
+    # denoise light, deblock mild, deband off, keep disc resolution, any
+    # language. They are not remembered between launches - only the episode
+    # number, the episode name and the save folder are.
+    STARTUP_CHOICES = {
+        "preset": ("PRESETS", "gpu"),
+        "audio": ("AUDIO_MODES", "copy"),
+        "subs": ("SUB_MODES", "eng"),
+        "audio_lang": ("AUDIO_LANGUAGES", "any"),
+        "resolution": ("RESOLUTIONS", "native"),
+        "denoise": ("DENOISE_MODES", "light"),
+        "deblock": ("DEBLOCK_MODES", "mild"),
+        "deband": ("DEBAND_MODES", "off"),
+    }
+    STARTUP_TRANSCRIPT = "best"
+
+    def apply_startup_choices(self):
+        dropdowns = {
+            "preset": self.preset_dropdown,
+            "audio": self.audio_dropdown,
+            "subs": self.sub_dropdown,
+            "audio_lang": self.lang_dropdown,
+            "resolution": self.resolution_dropdown,
+            "denoise": self.denoise_dropdown,
+            "deblock": self.deblock_dropdown,
+            "deband": self.deband_dropdown,
+        }
+        for key, (listname, wanted) in self.STARTUP_CHOICES.items():
+            modes = getattr(ripper, listname)
+            for index, mode in enumerate(modes):
+                if mode["key"] == wanted:
+                    dropdowns[key].set_selected(index)
+                    break
         for index, mode in enumerate(ripper.TRANSCRIPT_MODES):
-            if mode["key"] == wanted:
+            if mode["key"] == self.STARTUP_TRANSCRIPT:
                 self.transcript_dropdown.set_selected(index)
+                break
+
+    # ---------------------------------------------------------------- bootstrap
+    def bootstrap(self):
+        saved = self.state
+        # fixed startup choices, never restored from the file
+        self.apply_startup_choices()
         if saved.get("anime"):
             self.anime_check.set_active(True)
         self.set_theme(saved.get("theme") or "matrix", remember=False)
