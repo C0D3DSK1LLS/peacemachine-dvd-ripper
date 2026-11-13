@@ -1945,13 +1945,9 @@ class RipperWindow(Gtk.ApplicationWindow):
 
     # ---------------------------------------------------------------- keys
     def save_split(self):
-        """Remember the divider position in pixels — nothing clever."""
-        if self.dead or not hasattr(self, "paned"):
-            return
-        if self.paned.get_orientation() != Gtk.Orientation.HORIZONTAL:
-            return
-        self.state["split_position"] = int(self.paned.get_position())
-        save_state(self.state)
+        # the divider has a fixed default now (C0D3D, 2026-11-12), so nothing is
+        # remembered between launches
+        return
 
     def match_dropdown_height(self):
         """Give the show dropdown the same height as the buttons beside it."""
@@ -1970,27 +1966,21 @@ class RipperWindow(Gtk.ApplicationWindow):
             return False
         if self.paned.get_orientation() != Gtk.Orientation.HORIZONTAL:
             return False
-        saved = int(self.state.get("split_position") or DEFAULT_SPLIT_POSITION)
+        saved = DEFAULT_SPLIT_POSITION
         width = self.paned.get_width()
         if saved > 0 and width > 0:
             self.paned.set_position(max(240, min(saved, max(240, width - 320))))
         return False
 
     def save_queue_split(self):
-        if self.dead or not hasattr(self, "queue_paned"):
-            return
-        height = self.queue_paned.get_height()
-        if height <= 0:
-            return
-        queue_height = max(90, height - self.queue_paned.get_position())
-        if abs(queue_height - int(self.state.get("queue_height") or 0)) > 2:
-            self.state["queue_height"] = int(queue_height)
-            save_state(self.state)
+        # the pane sizes are fixed defaults now (C0D3D, 2026-11-12), nothing is
+        # remembered between launches
+        return
 
     def restore_queue_split(self):
         if self.dead or not hasattr(self, "queue_paned"):
             return False
-        saved = int(self.state.get("queue_height") or DEFAULT_QUEUE_HEIGHT)
+        saved = DEFAULT_QUEUE_HEIGHT
         height = self.queue_paned.get_height()
         if saved > 0 and height > 0:
             self.queue_paned.set_position(max(120, height - saved))
@@ -2013,8 +2003,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         if self.paned.get_orientation() == Gtk.Orientation.HORIZONTAL:
             width = self.paned.get_width()
             if width > 0 and self.get_width() > 400:
-                saved = int(self.state.get("split_position")
-                            or DEFAULT_SPLIT_POSITION)
+                saved = DEFAULT_SPLIT_POSITION
                 if width != getattr(self, "last_paned_width", None):
                     self.last_paned_width = width
                     self.paned_resized_at = now
@@ -2023,19 +2012,13 @@ class RipperWindow(Gtk.ApplicationWindow):
                     self.split_baseline = self.paned.get_position()
                 elif (now - getattr(self, "paned_resized_at", 0.0) >= 0.8
                       and self.paned.get_position() != getattr(self, "split_baseline", None)):
-                    position = self.paned.get_position()
-                    if position > 0:
-                        self.state["split_position"] = int(position)
-                        save_state(self.state)
-                        ripper.log("split saved: %d" % position)
-                    self.split_baseline = position
+                    self.split_baseline = self.paned.get_position()
 
         # --- rip queue (vertical)
         if hasattr(self, "queue_paned"):
             height = self.queue_paned.get_height()
             if height > 0:
-                saved_queue = int(self.state.get("queue_height")
-                                  or DEFAULT_QUEUE_HEIGHT)
+                saved_queue = DEFAULT_QUEUE_HEIGHT
                 if height != getattr(self, "last_queue_height", None):
                     self.last_queue_height = height
                     self.queue_resized_at = now
@@ -2044,11 +2027,7 @@ class RipperWindow(Gtk.ApplicationWindow):
                     self.queue_baseline = self.queue_paned.get_position()
                 elif (now - getattr(self, "queue_resized_at", 0.0) >= 0.8
                       and self.queue_paned.get_position() != getattr(self, "queue_baseline", None)):
-                    position = self.queue_paned.get_position()
-                    self.queue_baseline = position
-                    current = height - position
-                    if current > 0:
-                        self.save_queue_split()
+                    self.queue_baseline = self.queue_paned.get_position()
         return True
 
     def watch_drive(self):
