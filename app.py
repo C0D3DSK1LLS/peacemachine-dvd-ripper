@@ -101,6 +101,11 @@ class SpinFolder(Gtk.DrawingArea):
         self._timer = None
         self.set_draw_func(self._draw)
 
+    def do_measure(self, orientation, for_size):
+        # can shrink when the column is short, so the titles header never gets
+        # squeezed off (C0D3D, 2026-11-12)
+        return (0, 170, -1, -1)
+
     def start(self):
         self.running = True
         if self._timer is None:
@@ -1009,7 +1014,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         scroller = Gtk.ScrolledWindow()
         scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scroller.set_vexpand(True)
-        scroller.set_min_content_height(120)
+        scroller.set_min_content_height(0)
         self.titles_scroller = scroller
         self.titles_list = Gtk.ListBox()
         self.titles_list.set_selection_mode(Gtk.SelectionMode.NONE)
