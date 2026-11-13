@@ -1408,21 +1408,20 @@ class RipperWindow(Gtk.ApplicationWindow):
         # these two sections sit tight against the row above them and get no
         # hairline or air of their own (C0D3D, 2026-11-12); everything else
         # keeps the spacing it had
-        TIGHT = ()   # undone at C0D3D's request (2026-11-12)
+        # only the gap above EPISODE NAMES is closed (C0D3D, 2026-11-12:
+        # "remove whats inside that, the fucking gap, there and only there");
+        # every other section keeps its hairline and its air
+        TIGHT_TOP = ("EPISODE NAMES",)
         _first = True
         for _name, _items in _ordered:
-            tight = _name in TIGHT
+            tight = _name in TIGHT_TOP
             if not _first and not tight:
                 settings.append(self.section_rule())
             _first = False
             group = Gtk.Box(orientation=Gtk.Orientation.VERTICAL,
                             spacing=0 if tight else 4)
-            if tight:
-                group.set_margin_top(0)
-                group.set_margin_bottom(0)
-            else:
-                group.set_margin_top(14)
-                group.set_margin_bottom(14)
+            group.set_margin_top(0 if tight else 14)
+            group.set_margin_bottom(14)
             for _item in _items:
                 group.append(_item)
             settings.append(group)
