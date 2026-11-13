@@ -1205,6 +1205,8 @@ class RipperWindow(Gtk.ApplicationWindow):
         # FIRST EPISODE row above is left exactly where it was.
         find_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         find_row.set_halign(Gtk.Align.START)
+        # the show row hugs the file-name input above it (C0D3D, 2026-11-12)
+        find_row.add_css_class("episode-row")
         episode_col = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
         episode_col.set_halign(Gtk.Align.START)
         episode_col.append(caption_centred_temp("EPISODE NAMES"))
@@ -1336,6 +1338,9 @@ class RipperWindow(Gtk.ApplicationWindow):
         def _column(title, items):
             column = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
             column.set_halign(Gtk.Align.CENTER)
+            if title == "EPISODE NAMES":
+                # hugs the input above it (C0D3D, 2026-11-12)
+                column.add_css_class("tight-top")
             column.append(caption_centred_temp(title))
             for item in items[1:]:        # first item is the old caption
                 column.append(item)
@@ -1411,7 +1416,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         # only the gap above EPISODE NAMES is closed (C0D3D, 2026-11-12:
         # "remove whats inside that, the fucking gap, there and only there");
         # every other section keeps its hairline and its air
-        TIGHT_TOP = ()   # reverted at C0D3D's request (2026-11-12)
+        TIGHT_TOP = ()
         # no air above or below any section (C0D3D, 2026-11-12)
         _first = True
         for _name, _items in _ordered:
@@ -1423,6 +1428,9 @@ class RipperWindow(Gtk.ApplicationWindow):
                             spacing=0 if tight else 4)
             group.set_margin_top(0)
             group.set_margin_bottom(0)
+            if tight:
+                # the caption hugs the input above it (C0D3D, 2026-11-12)
+                group.add_css_class("tight-top")
             for _item in _items:
                 group.append(_item)
             settings.append(group)
