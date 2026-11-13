@@ -1020,14 +1020,12 @@ class RipperWindow(Gtk.ApplicationWindow):
 
         # the folder spinny rides at the bottom of the column, centred, so it
         # follows the panes as they are dragged (C0D3D, 2026-11-12)
-        spin_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        spin_row.set_halign(Gtk.Align.CENTER)
-        spin_row.set_valign(Gtk.Align.END)
-        spin_row.set_margin_top(4)
-        spin_row.set_margin_bottom(4)
         self.folder_spin = SpinFolder(size=170)
-        spin_row.append(self.folder_spin)
-        titles_box.append(spin_row)
+        self.folder_spin.set_halign(Gtk.Align.CENTER)
+        self.folder_spin.set_valign(Gtk.Align.END)
+        self.folder_spin.set_margin_top(4)
+        self.folder_spin.set_margin_bottom(4)
+        titles_box.append(self.folder_spin)
         paned.set_start_child(titles_box)
 
         settings = card(4)
