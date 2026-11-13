@@ -1006,22 +1006,19 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.titles_list.set_selection_mode(Gtk.SelectionMode.NONE)
         self.titles_list.add_css_class("title-list")
 
-        # the folder spinny sits right under the last title, centred
-        # (C0D3D, 2026-11-12)
-        list_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
-        list_box.set_valign(Gtk.Align.START)
-        self.titles_list.set_valign(Gtk.Align.START)
-        self.titles_list.set_vexpand(False)
-        list_box.append(self.titles_list)
+        scroller.set_child(self.titles_list)
+        titles_box.append(scroller)
+
+        # the folder spinny rides at the bottom of the column, centred, so it
+        # follows the panes as they are dragged (C0D3D, 2026-11-12)
         spin_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         spin_row.set_halign(Gtk.Align.CENTER)
-        spin_row.set_margin_top(6)
-        spin_row.set_margin_bottom(6)
+        spin_row.set_valign(Gtk.Align.END)
+        spin_row.set_margin_top(4)
+        spin_row.set_margin_bottom(4)
         self.folder_spin = SpinFolder()
         spin_row.append(self.folder_spin)
-        list_box.append(spin_row)
-        scroller.set_child(list_box)
-        titles_box.append(scroller)
+        titles_box.append(spin_row)
         paned.set_start_child(titles_box)
 
         settings = card(4)
