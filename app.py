@@ -175,15 +175,6 @@ class SpinFolder(Gtk.DrawingArea):
         fy = (0.0 if done else math.sin(angle) * ring) - (ring + 2 if done else 0)
         tilt = 0.0 if done else math.sin(angle) * 0.22
 
-        # the folder's own bloom, wider and brighter than the copy window's
-        glow = cairo.RadialGradient(fx, fy, 1, fx, fy, 22)
-        glow.add_color_stop_rgba(0.0, 0.0, 1.0, 0.255, 0.55)
-        glow.add_color_stop_rgba(0.45, 0.0, 1.0, 0.255, 0.20)
-        glow.add_color_stop_rgba(1.0, 0.0, 1.0, 0.255, 0.0)
-        cr.set_source(glow)
-        cr.arc(fx, fy, 22, 0, 2 * math.pi)
-        cr.fill()
-
         cr.save()
         cr.translate(fx, fy)
         cr.rotate(tilt)
