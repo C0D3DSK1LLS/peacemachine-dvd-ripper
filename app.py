@@ -1411,7 +1411,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         # only the gap above EPISODE NAMES is closed (C0D3D, 2026-11-12:
         # "remove whats inside that, the fucking gap, there and only there");
         # every other section keeps its hairline and its air
-        TIGHT_TOP = ("EPISODE NAMES",)
+        TIGHT_TOP = ()   # reverted at C0D3D's request (2026-11-12)
         _first = True
         for _name, _items in _ordered:
             tight = _name in TIGHT_TOP
