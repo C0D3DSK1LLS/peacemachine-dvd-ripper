@@ -729,7 +729,7 @@ class RipperWindow(Gtk.ApplicationWindow):
 
     def section_rule(self):
         rule = Gtk.Box()
-        rule.set_size_request(-1, 1)
+        rule.set_size_request(-1, 2)
         rule.set_hexpand(True)
         rule.add_css_class("section-rule")
         return rule
@@ -1089,8 +1089,9 @@ class RipperWindow(Gtk.ApplicationWindow):
         _blocks["ANIME CLEAN-UP"] = _block
         _block.append(caption_centred_temp("ANIME CLEAN-UP"))
         self.hug_children(clean_row)
-        clean_row.set_margin_top(0)
-        clean_row.set_margin_bottom(0)
+        # a little air above and below the row (C0D3D, 2026-11-12)
+        clean_row.set_margin_top(8)
+        clean_row.set_margin_bottom(8)
         _block.append(clean_row)
 
 
@@ -1372,6 +1373,11 @@ class RipperWindow(Gtk.ApplicationWindow):
         if all(name in _blocks for name in _naming_names):
             naming = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=18)
             naming.set_halign(Gtk.Align.CENTER)
+            # only this row is pulled up against the input above it
+            # (C0D3D, 2026-11-12: "change everything else back and only move up
+            # whats in the image")
+            naming.add_css_class("naming-row")
+            _blocks["FILE NAME / EPISODE NAMES"] = [naming]
             for name in _naming_names:
                 naming.append(_column(name, _blocks.pop(name)))
             _blocks["FILE NAME / EPISODE NAMES"] = [naming]
@@ -1399,21 +1405,24 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.preview_rule = self.section_rule()
         settings.append(self.preview_rule)
 
-        # sections sit shoulder to shoulder: no air above or below, and the
-        # hairlines between them carry no padding of their own
-        # (C0D3D, 2026-11-12: "move all of this up ... just move it all up")
-        settings.set_spacing(0)
+        # these two sections sit tight against the row above them and get no
+        # hairline or air of their own (C0D3D, 2026-11-12); everything else
+        # keeps the spacing it had
+        TIGHT = ("EPISODE NAMES", "ANIME CLEAN-UP")
         _first = True
         for _name, _items in _ordered:
-            if not _first:
-                rule = self.section_rule()
-                rule.set_margin_top(0)
-                rule.set_margin_bottom(0)
-                settings.append(rule)
+            tight = _name in TIGHT
+            if not _first and not tight:
+                settings.append(self.section_rule())
             _first = False
-            group = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
-            group.set_margin_top(0)
-            group.set_margin_bottom(0)
+            group = Gtk.Box(orientation=Gtk.Orientation.VERTICAL,
+                            spacing=0 if tight else 4)
+            if tight:
+                group.set_margin_top(0)
+                group.set_margin_bottom(0)
+            else:
+                group.set_margin_top(14)
+                group.set_margin_bottom(14)
             for _item in _items:
                 group.append(_item)
             settings.append(group)
