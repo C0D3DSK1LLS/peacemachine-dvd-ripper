@@ -1577,6 +1577,10 @@ class RipperWindow(Gtk.ApplicationWindow):
                 group.append(_item)
             settings.append(group)
 
+        # and one last spacer under the timestamps note (C0D3D, 2026-11-12)
+        self.bottom_rule = self.section_rule()
+        settings.append(self.bottom_rule)
+
         paned.set_end_child(settings_scroller)
         self.preset_changed()
         self.split_text_changed()
