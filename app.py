@@ -84,6 +84,109 @@ def save_state(data):
 # --------------------------------------------------------------------------
 # jobs
 # --------------------------------------------------------------------------
+class SpinFolder(Gtk.DrawingArea):
+    """The orbiting folder from the file-copy window.
+
+    C0D3D (2026-11-12): "put that spinny icon thing I have on the copy file
+    window ... under the titles on disk" and "have it spin when the dvd is
+    ripping". It parks at the top of its ring whenever nothing is encoding.
+    """
+
+    def __init__(self, size=58):
+        super().__init__()
+        self.set_content_width(size)
+        self.set_content_height(size)
+        self.phase = 0.0
+        self.running = False
+        self._timer = None
+        self.set_draw_func(self._draw)
+
+    def start(self):
+        self.running = True
+        if self._timer is None:
+            self._timer = GLib.timeout_add(33, self._tick)
+        self.queue_draw()
+
+    def stop(self):
+        self.running = False
+        if self._timer is not None:
+            GLib.source_remove(self._timer)
+            self._timer = None
+        self.queue_draw()
+
+    def _tick(self):
+        if not self.running:
+            self._timer = None
+            return False
+        self.phase = (self.phase + 0.013) % 1.0
+        self.queue_draw()
+        return True
+
+    @staticmethod
+    def _round_rect(cr, x, y, w, h, r):
+        r = min(r, w / 2, h / 2)
+        cr.new_sub_path()
+        cr.arc(x + w - r, y + r, r, -math.pi / 2, 0)
+        cr.arc(x + w - r, y + h - r, r, 0, math.pi / 2)
+        cr.arc(x + r, y + h - r, r, math.pi / 2, math.pi)
+        cr.arc(x + r, y + r, r, math.pi, 3 * math.pi / 2)
+        cr.close_path()
+
+    def _draw(self, area, cr, width, height):
+        import cairo
+
+        if width < 8 or height < 8:
+            return
+        cx, cy = width / 2, height / 2
+        ring = min(width, height) / 2 - 11
+        angle = self.phase * 2 * math.pi
+        done = not self.running
+
+        cr.set_line_width(1.0)
+        cr.set_source_rgba(0.11, 0.29, 0.18, 1.0)
+        cr.arc(cx, cy, ring, 0, 2 * math.pi)
+        cr.stroke()
+
+        if not done:
+            for step in range(1, 7):
+                trail = angle - step * 0.32
+                cr.set_source_rgba(0.0, 1.0, 0.255, 0.55 * (1 - step / 8))
+                cr.arc(cx + math.cos(trail) * ring, cy + math.sin(trail) * ring,
+                       max(0.7, 2.6 - step * 0.28), 0, 2 * math.pi)
+                cr.fill()
+
+        fx = cx + (0 if done else math.cos(angle) * ring)
+        fy = cy + (0 if done else math.sin(angle) * ring) - (ring + 2 if done else 0)
+        tilt = 0.0 if done else math.sin(angle) * 0.22
+
+        glow = cairo.RadialGradient(fx, fy, 1, fx, fy, 15)
+        glow.add_color_stop_rgba(0.0, 0.0, 1.0, 0.255, 0.22)
+        glow.add_color_stop_rgba(1.0, 0.0, 1.0, 0.255, 0.0)
+        cr.set_source(glow)
+        cr.arc(fx, fy, 15, 0, 2 * math.pi)
+        cr.fill()
+
+        cr.save()
+        cr.translate(fx, fy)
+        cr.rotate(tilt)
+
+        cr.set_source_rgb(0.86, 0.08, 0.235)
+        self._round_rect(cr, -7.5, -7.5, 7.0, 3.4, 1.0)
+        cr.fill()
+        cr.set_source_rgb(0.04, 0.13, 0.07)
+        self._round_rect(cr, -8.5, -5.5, 17.0, 12.5, 2.2)
+        cr.fill_preserve()
+        cr.set_line_width(1.3)
+        cr.set_source_rgb(0.0, 1.0, 0.255)
+        cr.stroke()
+        cr.set_source_rgba(0.6, 0.9, 0.66, 0.55)
+        self._round_rect(cr, -5.2, -2.0, 10.4, 1.2, 0.6)
+        cr.fill()
+        self._round_rect(cr, -5.2, 1.2, 7.0, 1.2, 0.6)
+        cr.fill()
+        cr.restore()
+
+
 class CircleStep(Gtk.Widget):
     """A hand-drawn circular − / + button.
 
@@ -902,7 +1005,22 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.titles_list = Gtk.ListBox()
         self.titles_list.set_selection_mode(Gtk.SelectionMode.NONE)
         self.titles_list.add_css_class("title-list")
-        scroller.set_child(self.titles_list)
+
+        # the folder spinny sits right under the last title, centred
+        # (C0D3D, 2026-11-12)
+        list_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        list_box.set_valign(Gtk.Align.START)
+        self.titles_list.set_valign(Gtk.Align.START)
+        self.titles_list.set_vexpand(False)
+        list_box.append(self.titles_list)
+        spin_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        spin_row.set_halign(Gtk.Align.CENTER)
+        spin_row.set_margin_top(6)
+        spin_row.set_margin_bottom(6)
+        self.folder_spin = SpinFolder()
+        spin_row.append(self.folder_spin)
+        list_box.append(spin_row)
+        scroller.set_child(list_box)
         titles_box.append(scroller)
         paned.set_start_child(titles_box)
 
@@ -2093,6 +2211,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.scan_now.set_sensitive(False)
         self.spinner.set_visible(True)
         self.spinner.start()
+        self.folder_spin.start()
         self.progress.set_fraction(0.0)
         self.progress_label.set_text("scanning titles…")
         self.append_log("scan: %s" % source)
@@ -2150,6 +2269,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.scan_now.set_sensitive(True)
         self.spinner.stop()
         self.spinner.set_visible(False)
+        self.folder_spin.stop()
         self.progress_label.set_text("idle")
         self.progress.set_fraction(0.0)
         self.name_entry.set_text(self.disc_label(source))
@@ -2169,6 +2289,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.scan_now.set_sensitive(True)
         self.spinner.stop()
         self.spinner.set_visible(False)
+        self.folder_spin.stop()
         self.progress_label.set_text("idle")
         self.source_status.set_text(message)
         self.append_log(message)
@@ -3141,6 +3262,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.start_button.set_sensitive(False)
         self.spinner.set_visible(True)
         self.spinner.start()
+        self.folder_spin.start()
         job.status = "running"
         job.fraction = 0.0
         job.detail = "transcribing"
@@ -3208,6 +3330,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.start_button.set_sensitive(False)
         self.spinner.set_visible(True)
         self.spinner.start()
+        self.folder_spin.start()
         threading.Thread(target=self.queue_worker, daemon=True).start()
 
     def stop_queue(self):
@@ -3509,6 +3632,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.update_counter()
         self.spinner.stop()
         self.spinner.set_visible(False)
+        self.folder_spin.stop()
         self.stop_button.set_sensitive(False)
         self.rebuild_queue()
         if self.cancel_requested:
