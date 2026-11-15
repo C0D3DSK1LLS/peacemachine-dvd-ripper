@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.37"
+APP_VERSION = "1.0.38"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -1064,6 +1064,11 @@ class RipperWindow(Gtk.ApplicationWindow):
 
     def show_about(self):
         about = Gtk.AboutDialog(transient_for=self, modal=True)
+        if os.environ.get("HYPRLAND_INSTANCE_SIGNATURE"):
+            # the About window has its own headerbar, and our skin draws the
+            # window buttons as discs - without this it showed its own disc
+            # underneath hyprbars' close button (C0D3D, 2026-11-15)
+            about.add_css_class("hypr")
         about.set_program_name("PeaceMachine DVD Ripper")
         about.set_version(APP_VERSION)
         about.set_comments(
@@ -4393,6 +4398,11 @@ def force_window_buttons():
     settings.ini copy is not always honoured, so it is set on the live
     Gtk.Settings too (C0D3D, 2026-11-15).
     """
+    if os.environ.get("HYPRLAND_INSTANCE_SIGNATURE"):
+        # Hyprland runs hyprbars, which draws all three buttons itself. Forcing
+        # GTK's own set here would put a second row of them on his desktop
+        # (C0D3D, 2026-11-15).
+        return
     try:
         settings = Gtk.Settings.get_default()
         if settings is not None:

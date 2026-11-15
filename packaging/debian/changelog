@@ -1,3 +1,13 @@
+peacemachine-dvd-ripper (1.0.38) unstable; urgency=medium
+
+  * The About window no longer shows a second close button: it gets the same
+    "hypr" class as the main window, so the skin hides its own controls where
+    hyprbars draws them.
+  * Under Hyprland the decoration layout is left alone entirely - forcing GTK's
+    three buttons there put a duplicate set on screen.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 09:45:00 -0500
+
 peacemachine-dvd-ripper (1.0.37) unstable; urgency=medium
 
   * No box-shadow on popovers. GTK reserves a margin the size of the shadow and
