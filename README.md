@@ -116,11 +116,17 @@ sudo apt install ./peacemachine-dvd-ripper_1.0.37_all.deb
 
 ### Ubuntu, Mint, Pop!_OS, Kali
 
-1. HandBrake and ffmpeg:
+Verified on Ubuntu 24.04 LTS (GTK 4.14, the oldest tested) and Ubuntu 26.04.
+
+1. Refresh the lists:
+```
+sudo apt update
+```
+2. HandBrake, ffmpeg and curl:
 ```
 sudo apt install -y handbrake-cli ffmpeg curl
 ```
-2. `libdvdcss` for encrypted discs - on Ubuntu it is `libdvd-pkg` from **multiverse**:
+3. `libdvdcss`, needed for a commercial disc - Ubuntu keeps it in **multiverse**:
 ```
 sudo add-apt-repository -y multiverse
 ```
@@ -133,13 +139,54 @@ sudo apt install -y libdvd-pkg
 ```
 sudo dpkg-reconfigure libdvd-pkg
 ```
-3. The ripper:
+4. The ripper:
 ```
 curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.37/peacemachine-dvd-ripper_1.0.37_all.deb
 ```
 ```
 sudo apt install ./peacemachine-dvd-ripper_1.0.37_all.deb
 ```
+5. Launch it from a terminal, so any complaint is visible:
+```
+peacemachine-dvd-ripper
+```
+
+#### Running it inside a virtual machine
+
+Three things catch people out in a VM, none of them the ripper's fault.
+
+Black screen after installing, instead of a login prompt - GNOME is trying a
+Wayland session on a virtual display:
+
+```
+sudo sed -i 's/^#WaylandEnable=false/WaylandEnable=false/' /etc/gdm3/custom.conf
+```
+```
+sudo reboot
+```
+
+Only one low resolution on offer in Settings - Displays, no 1920x1080 et al:
+
+```
+sudo apt install -y xserver-xorg-video-qxl
+```
+```
+sudo systemctl restart gdm3
+```
+
+No copy and paste between the host and the guest:
+
+```
+sudo apt install -y spice-vdagent
+```
+```
+sudo reboot
+```
+
+And if the desktop feels sluggish, it is software rendering - there is no GPU in
+a VM. `gsettings set org.gnome.desktop.interface enable-animations false`, set
+virt-manager's View -> Scale Display to Never, and use Fullscreen instead. On the
+ripper itself, the Basic (dark) theme turns off the animated rain.
 
 ### Fedora
 
