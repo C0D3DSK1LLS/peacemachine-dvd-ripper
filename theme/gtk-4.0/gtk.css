@@ -13,10 +13,10 @@ window, window.background, window.dialog, popover, tooltip, menu {
 
 .ripper-rain {
   background-color: #000000;
-  background-image: url("file://@ART@/rain-a.png"),
-    url("file://@ART@/rain-b.png"),
-    url("file://@ART@/rain-c.png"),
-    url("file://@ART@/deband.png"),
+  background-image: url("file:///home/jimmy/.local/share/c0d3d/rain/rain-a.png"),
+    url("file:///home/jimmy/.local/share/c0d3d/rain/rain-b.png"),
+    url("file:///home/jimmy/.local/share/c0d3d/rain/rain-c.png"),
+    url("file:///home/jimmy/.local/share/c0d3d/deband.png"),
     radial-gradient(circle at 0% 0%, rgba(255, 0, 0, 0.14), transparent 58%),
     radial-gradient(circle at 100% 100%, rgba(0, 255, 65, 0.08), transparent 62%);
   background-repeat: repeat, repeat, repeat, repeat, no-repeat, no-repeat;
@@ -48,6 +48,7 @@ headerbar {
   box-shadow: inset 0 -1px 0 #25753d, inset 0 1px 0 #284c34, 0 4px 16px rgba(0, 0, 0, 0.8);
   color: #ff0000;
   min-height: 30px;
+  padding-right: 104px;
 }
 
 .app-title {
@@ -57,9 +58,9 @@ headerbar {
   font-size: 14px;
 }
 
-window.hypr headerbar button.close,
-window.hypr headerbar .titlebutton.close,
-window.hypr windowcontrols button.close {
+headerbar button.close,
+headerbar .titlebutton.close,
+windowcontrols button.close {
   opacity: 0;
   min-width: 0;
   min-height: 0;
@@ -1755,35 +1756,4 @@ dropdown.sky-frame > button:disabled {
    (C0D3D, 2026-11-15). */
 .settings-frame {
   border-radius: 0 0 12px 0;
-}
-
-/* Hyprland only: hyprbars draws its own - [] x discs over the top-right corner,
-   so the headerbar keeps clear of them. Other desktops get their own buttons. */
-window.hypr headerbar {
-  padding-right: 104px;
-}
-
-/* Window controls as house discs (C0D3D, 2026-11-15): round black face, green
-   ring and green glyph, matching the hyprbars buttons instead of GTK's pills.
-   Under Hyprland the close button is hidden and hyprbars draws all three. */
-headerbar windowcontrols button {
-  min-width: 20px;
-  min-height: 20px;
-  padding: 0;
-  margin: 0 3px;
-  border-radius: 99px;
-  border: 1px solid #00ff41;
-  background: #02100a;
-  color: #00ff41;
-  box-shadow: none;
-}
-
-headerbar windowcontrols button:hover {
-  background: #06301a;
-  border-color: #7dffa4;
-  color: #7dffa4;
-}
-
-headerbar windowcontrols button image {
-  color: inherit;
 }

@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.17"
+APP_VERSION = "1.0.0"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -58,36 +58,6 @@ _theme_provider = None
 STATE_DIR = os.environ.get("DVD_RIPPER_STATE_DIR") or os.path.join(
     os.path.expanduser("~"), ".local/share/c0d3d/dvd-ripper")
 STATE_FILE = os.path.join(STATE_DIR, "state.json")
-
-
-# PyGObject needs its cairo bridge to hand a cairo context between GTK and
-# Python. Debian ships it as python3-gi-cairo, openSUSE as
-# python3-gobject-cairo, Fedora puts it inside python3-gobject. Without it every
-# cairo-drawn widget (the spinner, the blue binary, the rounded rules and the
-# circle steppers) raises "Couldn't find foreign struct converter for
-# 'cairo.Context'" on every frame, and prints a traceback per frame.
-# (C0D3D, 2026-11-15: found on a Debian 13 install.)
-_CAIRO_BRIDGE = None
-
-
-def cairo_bridge_ok():
-    """True when GTK can hand us a cairo context. Logged once, then cached."""
-    global _CAIRO_BRIDGE
-    if _CAIRO_BRIDGE is None:
-        try:
-            # pycairo itself, then PyGObject's bridge module. Importing
-            # gi._gi_cairo is what registers the foreign struct converter for
-            # cairo.Context — it exports no name called "cairo", so importing
-            # one from it was the 1.0.4 bug that left every cairo widget blank
-            # even with the bridge installed (C0D3D, 2026-11-15).
-            import cairo  # noqa: F401
-            import gi._gi_cairo  # noqa: F401
-            _CAIRO_BRIDGE = True
-        except Exception as error:  # noqa: BLE001 - any failure means "no bridge"
-            _CAIRO_BRIDGE = False
-            ripper.log("cairo bridge missing, install python3-gi-cairo "
-                       "(python3-gobject-cairo on openSUSE): %s" % error)
-    return _CAIRO_BRIDGE
 
 
 # --------------------------------------------------------------------------
@@ -147,8 +117,6 @@ class TopRule(Gtk.DrawingArea):
     def _draw(self, area, cr, width, height):
         import cairo
 
-        if not cairo_bridge_ok():
-            return
         if width < 12 or height < 8:
             return
         x_left = 1.0
@@ -310,8 +278,6 @@ class SpinFolder(Gtk.DrawingArea):
         the same shape with the same glow, just larger (C0D3D, 2026-11-12)."""
         import cairo
 
-        if not cairo_bridge_ok():
-            return
         if width < 8 or height < 8:
             return
         scale = min(width, height) / 62.0
@@ -402,8 +368,6 @@ class CircleStep(Gtk.Widget):
         return (self._square, self._square, -1, -1)
 
     def do_snapshot(self, snapshot):
-        if not cairo_bridge_ok():
-            return
         width, height = self.get_width(), self.get_height()
         if width < 3 or height < 3:
             return
@@ -839,7 +803,6 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.cancel_requested = False
         self.running = False
         self.scan_generation = 0
-        self.pending_scan = None
         self.dead = False
 
         self.set_default_size(1240, 860)
@@ -850,14 +813,6 @@ class RipperWindow(Gtk.ApplicationWindow):
         title_label = Gtk.Label(label="PEACEMACHINE DVD RIPPER")
         title_label.add_css_class("app-title")
         header.set_title_widget(title_label)
-
-        # On Hyprland the hyprbars plugin draws its own - [] x discs over the
-        # top-right corner, so the skin hides the app's close button and keeps
-        # the headerbar clear of them. Everywhere else the app keeps its own
-        # window buttons, right on the edge (C0D3D, 2026-11-15: the buttons sat
-        # "way off" in a Debian VM because the reservation is Hyprland-only).
-        if os.environ.get("HYPRLAND_INSTANCE_SIGNATURE"):
-            self.add_css_class("hypr")
 
 
         root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
@@ -2317,28 +2272,19 @@ class RipperWindow(Gtk.ApplicationWindow):
         return True
 
     def watch_drive(self):
-        """Point the SOURCE box at the best optical drive. Nothing else.
-
-        No automatic scanning: the disc is chosen for you, and Scan disc does
-        the work (C0D3D, 2026-11-15: "i dont want it to scan it automatically,
-        i just want the source to be set to the dvd disk reader").
-        """
+        """A USB reader can appear at any time — pick it up without a restart."""
         if self.dead:
             return False
         sources = ripper.list_sources()
-        if not sources:
-            return True
-        best = sources[0]
         current = self.source_entry.get_text().strip()
-        if not current:
-            self.source_entry.set_text(best)
+        if sources and not current:
+            self.source_entry.set_text(sources[0])
             self.source_status.set_text(
-                "Disc drive detected: %s — press Scan disc." % best)
-        elif current.startswith("/dev/sr") and current != best:
-            # a better disc appeared (or the drive moved): follow it
-            self.source_entry.set_text(best)
+                "Disc drive detected: %s — press Scan disc." % sources[0])
+        elif sources and current.startswith("/dev/sr") and current not in sources:
+            self.source_entry.set_text(sources[0])
             self.source_status.set_text(
-                "Using %s — press Scan disc." % best)
+                "Drive changed — now using %s." % sources[0])
         return True
 
     def watch_width(self):
@@ -2501,7 +2447,6 @@ class RipperWindow(Gtk.ApplicationWindow):
         GLib.timeout_add(300, self.watch_split)
         GLib.timeout_add(400, self.match_dropdown_height)
         GLib.timeout_add(2000, self.watch_drive)
-        GLib.timeout_add(250, self.watch_scan_result)
         GLib.timeout_add(300, self.place_titles_split)
 
         # a fresh session: nothing scanned, nothing remembered
@@ -2533,19 +2478,8 @@ class RipperWindow(Gtk.ApplicationWindow):
     def start_scan(self):
         source = self.source_entry.get_text().strip()
         if not source:
-            # never make the user type a device: if the box is empty, ask the
-            # system for the best drive right now and scan that (C0D3D,
-            # 2026-11-15: "i just want the source to be set to the dvd disk
-            # reader, auto so when i hit scan it works")
-            detected = ripper.list_sources()
-            ripper.log("scan pressed with an empty source; drives=%s" % detected)
-            if detected:
-                source = detected[0]
-                self.source_entry.set_text(source)
-            else:
-                self.flash_status("No optical drive found. Plug one in, or browse "
-                                  "to an ISO or a VIDEO_TS folder.")
-                return
+            self.flash_status("Pick a source first — a drive, an ISO, or a VIDEO_TS folder.")
+            return
         if self.running:
             self.flash_status("A rip is running; stop it before rescanning.")
             return
@@ -2576,81 +2510,47 @@ class RipperWindow(Gtk.ApplicationWindow):
         threading.Thread(target=self.scan_worker, args=(command, source, token),
                          daemon=True).start()
 
-    SCAN_TIMEOUT = 900        # 15 minutes; a slow drive should never wedge us
-
     def scan_worker(self, command, source, token):
-        """Run the scan and leave the result where the UI thread will find it.
-
-        The result is handed over through self.pending_scan and picked up by a
-        250 ms timer, NOT through GLib.idle_add: on the Debian test VM the idle
-        callbacks from this thread were never dispatched, so a scan that had
-        already returned five titles left the window showing nothing at all
-        (C0D3D, 2026-11-15). A timer cannot be lost that way.
-        """
+        collected = []
         try:
             process = subprocess.Popen(command, stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE, text=True,
-                                       start_new_session=True)
+                                       bufsize=1, start_new_session=True)
         except OSError as error:
-            self.pending_scan = ("error", "HandBrake would not start: %s" % error,
-                                 source, token)
+            GLib.idle_add(self.scan_failed,
+                          "HandBrake would not start: %s" % error, token)
             return
 
-        try:
-            out, err = process.communicate(timeout=self.SCAN_TIMEOUT)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            try:
-                out, err = process.communicate(timeout=10)
-            except subprocess.TimeoutExpired:
-                out, err = "", ""
-            ripper.log("scan timeout: %s" % source)
-            self.pending_scan = ("error",
-                                 "The scan timed out after %d minutes."
-                                 % (self.SCAN_TIMEOUT // 60), source, token)
-            return
+        def read_stdout():
+            for line in process.stdout:
+                collected.append(line)
 
-        for line in (err or "").splitlines():
-            if line.strip():
-                ripper.log(line.rstrip())
+        def read_stderr():
+            for line in process.stderr:
+                GLib.idle_add(self.append_log_line, line.rstrip())
 
-        data = ripper.parse_scan(out or "")
-        ripper.log("scan exit %s, %d bytes of JSON, %d titles"
-                   % (process.returncode, len(out or ""),
-                      0 if data is None else len(data["titles"])))
+        out_thread = threading.Thread(target=read_stdout, daemon=True)
+        err_thread = threading.Thread(target=read_stderr, daemon=True)
+        out_thread.start()
+        err_thread.start()
+        process.wait()
+        out_thread.join(timeout=2)
+        err_thread.join(timeout=2)
+        text = "".join(collected)
+        data = ripper.parse_scan(text)
         if data is None or not data["titles"]:
-            self.pending_scan = ("failed",
-                                 "No titles found on %s — is there really a video "
-                                 "disc in that drive?" % source, source, token)
+            GLib.idle_add(self.scan_failed,
+                          "No titles found. Is there really a disc in the drive?",
+                          token)
             return
-        self.pending_scan = ("done", data, source, token)
-
-    def watch_scan_result(self):
-        """Pick the finished scan up on the UI thread."""
-        if self.dead:
-            return False
-        pending = getattr(self, "pending_scan", None)
-        if pending is None:
-            return True
-        self.pending_scan = None
-        kind, payload, source, token = pending
-        ripper.log("scan result picked up: %s (token=%s generation=%s)"
-                   % (kind, token, self.scan_generation))
-        if kind == "done":
-            self.scan_done(payload, source, token)
-        else:
-            self.scan_failed(payload, token)
-        return True
+        GLib.idle_add(self.scan_done, data, source, token)
 
     def scan_done(self, data, source, token=None):
-        ripper.log("scan_done: token=%s generation=%s dead=%s"
-                   % (token, self.scan_generation, self.dead))
         self.start_is_manual = False
         if self.dead:
             return
         if token is not None and token != self.scan_generation:
-            ripper.log("scan_done: stale result dropped (token %s, generation %s)"
-                       % (token, self.scan_generation))
+            # a newer scan already started; this result is stale
             return False
         self.titles = data["titles"]
         self.main_feature = data["main"]
@@ -2671,8 +2571,6 @@ class RipperWindow(Gtk.ApplicationWindow):
         return False
 
     def scan_failed(self, message, token=None):
-        ripper.log("scan_failed: token=%s generation=%s dead=%s"
-                   % (token, self.scan_generation, self.dead))
         if self.dead:
             return
         if token is not None and token != self.scan_generation:
@@ -2688,8 +2586,15 @@ class RipperWindow(Gtk.ApplicationWindow):
 
     def disc_label(self, source):
         if re.match(r"^/dev/sr\d+$", source):
-            label = ripper.disc_label(source)      # lsblk first, blkid as backup
-            return ripper.safe_filename(label, "Disc") if label else "Disc"
+            try:
+                out = subprocess.run(["blkid", "-o", "value", "-s", "LABEL", source],
+                                     capture_output=True, text=True, timeout=6)
+                label = (out.stdout or "").strip().splitlines()
+                if label:
+                    return ripper.safe_filename(label[0], "Disc")
+            except (OSError, subprocess.SubprocessError):
+                pass
+            return "Disc"
         base = os.path.basename(source.rstrip("/"))
         if base.upper() == "VIDEO_TS":
             base = os.path.basename(os.path.dirname(source.rstrip("/")))
@@ -4251,26 +4156,6 @@ def css_path(name):
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), "gtk.css")
 
 
-def art_dir():
-    """Where the rain tiles and the deband grain live.
-
-    The Matrix sheet points its background images at @ART@ because an installed
-    package cannot hard-code a home directory (C0D3D, 2026-11-15: the rain and
-    the spinner were dead in a Debian VM — the sheet named his own paths).
-    """
-    here = os.path.dirname(os.path.abspath(__file__))
-    candidates = [
-        os.path.join(os.environ.get("PEACEMACHINE_DVD_RIPPER_DATA", ""), "gtk-4.0", "art"),
-        os.path.join(here, "gtk-4.0", "art"),
-        os.path.join(here, "art"),
-        os.path.expanduser("~/.local/share/c0d3d/rain"),
-    ]
-    for folder in candidates:
-        if folder and os.path.isdir(folder) and os.listdir(folder):
-            return folder
-    return os.path.expanduser("~/.local/share/c0d3d/rain")
-
-
 def apply_theme(name):
     """Swap the whole stylesheet — Matrix, or one of the plain themes."""
     global _theme_provider, _current_theme
@@ -4288,21 +4173,8 @@ def apply_theme(name):
     path = css_path(name)
     if not os.path.exists(path):
         return
-    try:
-        with open(path, encoding="utf-8") as handle:
-            text = handle.read()
-    except OSError as error:
-        ripper.log("theme read failed: %s" % error)
-        return
-    # the rain tiles are shipped beside the sheets, so point @ART@ at the copy
-    # that actually exists on this machine
-    text = text.replace("@ART@", art_dir().replace("\\", "/"))
     provider = Gtk.CssProvider()
-    try:
-        provider.load_from_data(text.encode("utf-8"))
-    except GLib.Error as error:
-        ripper.log("theme parse failed (%s): %s" % (path, error.message))
-        return
+    provider.load_from_path(path)
     Gtk.StyleContext.add_provider_for_display(
         display, provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
     _theme_provider = provider

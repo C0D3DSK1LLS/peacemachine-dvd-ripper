@@ -8,7 +8,6 @@ import json
 import os
 import re
 import shutil
-import subprocess
 import time
 
 HANDBRAKE = shutil.which("HandBrakeCLI") or "/usr/bin/HandBrakeCLI"
@@ -386,72 +385,13 @@ def parse_scan(text):
 
 
 def scan_command(source, min_duration=10):
-    """HandBrake scan, run DIRECTLY — no systemd-run quota wrapper.
-
-    Reading the JSON back through a pipe from a `systemd-run --scope` child
-    deadlocked the reader thread on Debian: the app sat on "Scanning…" forever
-    while no HandBrake process existed any more. Measured in a Debian 13 VM,
-    2026-11-15: the same command run straight scans a DVD fine (5 titles in
-    ~60 s). Scans are short and light, so they do not need the quota; encodes
-    still go through cpu_limit_prefix().
-    """
-    return [
+    return cpu_limit_prefix() + [
         HANDBRAKE, "--json", "-i", source, "-t", "0", "--scan",
         "--min-duration", str(min_duration)]
 
 
-def has_media(device):
-    """True when an optical drive actually has a disc in it.
-
-    /sys/block/srN/size is in 512-byte sectors and reads 0 for an empty tray,
-    which is the difference between "there is a drive" and "there is a disc" —
-    a leftover installer ISO on sr0 used to win the slot over the real DVD on
-    sr1 and every scan failed (C0D3D, 2026-11-15, Debian VM).
-    """
-    try:
-        with open("/sys/block/%s/size" % os.path.basename(device)) as handle:
-            return int(handle.read().strip()) > 0
-    except (OSError, ValueError):
-        return False
-
-
-def disc_type(device):
-    """The filesystem type of the disc, e.g. 'udf' for a DVD-Video.
-
-    lsblk first: it reads udev's database and needs no privileges, while blkid
-    has to open the device and may not even be installed (Debian 13 splits it
-    into util-linux-extra). Measured on the test VM, 2026-11-15: blkid missing
-    meant every drive looked identical and the empty installer ISO on sr0 kept
-    winning over the real DVD on sr1.
-    """
-    for command in (["lsblk", "-no", "FSTYPE", device],
-                    ["blkid", "-o", "value", "-s", "TYPE", device]):
-        try:
-            out = subprocess.run(command, capture_output=True, text=True, timeout=5)
-        except (OSError, subprocess.SubprocessError):
-            continue
-        text = (out.stdout or "").strip().splitlines()
-        if text and text[0].strip():
-            return text[0].strip()
-    return ""
-
-
-def disc_label(device):
-    """Volume label of the disc, or an empty string."""
-    for command in (["lsblk", "-no", "LABEL", device],
-                    ["blkid", "-o", "value", "-s", "LABEL", device]):
-        try:
-            out = subprocess.run(command, capture_output=True, text=True, timeout=5)
-        except (OSError, subprocess.SubprocessError):
-            continue
-        text = (out.stdout or "").strip().splitlines()
-        if text and text[0].strip():
-            return text[0].strip()
-    return ""
-
-
 def list_sources():
-    """Optical drives that exist right now, the ones with a disc first."""
+    """Optical drives that exist right now (USB readers land on /dev/sr*)."""
     found = []
     for name in ("sr0", "sr1", "sr2", "sr3"):
         path = "/dev/" + name
@@ -462,18 +402,7 @@ def list_sources():
             real = os.path.realpath(alias)
             if real not in found and os.path.basename(real).startswith("sr"):
                 found.append(real)
-    # A drive holding a DVD-Video filesystem (udf) is almost certainly the disc
-    # the user cares about; a plain iso9660 image is usually an installer ISO.
-    # Order: video disc, then any disc, then an empty tray (C0D3D, 2026-11-15).
-    def rank(device):
-        kind = disc_type(device)
-        if kind == "udf":
-            return 0
-        if kind == "iso9660":
-            return 2 if not has_media(device) else 1
-        return 3 if not has_media(device) else 1
-
-    return sorted(found, key=lambda device: (rank(device), device))
+    return found
 
 
 # --------------------------------------------------------------------------

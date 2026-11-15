@@ -1,5 +1,5 @@
 Name:           peacemachine-dvd-ripper
-Version:        1.0.17
+Version:        1.0.0
 Release:        1%{?dist}
 Summary:        Rip DVDs and video files into files your PC can play
 License:        MIT
@@ -9,14 +9,12 @@ BuildArch:      noarch
 
 Requires:       python3
 Requires:       python3-gobject
-Requires:       python3-cairo
 Requires:       gtk4
 Requires:       ffmpeg
 
 # Fedora/RHEL ship HandBrake in RPM Fusion as "HandBrake" (which provides the
 # HandBrakeCLI binary); openSUSE ships it in Packman as "handbrake-cli".
 %if 0%{?suse_version}
-Requires:       python3-gobject-cairo
 Requires:       handbrake-cli
 Recommends:     libdvdcss
 %else
@@ -42,61 +40,11 @@ sh packaging/install-files.sh . %{buildroot} %{_prefix}
 
 %files
 %license LICENSE
+%doc README.md
 %{_bindir}/peacemachine-dvd-ripper
 %{_datadir}/applications/org.jimmy.DvdRipper.desktop
-%{_docdir}/%{name}
 %{_datadir}/%{name}
 
 %changelog
-* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.17-1
-- Scan disc resolves the drive when the source box is empty
-
-* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.16-1
-- Use lsblk for disc type and label; blkid is not always installed
-
-* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.15-1
-- Hand the scan result over with a timer, not an idle callback
-
-* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.14-1
-- Fix the missing subprocess import
-
-* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.13-1
-- Auto-detect the drive, never auto-scan
-
-* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.12-1
-- Prefer a udf DVD-Video disc over a plain data ISO
-
-* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.10-1
-- Read the scan with communicate() so it can never wedge
-
-* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.9-1
-- Scan HandBrake directly; the systemd-run wrapper deadlocked the pipe reader
-
-* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.8-1
-- Automatic scan tries every drive until one has titles
-
-* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.7-1
-- Scan a disc that is already in the drive automatically
-
-* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.6-1
-- Prefer the optical drive that actually has media
-
-* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.5-1
-- Fix the cairo bridge detection from 1.0.4
-
-* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.4-1
-- Require the PyGObject cairo bridge (python3-gobject-cairo on SUSE)
-
-* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.3-1
-- Window controls as the house discs
-
-* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.2-1
-- Ship the rain tiles and resolve them at runtime (they were absolute home paths)
-- Require python3-cairo for the spinner
-
-* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.1-1
-- Headerbar clearance for the Hyprland hyprbars discs is Hyprland-only now;
-  other desktops get the app's own window buttons at the edge
-
-* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.0-1
+* Sat Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.0-1
 - Initial package
