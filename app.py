@@ -2358,6 +2358,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         GLib.timeout_add(400, self.match_dropdown_height)
         GLib.timeout_add(2000, self.watch_drive)
         GLib.timeout_add(400, self.place_titles_split)
+        GLib.timeout_add(1100, self.place_titles_split)
 
         # a fresh session: nothing scanned, nothing remembered
         self.titles = []
@@ -2531,7 +2532,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         height = self.titles_split.get_height()
         if height <= 0:
             return False
-        spinner = 210
+        spinner = 235          # the size he picked for the spinner on startup
         target = max(120, min(height - 110, height - spinner))
         if abs(self.titles_split.get_position() - target) > 4:
             self.titles_split.set_position(target)
