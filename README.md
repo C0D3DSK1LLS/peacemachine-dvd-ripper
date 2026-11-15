@@ -516,6 +516,32 @@ cd peacemachine-dvd-ripper-1.0.44
 sudo sh packaging/install-files.sh . /usr /usr
 ```
 
+### If the rip will not play
+
+The encode is H.264 video with the disc's own audio copied through, which is
+usually **AC-3**. A stock Ubuntu, Debian or Fedora desktop ships no AC-3 decoder,
+so its default player says "plugins which are not installed". Nothing is wrong
+with the file - install a player that has the codecs:
+
+```
+sudo apt install mpv
+```
+
+```
+sudo dnf install mpv
+```
+
+```
+sudo zypper in mpv
+```
+
+Then open the file with it, e.g. `mpv "Bleach - 122 - ....mkv"`. On a desktop that
+already plays commercial video, the file plays as it is.
+
+The transcript is **inside the .mkv** as a subtitle track called
+"English (transcript)", set as the default track - there is no separate `.srt` file
+to find or load.
+
 ### If the window works but the spinner and rain are missing
 
 That is the PyGObject cairo bridge. It is declared as a dependency in every
