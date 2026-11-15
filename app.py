@@ -183,9 +183,12 @@ class SpinFolder(Gtk.DrawingArea):
         self.set_draw_func(self._draw)
 
     def do_measure(self, orientation, for_size):
-        # can shrink when the column is short, so the titles header never gets
-        # squeezed off (C0D3D, 2026-11-12)
-        return (0, 680, -1, -1)
+        # A shorter spinner leaves more of the column for the title rows, which
+        # is what he asked for — the ring is dropped to the bottom of whatever
+        # height it gets (C0D3D, 2026-11-14).
+        if orientation == Gtk.Orientation.VERTICAL:
+            return (0, 240, -1, -1)
+        return (0, 320, -1, -1)
 
     def start(self):
         self.running = True
@@ -228,10 +231,17 @@ class SpinFolder(Gtk.DrawingArea):
         scale = min(width, height) / 62.0
         angle = self.phase * 2 * math.pi
         done = not self.running
-        ring = 20.0                      # radius in design space
+        ring = 26.0                      # radius in design space
 
         cr.save()
-        cr.translate(width / 2, height / 2)
+        # The ring is drawn small inside a tall widget, which left a hand's width
+        # of dead space under it. Push the whole drawing down so the ring's
+        # underside sits near the bottom edge (C0D3D, 2026-11-14).
+        ring_px = ring * scale
+        # about 2mm of air under the ring, in device pixels
+        gap = 8.0 * max(1.0, float(self.get_scale_factor()))
+        drop = max(0.0, (height / 2.0) - ring_px - gap)
+        cr.translate(width / 2, height / 2 + drop)
         cr.scale(scale, scale)
 
         cr.set_line_width(1.0)
