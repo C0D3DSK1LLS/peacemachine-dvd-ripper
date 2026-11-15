@@ -177,40 +177,87 @@ class SpinFolder(Gtk.DrawingArea):
     ripping". It parks at the top of its ring whenever nothing is encoding.
     """
 
+    RAIN_ROW = 15.0        # rows of scrolling digits
+    RAIN_STEP = 11.0       # spacing along a row
+    RAIN_SPAN = 340.0      # a stream repeats every so many pixels
+
     def __init__(self, size=58):
         super().__init__()
         self.set_content_width(size)
         self.set_content_height(size)
         self.phase = 0.0
+        self.rain_time = 0.0
         self.running = False
         self._timer = None
         self.set_draw_func(self._draw)
+        # the blue binary runs all the time, not only while a rip is going
+        self.connect("map", lambda *_: self._ensure_timer())
+        self.connect("unmap", lambda *_: self._timer_stop())
 
     def do_measure(self, orientation, for_size):
         # can shrink when the column is short, so the titles header never gets
         # squeezed off (C0D3D, 2026-11-12)
         return (0, 680, -1, -1)
 
-    def start(self):
-        self.running = True
+    def _ensure_timer(self):
         if self._timer is None:
-            self._timer = GLib.timeout_add(33, self._tick)
+            self._timer = GLib.timeout_add(50, self._tick)
         self.queue_draw()
 
-    def stop(self):
-        self.running = False
+    def _timer_stop(self):
         if self._timer is not None:
             GLib.source_remove(self._timer)
             self._timer = None
+
+    def start(self):
+        self.running = True
+        self._ensure_timer()
+        self.queue_draw()
+
+    def stop(self):
+        # the folder parks, the binary keeps scrolling
+        self.running = False
         self.queue_draw()
 
     def _tick(self):
-        if not self.running:
+        if not self.get_mapped():
             self._timer = None
             return False
-        self.phase = (self.phase + 0.013) % 1.0
+        self.rain_time += 0.05
+        if self.running:
+            self.phase = (self.phase + 0.026) % 1.0
         self.queue_draw()
         return True
+
+    def _draw_rain(self, cr, width, height):
+        """Blue binary streaming sideways behind the ring (C0D3D, 2026-11-15)."""
+        import cairo
+
+        cr.save()
+        cr.select_font_face("monospace", cairo.FONT_SLANT_NORMAL,
+                            cairo.FONT_WEIGHT_NORMAL)
+        cr.set_font_size(10.0)
+        rows = int(height // self.RAIN_ROW) + 1
+        span = self.RAIN_SPAN
+        columns = int((width + span) // self.RAIN_STEP) + 1
+        for row in range(rows):
+            seed = (row * 97) % 13
+            speed = 18.0 + (seed % 5) * 9.0
+            start = (self.rain_time * speed + row * 137.0) % span
+            y = (row + 0.85) * self.RAIN_ROW
+            for index in range(columns):
+                x = start + index * self.RAIN_STEP - span
+                if x < -self.RAIN_STEP or x > width:
+                    continue
+                trail = (index + seed) % 9
+                if trail > 6:
+                    continue
+                alpha = 0.70 * (1.0 - trail / 7.0)
+                digit = "1" if ((row * 7 + index * 13 + seed) % 3) else "0"
+                cr.set_source_rgba(0.36, 0.62, 1.0, alpha)
+                cr.move_to(x, y)
+                cr.show_text(digit)
+        cr.restore()
 
     @staticmethod
     def _round_rect(cr, x, y, w, h, r):
@@ -233,6 +280,8 @@ class SpinFolder(Gtk.DrawingArea):
         angle = self.phase * 2 * math.pi
         done = not self.running
         ring = 20.0                      # radius in design space
+
+        self._draw_rain(cr, width, height)
 
         cr.save()
         cr.translate(width / 2, height / 2)
