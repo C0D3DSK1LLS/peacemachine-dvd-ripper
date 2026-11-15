@@ -66,19 +66,34 @@ the same on every distribution; only the package names differ.
 sudo pacman -S handbrake-cli ffmpeg libdvdcss
 ```
 
-2. The ripper:
+2. Trust the signing key — once per machine. The package is GPG-signed, and
+   pacman refuses an unsigned one:
+
+```
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.44/c0d3d.asc
+```
+
+```
+sudo pacman-key --add ./c0d3d.asc
+```
+
+```
+sudo pacman-key --lsign-key 3AE4C112E0B3DD29456E9E4E40DA9F6783593208
+```
+
+3. The ripper:
 
 ```
 sudo pacman -U https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.44/peacemachine-dvd-ripper-1.0.44-1-any.pkg.tar.zst
 ```
 
-3. Launch it:
+4. Launch it:
 
 ```
 peacemachine-dvd-ripper
 ```
 
-4. Optional — subtitles transcribed from the dub, skippable. The engine is a
+5. Optional — subtitles transcribed from the dub, skippable. The engine is a
    separate download (see [Transcripts](#transcripts-optional)):
 
 ```
