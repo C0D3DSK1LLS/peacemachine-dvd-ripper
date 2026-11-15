@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.30"
+APP_VERSION = "1.0.31"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -1899,17 +1899,19 @@ class RipperWindow(Gtk.ApplicationWindow):
         buttons = Gtk.FlowBox()
         buttons.add_css_class("queue-buttons")
         buttons.set_selection_mode(Gtk.SelectionMode.NONE)
-        # Six buttons in ONE row, shrinking together, never stacked: on a narrow
-        # window the FlowBox used to wrap them into a vertical column that was
-        # half clipped (C0D3D, 2026-11-15, Alma VM).
+        # Six buttons in one row, packed tight, never stretched apart: a
+        # homogeneous FlowBox spread them across the full width with big gaps
+        # (C0D3D, 2026-11-15, Alma VM: "too much spacing inbetween the bottom
+        # buttons").  Natural width, so they hug, and it only wraps if the window
+        # is genuinely too narrow to hold them.
         buttons.set_max_children_per_line(6)
-        buttons.set_min_children_per_line(6)
-        buttons.set_column_spacing(6)
+        buttons.set_min_children_per_line(5)
+        buttons.set_column_spacing(4)
         buttons.set_row_spacing(2)
-        buttons.set_homogeneous(True)
-        buttons.set_halign(Gtk.Align.CENTER)
+        buttons.set_homogeneous(False)
+        buttons.set_halign(Gtk.Align.START)
         buttons.set_valign(Gtk.Align.CENTER)
-        buttons.set_hexpand(True)
+        buttons.set_hexpand(False)
 
         self.start_button = icon_button("Start", "media-playback-start-symbolic")
         self.start_button.add_css_class("compact-button")

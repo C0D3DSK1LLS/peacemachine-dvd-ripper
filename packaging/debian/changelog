@@ -1,3 +1,11 @@
+peacemachine-dvd-ripper (1.0.31) unstable; urgency=medium
+
+  * Queue buttons sit shoulder to shoulder again. The homogeneous FlowBox spread
+    them across the whole width; they now keep their natural width and only wrap
+    if the window truly cannot hold them.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 06:44:00 -0500
+
 peacemachine-dvd-ripper (1.0.30) unstable; urgency=medium
 
   * Show minimise and maximise next to close. GNOME desktops (Fedora, Alma) set
