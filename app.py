@@ -1943,9 +1943,17 @@ class RipperWindow(Gtk.ApplicationWindow):
 
     # ---------------------------------------------------------------- keys
     def save_split(self):
-        # the divider has a fixed default now (C0D3D, 2026-11-12), so nothing is
-        # remembered between launches
-        return
+        """Remember the divider for THIS session only.
+
+        Defaults on a fresh launch, but a drag must survive moving the window,
+        switching tabs and re-tiling (C0D3D, 2026-11-13) — so it is held in
+        memory and never written to state.json.
+        """
+        if self.dead or not hasattr(self, "paned"):
+            return
+        if self.paned.get_orientation() != Gtk.Orientation.HORIZONTAL:
+            return
+        self.session_split = int(self.paned.get_position())
 
     def match_dropdown_height(self):
         """Give the show dropdown the same height as the buttons beside it."""
@@ -1964,21 +1972,25 @@ class RipperWindow(Gtk.ApplicationWindow):
             return False
         if self.paned.get_orientation() != Gtk.Orientation.HORIZONTAL:
             return False
-        saved = DEFAULT_SPLIT_POSITION
+        saved = getattr(self, "session_split", DEFAULT_SPLIT_POSITION)
         width = self.paned.get_width()
         if saved > 0 and width > 0:
             self.paned.set_position(max(240, min(saved, max(240, width - 320))))
         return False
 
     def save_queue_split(self):
-        # the pane sizes are fixed defaults now (C0D3D, 2026-11-12), nothing is
-        # remembered between launches
-        return
+        # session only, like the sidebar — a fresh launch always starts default
+        if self.dead or not hasattr(self, "queue_paned"):
+            return
+        height = self.queue_paned.get_height()
+        if height <= 0:
+            return
+        self.session_queue_height = max(90, height - self.queue_paned.get_position())
 
     def restore_queue_split(self):
         if self.dead or not hasattr(self, "queue_paned"):
             return False
-        saved = DEFAULT_QUEUE_HEIGHT
+        saved = getattr(self, "session_queue_height", DEFAULT_QUEUE_HEIGHT)
         height = self.queue_paned.get_height()
         if saved > 0 and height > 0:
             self.queue_paned.set_position(max(120, height - saved))
@@ -2001,7 +2013,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         if self.paned.get_orientation() == Gtk.Orientation.HORIZONTAL:
             width = self.paned.get_width()
             if width > 0 and self.get_width() > 400:
-                saved = DEFAULT_SPLIT_POSITION
+                saved = getattr(self, "session_split", DEFAULT_SPLIT_POSITION)
                 if width != getattr(self, "last_paned_width", None):
                     self.last_paned_width = width
                     self.paned_resized_at = now
@@ -2011,12 +2023,13 @@ class RipperWindow(Gtk.ApplicationWindow):
                 elif (now - getattr(self, "paned_resized_at", 0.0) >= 0.8
                       and self.paned.get_position() != getattr(self, "split_baseline", None)):
                     self.split_baseline = self.paned.get_position()
+                    self.save_split()
 
         # --- rip queue (vertical)
         if hasattr(self, "queue_paned"):
             height = self.queue_paned.get_height()
             if height > 0:
-                saved_queue = DEFAULT_QUEUE_HEIGHT
+                saved_queue = getattr(self, "session_queue_height", DEFAULT_QUEUE_HEIGHT)
                 if height != getattr(self, "last_queue_height", None):
                     self.last_queue_height = height
                     self.queue_resized_at = now
@@ -2026,6 +2039,7 @@ class RipperWindow(Gtk.ApplicationWindow):
                 elif (now - getattr(self, "queue_resized_at", 0.0) >= 0.8
                       and self.queue_paned.get_position() != getattr(self, "queue_baseline", None)):
                     self.queue_baseline = self.queue_paned.get_position()
+                    self.save_queue_split()
         return True
 
     def watch_drive(self):
@@ -2185,6 +2199,10 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.name_entry.set_text("Disc")
         self.preset_changed()
         self.apply_layout(self.get_width() < 1180)
+        # panes open at the defaults every launch, but his drags are kept for the
+        # rest of this session (moving the window must not reset them)
+        self.session_split = DEFAULT_SPLIT_POSITION
+        self.session_queue_height = DEFAULT_QUEUE_HEIGHT
         GLib.timeout_add(300, self.watch_width)
         GLib.timeout_add(400, self.restore_split)
         GLib.timeout_add(1400, self.restore_split)
@@ -2203,6 +2221,9 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.source = ""
         self.state.pop("source", None)
         self.state.pop("name", None)
+        # pane sizes are never remembered between launches
+        self.state.pop("split_position", None)
+        self.state.pop("queue_height", None)
         save_state(self.state)
         drive = (ripper.list_sources() or [""])[0]
         if drive:
