@@ -175,9 +175,9 @@ The only requirements are Python 3, GTK 4 with PyGObject, PyGObject's cairo
 bridge, HandBrake and ffmpeg:
 
 ```
-curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.19/peacemachine-dvd-ripper-1.0.19.tar.gz
-tar -xzf peacemachine-dvd-ripper-1.0.19.tar.gz
-cd peacemachine-dvd-ripper-1.0.19
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.26/peacemachine-dvd-ripper-1.0.26.tar.gz
+tar -xzf peacemachine-dvd-ripper-1.0.26.tar.gz
+cd peacemachine-dvd-ripper-1.0.26
 sudo sh packaging/install-files.sh . /usr /usr
 ```
 
