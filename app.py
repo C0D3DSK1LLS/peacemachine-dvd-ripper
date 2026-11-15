@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.4"
+APP_VERSION = "1.0.5"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -75,8 +75,13 @@ def cairo_bridge_ok():
     global _CAIRO_BRIDGE
     if _CAIRO_BRIDGE is None:
         try:
+            # pycairo itself, then PyGObject's bridge module. Importing
+            # gi._gi_cairo is what registers the foreign struct converter for
+            # cairo.Context — it exports no name called "cairo", so importing
+            # one from it was the 1.0.4 bug that left every cairo widget blank
+            # even with the bridge installed (C0D3D, 2026-11-15).
             import cairo  # noqa: F401
-            from gi._gi_cairo import cairo  # noqa: F401
+            import gi._gi_cairo  # noqa: F401
             _CAIRO_BRIDGE = True
         except Exception as error:  # noqa: BLE001 - any failure means "no bridge"
             _CAIRO_BRIDGE = False

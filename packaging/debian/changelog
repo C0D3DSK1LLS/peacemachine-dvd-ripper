@@ -1,3 +1,13 @@
+peacemachine-dvd-ripper (1.0.5) unstable; urgency=medium
+
+  * Fix the cairo bridge check from 1.0.4. It tried to import a name called
+    "cairo" out of gi._gi_cairo, which does not exist, so the app decided the
+    bridge was missing and skipped every cairo widget even when
+    python3-gi-cairo was installed - blank spinner, blank blue binary. The check
+    now imports gi._gi_cairo itself, which is what registers the converter.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 03:59:00 -0500
+
 peacemachine-dvd-ripper (1.0.4) unstable; urgency=medium
 
   * Add python3-gi-cairo: without PyGObject's cairo bridge the spinner, the blue
