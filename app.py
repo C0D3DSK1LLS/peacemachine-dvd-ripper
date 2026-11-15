@@ -1742,7 +1742,8 @@ class RipperWindow(Gtk.ApplicationWindow):
 
         # four captions wear green instead of the aqua the rest use
         # (C0D3D, 2026-11-12)
-        _green_caps = {"FILE NAME", "FIRST EPISODE", "EPISODE NAMES", "EPISODES"}
+        _green_caps = {"FILE NAME", "FIRST EPISODE", "EPISODE NAMES", "EPISODES",
+                       "LANGUAGE", "RESOLUTION"}
         _orange_caps = {"ANIME CLEAN-UP", "SPLIT INTO SEPARATE FILES"}
         _red_caps = {"QUALITY", "AUDIO", "SUBTITLES", "TRANSCRIPT"}
 
