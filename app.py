@@ -2094,13 +2094,14 @@ class RipperWindow(Gtk.ApplicationWindow):
         return False
 
     def watch_split(self):
-        """Keep both dividers where he put them.
+        """Keep both dividers exactly where he put them, for the whole session.
 
-        A re-tile (switching tabs and back) hands the panes a different size;
-        GTK then clamps the divider to fit and never restores it. So on any size
-        change we re-apply the remembered split and record whatever GTK ends up
-        with as the baseline — only movement *away* from that baseline at a
-        steady size is him dragging, and only that is saved.
+        A re-tile (clicking another tab and coming back) hands the panes a
+        different size, and GTK clamps a divider to fit — sometimes a moment
+        *after* we have re-applied it. So a restore is repeated for ~1.2s
+        whenever the size changes, until the divider sits where it belongs.
+        Only movement he makes after that window counts as a drag, and only a
+        drag updates the session value (C0D3D, 2026-11-14).
         """
         if self.dead or not hasattr(self, "paned"):
             return False
@@ -2114,10 +2115,14 @@ class RipperWindow(Gtk.ApplicationWindow):
                 if width != getattr(self, "last_paned_width", None):
                     self.last_paned_width = width
                     self.paned_resized_at = now
-                    if saved > 0:
+                    self.pane_repair_until = now + 1.2
+                    self.restore_split()
+                    self.split_baseline = self.paned.get_position()
+                elif now < getattr(self, "pane_repair_until", 0.0):
+                    if saved > 0 and abs(self.paned.get_position() - saved) > 2:
                         self.restore_split()
                     self.split_baseline = self.paned.get_position()
-                elif (now - getattr(self, "paned_resized_at", 0.0) >= 0.8
+                elif (now - getattr(self, "paned_resized_at", 0.0) >= 1.4
                       and self.paned.get_position() != getattr(self, "split_baseline", None)):
                     self.split_baseline = self.paned.get_position()
                     self.save_split()
@@ -2130,10 +2135,15 @@ class RipperWindow(Gtk.ApplicationWindow):
                 if height != getattr(self, "last_queue_height", None):
                     self.last_queue_height = height
                     self.queue_resized_at = now
-                    if saved_queue > 0:
+                    self.queue_repair_until = now + 1.2
+                    self.restore_queue_split()
+                    self.queue_baseline = self.queue_paned.get_position()
+                elif now < getattr(self, "queue_repair_until", 0.0):
+                    current = height - self.queue_paned.get_position()
+                    if abs(current - saved_queue) > 2:
                         self.restore_queue_split()
                     self.queue_baseline = self.queue_paned.get_position()
-                elif (now - getattr(self, "queue_resized_at", 0.0) >= 0.8
+                elif (now - getattr(self, "queue_resized_at", 0.0) >= 1.4
                       and self.queue_paned.get_position() != getattr(self, "queue_baseline", None)):
                     self.queue_baseline = self.queue_paned.get_position()
                     self.save_queue_split()
@@ -2179,6 +2189,10 @@ class RipperWindow(Gtk.ApplicationWindow):
             self._apply_layout(compact)
         finally:
             self.paned_save_guard = False
+        # flipping between the two layouts moves the dividers itself, so put his
+        # own positions back once the new layout has settled (C0D3D, 2026-11-14)
+        GLib.timeout_add(150, self.restore_split)
+        GLib.timeout_add(250, self.restore_queue_split)
 
     def _apply_layout(self, compact):
         if compact:
