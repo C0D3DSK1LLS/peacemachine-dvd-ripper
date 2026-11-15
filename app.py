@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.34"
+APP_VERSION = "1.0.35"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -4383,7 +4383,26 @@ def load_css():
     apply_theme("matrix")
 
 
+def force_window_buttons():
+    """Ask for minimise, maximise and close, whatever the desktop defaults to.
+
+    GNOME (Fedora, Alma) sets the button layout to close-only, and a
+    settings.ini copy is not always honoured, so it is set on the live
+    Gtk.Settings too (C0D3D, 2026-11-15).
+    """
+    try:
+        settings = Gtk.Settings.get_default()
+        if settings is not None:
+            settings.set_property("gtk-decoration-layout",
+                                  ":minimize,maximize,close")
+            ripper.log("decoration layout -> %s"
+                       % settings.get_property("gtk-decoration-layout"))
+    except Exception as error:      # never let a cosmetic fail the launch
+        ripper.log("could not set the decoration layout: %r" % error)
+
+
 def main():
+    force_window_buttons()
     use_matrix_icons()
     load_css()
     return RipperApp().run(sys.argv[:1])

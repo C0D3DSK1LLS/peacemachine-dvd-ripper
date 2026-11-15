@@ -1,5 +1,5 @@
 Name:           peacemachine-dvd-ripper
-Version:        1.0.34
+Version:        1.0.35
 Release:        1%{?dist}
 Summary:        Rip DVDs and video files into files your PC can play
 License:        MIT
@@ -52,6 +52,10 @@ sh packaging/install-files.sh . %{buildroot} %{_prefix}
 %{_datadir}/%{name}
 
 %changelog
+* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.35-1
+- Alma candidate: set gtk-decoration-layout on the live Gtk.Settings, because the
+  settings.ini copy alone did not add the minimise/maximise buttons
+
 * Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.34-1
 - Alma candidate: queue buttons packed tight and centred, all three window
   buttons via gtk-decoration-layout
