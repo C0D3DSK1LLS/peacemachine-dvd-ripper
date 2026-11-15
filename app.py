@@ -1534,6 +1534,13 @@ class RipperWindow(Gtk.ApplicationWindow):
         _block.append(caption_centred_temp("SPLIT INTO SEPARATE FILES"))
         _block.append(self.split_row)
 
+        # a black bar with a glow, padded away from the row above and the note
+        # below (C0D3D, 2026-11-14)
+        self.split_spacer = Gtk.Box()
+        self.split_spacer.add_css_class("note-spacer")
+        self.split_spacer.set_hexpand(True)
+        _block.append(self.split_spacer)
+
         # C0D3D (2026-11-12): say out loud that the automatic cut points are only a
         # starting guess, and how to get exact ones.
         self.split_note = Gtk.Label(xalign=0.5, label=(
