@@ -19,7 +19,7 @@ for sheet in "$DATA"/gtk-4.0/*.css; do
     ln -sfn "$sheet" "$CFG/gtk-4.0/$(basename "$sheet")"
 done
 # settings.ini is copied, not linked: GTK rewrites nothing, but a user may edit it.
-if [ -e "$DATA/gtk-4.0/settings.ini" ] && [ ! -e "$CFG/gtk-4.0/settings.ini" ]; then
+if [ -e "$DATA/gtk-4.0/settings.ini" ]; then
     cp -f "$DATA/gtk-4.0/settings.ini" "$CFG/gtk-4.0/settings.ini"
 fi
 

@@ -1,3 +1,13 @@
+peacemachine-dvd-ripper (1.0.30) unstable; urgency=medium
+
+  * Show minimise and maximise next to close. GNOME desktops (Fedora, Alma) set
+    the button layout to close-only, so the skin now pins
+    gtk-decoration-layout=:minimize,maximize,close for this app, and the
+    launcher refreshes settings.ini on every launch so existing installs pick it
+    up.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 06:42:00 -0500
+
 peacemachine-dvd-ripper (1.0.29) unstable; urgency=medium
 
   * Stop reaches a HandBrake running inside the Flatpak sandbox: killing the
