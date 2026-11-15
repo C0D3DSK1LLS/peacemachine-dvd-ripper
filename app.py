@@ -1148,6 +1148,16 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.titles_split.set_vexpand(True)
         self.titles_split.set_start_child(scroller)
         self.titles_split.set_end_child(self.folder_spin)
+
+        # Watch for him dragging the divider itself: the gesture only observes
+        # (capture phase, never claims the sequence), so the paned still drags
+        # (C0D3D, 2026-11-14).
+        self.titles_split_dragging = False
+        gesture = Gtk.GestureDrag()
+        gesture.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+        gesture.connect("drag-begin", self.titles_split_drag_begin)
+        gesture.connect("drag-end", lambda *_: self.titles_split_drag_end())
+        self.titles_split.add_controller(gesture)
         titles_box.append(self.titles_split)
         paned.set_start_child(titles_box)
 
@@ -2167,17 +2177,15 @@ class RipperWindow(Gtk.ApplicationWindow):
                 wanted = getattr(self, "spinner_height", 235)
                 current = height - self.titles_split.get_position()
                 if height != getattr(self, "last_titles_height", None):
+                    # still being resized (a queue drag moves it every tick) —
+                    # let it squeeze freely and only tidy up once it stops
                     self.last_titles_height = height
                     self.titles_resized_at = now
-                    self.titles_repair_until = now + 1.0
+                elif now - getattr(self, "titles_resized_at", 0.0) >= 0.3:
+                    # squeezed or grown by a queue drag (or awaiting his own
+                    # divider drag, which updates spinner_height on release):
+                    # one clean reset, keeping at least 120px for the rows
                     self.restore_titles_split()
-                elif now < getattr(self, "titles_repair_until", 0.0):
-                    if abs(current - wanted) > 4:
-                        self.restore_titles_split()
-                elif (now - getattr(self, "titles_resized_at", 0.0) >= 1.2
-                      and current != getattr(self, "titles_split_baseline", None)):
-                    self.titles_split_baseline = current
-                    self.spinner_height = current
 
         # --- rip queue (vertical)
         if hasattr(self, "queue_paned"):
@@ -2543,6 +2551,22 @@ class RipperWindow(Gtk.ApplicationWindow):
             return "%s · %d ch" % (ripper.fmt_hms(title.duration),
                                    len(title.chapters))
         return ripper.fmt_hms(title.duration)
+
+    def titles_split_drag_begin(self, gesture, start_x, start_y):
+        """True when the press landed on the divider, not in the list."""
+        separator = float(self.titles_split.get_position())
+        if abs(float(start_y) - separator) <= 14.0:
+            self.titles_split_dragging = True
+        return False
+
+    def titles_split_drag_end(self):
+        if not getattr(self, "titles_split_dragging", False):
+            return False
+        self.titles_split_dragging = False
+        height = self.titles_split.get_height()
+        if height > 0:
+            self.spinner_height = max(90, height - self.titles_split.get_position())
+        return False
 
     def restore_titles_split(self):
         """Put the titles/spinner divider back at the spinner height he chose."""
