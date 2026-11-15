@@ -2622,13 +2622,6 @@ class RipperWindow(Gtk.ApplicationWindow):
                 self.extras_button.set_visible(True)
             else:
                 self.extras_button.set_visible(False)
-        if hidden_extras:
-            self.titles_hint.set_text(
-                "%d short extra%s under five minutes (clean OP/ED, trailers) "
-                "%s hidden — they are not ripped."
-                % (hidden_extras, "" if hidden_extras == 1 else "s",
-                   "is" if hidden_extras == 1 else "are"))
-            self.titles_hint.set_visible(True)
         if tv_disc:
             self.titles_hint.set_text(
                 "%d episodes found. The long PLAY ALL title is left unticked — "
