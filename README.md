@@ -92,7 +92,7 @@ sudo dnf install --allowerasing ffmpeg
 sudo dnf install rpmfusion-free-release-tainted HandBrake libdvdcss
 
 # 4 - the ripper itself
-sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.27/peacemachine-dvd-ripper-1.0.27-1.noarch.rpm
+sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.28/peacemachine-dvd-ripper-1.0.28-1.noarch.rpm
 ```
 
 If step 4 complains about the signature, add `--nogpgcheck` - the package is not
@@ -100,13 +100,29 @@ signed yet.
 
 ### RHEL, AlmaLinux, Rocky Linux
 
-Same packages from RPM Fusion's **EL** branch:
+RPM Fusion's **EL** branch gives you ffmpeg and libdvdcss. It has **no HandBrake at
+all**, so the ripper cannot scan or rip until you supply one — use the Flatpak:
 
 ```
+# 1 - RPM Fusion for EL (ffmpeg, libdvdcss)
 sudo dnf install --nogpgcheck https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-$(rpm -E %rhel).noarch.rpm
-sudo dnf install rpmfusion-free-release-tainted HandBrake ffmpeg libdvdcss
-sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.19/peacemachine-dvd-ripper-1.0.19-1.noarch.rpm
+sudo dnf install rpmfusion-free-release-tainted ffmpeg libdvdcss
+
+# 2 - the ripper itself (installs fine; it will say HandBrake is missing)
+sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.28/peacemachine-dvd-ripper-1.0.28-1.noarch.rpm
+
+# 3 - HandBrake, as a Flatpak, because EL has no package for it
+sudo dnf install -y flatpak
+# reboot or log out and back in after this one, so the Flatpak services start
+sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+sudo flatpak install -y flathub fr.handbrake.ghb
+
+# 4 - let the sandbox see the DVD drive, or HandBrake cannot read the disc
+sudo flatpak override --device=all fr.handbrake.ghb
 ```
+
+The ripper looks for a native `HandBrakeCLI` first and falls back to
+`fr.handbrake.ghb` on its own — no setting to change.
 
 ### openSUSE Leap and Tumbleweed
 
