@@ -1,5 +1,5 @@
 Name:           peacemachine-dvd-ripper
-Version:        1.0.8
+Version:        1.0.9
 Release:        1%{?dist}
 Summary:        Rip DVDs and video files into files your PC can play
 License:        MIT
@@ -48,6 +48,9 @@ sh packaging/install-files.sh . %{buildroot} %{_prefix}
 %{_datadir}/%{name}
 
 %changelog
+* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.9-1
+- Scan HandBrake directly; the systemd-run wrapper deadlocked the pipe reader
+
 * Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.8-1
 - Automatic scan tries every drive until one has titles
 

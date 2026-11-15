@@ -1,3 +1,12 @@
+peacemachine-dvd-ripper (1.0.9) unstable; urgency=medium
+
+  * Run the HandBrake scan directly instead of through systemd-run. Reading the
+    JSON back through a pipe from a systemd-run scope deadlocked on Debian: the
+    window sat on "Scanning..." for ever while no HandBrake process existed.
+    Encodes still get the 80%-CPU quota.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 04:17:00 -0500
+
 peacemachine-dvd-ripper (1.0.8) unstable; urgency=medium
 
   * The automatic scan now tries every optical drive until one yields titles.

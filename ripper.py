@@ -385,7 +385,16 @@ def parse_scan(text):
 
 
 def scan_command(source, min_duration=10):
-    return cpu_limit_prefix() + [
+    """HandBrake scan, run DIRECTLY — no systemd-run quota wrapper.
+
+    Reading the JSON back through a pipe from a `systemd-run --scope` child
+    deadlocked the reader thread on Debian: the app sat on "Scanning…" forever
+    while no HandBrake process existed any more. Measured in a Debian 13 VM,
+    2026-11-15: the same command run straight scans a DVD fine (5 titles in
+    ~60 s). Scans are short and light, so they do not need the quota; encodes
+    still go through cpu_limit_prefix().
+    """
+    return [
         HANDBRAKE, "--json", "-i", source, "-t", "0", "--scan",
         "--min-duration", str(min_duration)]
 
