@@ -1,5 +1,5 @@
 Name:           peacemachine-dvd-ripper
-Version:        1.0.5
+Version:        1.0.6
 Release:        1%{?dist}
 Summary:        Rip DVDs and video files into files your PC can play
 License:        MIT
@@ -48,6 +48,9 @@ sh packaging/install-files.sh . %{buildroot} %{_prefix}
 %{_datadir}/%{name}
 
 %changelog
+* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.6-1
+- Prefer the optical drive that actually has media
+
 * Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.5-1
 - Fix the cairo bridge detection from 1.0.4
 

@@ -390,8 +390,23 @@ def scan_command(source, min_duration=10):
         "--min-duration", str(min_duration)]
 
 
+def has_media(device):
+    """True when an optical drive actually has a disc in it.
+
+    /sys/block/srN/size is in 512-byte sectors and reads 0 for an empty tray,
+    which is the difference between "there is a drive" and "there is a disc" —
+    a leftover installer ISO on sr0 used to win the slot over the real DVD on
+    sr1 and every scan failed (C0D3D, 2026-11-15, Debian VM).
+    """
+    try:
+        with open("/sys/block/%s/size" % os.path.basename(device)) as handle:
+            return int(handle.read().strip()) > 0
+    except (OSError, ValueError):
+        return False
+
+
 def list_sources():
-    """Optical drives that exist right now (USB readers land on /dev/sr*)."""
+    """Optical drives that exist right now, the ones with a disc first."""
     found = []
     for name in ("sr0", "sr1", "sr2", "sr3"):
         path = "/dev/" + name
@@ -402,7 +417,9 @@ def list_sources():
             real = os.path.realpath(alias)
             if real not in found and os.path.basename(real).startswith("sr"):
                 found.append(real)
-    return found
+    # drives holding a disc come first, so the one the user just plugged in
+    # beats an empty tray or a stale virtual CD
+    return sorted(found, key=lambda device: (not has_media(device), device))
 
 
 # --------------------------------------------------------------------------

@@ -62,6 +62,9 @@ curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/downloa
 sudo apt install ./peacemachine-dvd-ripper_1.0.0_all.deb
 
 # only needed to read a commercial (encrypted) DVD, not to install the app
+# libdvd-pkg lives in "contrib", so add it if your sources.list only has "main"
+sudo sed -i 's/trixie main/trixie main contrib/' /etc/apt/sources.list
+sudo apt update
 sudo apt install -y libdvd-pkg && sudo dpkg-reconfigure libdvd-pkg
 ```
 
