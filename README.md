@@ -56,6 +56,7 @@ run on it, not simply the newest upload.
 | Ubuntu 26.04 | **1.0.26** | install, drive detection, scan, rip, Stop |
 | Fedora 45 | **1.0.26** | install (RPM Fusion + `--allowerasing ffmpeg`), scan, rip |
 | AlmaLinux 10 | **1.0.29** | install, Flatpak HandBrake, scan, rip, Stop |
+| openSUSE Leap 16 | **1.0.35** | install, Flatpak HandBrake, scan, rip |
 | Kali, Mint, Pop!_OS | 1.0.26 | same apt path as Debian |
 | Arch / Omarchy | 1.0.26 | package installs clean; the author runs the same code |
 
@@ -146,45 +147,39 @@ The ripper looks for a native `HandBrakeCLI` first and falls back to
 
 ### openSUSE Leap and Tumbleweed
 
-```
-sudo zypper addrepo -f https://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_Tumbleweed/ packman
-sudo zypper in handbrake-cli ffmpeg libdvdcss
-sudo zypper in https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.29/peacemachine-dvd-ripper-1.0.29-1.noarch.rpm
-```
-
-On **Leap**, point that repo at `openSUSE_Leap_16.0` instead of `openSUSE_Tumbleweed`.
-
-### When your distribution has no HandBrake (Alma, RHEL 10)
-
-RPM Fusion's EL branch ships ffmpeg and libdvdcss but **no HandBrake at all**, and
-the ripper cannot scan or rip without it. Use the Flatpak build - the app looks
-for it automatically when there is no native `HandBrakeCLI`:
+HandBrake and ffmpeg come from **Packman**; libdvdcss comes from **VideoLAN's**
+repo, because Packman does not carry it for Leap 16. Accept the signing keys or
+zypper skips both repos:
 
 ```
-sudo dnf install -y flatpak
-# reboot or log out and back in, then:
+# 1 - Packman (HandBrake, ffmpeg)
+sudo zypper addrepo -f https://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_Leap_16.0/ packman
+# 2 - VideoLAN (libdvdcss, needed for encrypted discs)
+sudo zypper addrepo -f https://download.videolan.org/pub/videolan/vlc/SuSE/16.0/ videolan
+# 3 - import both keys in one go (answering "r" at the prompt rejects them)
+sudo zypper --gpg-auto-import-keys refresh
+
+# 4 - the tools.  openSUSE calls libdvdcss "libdvdcss2"
+sudo zypper in -y handbrake-cli ffmpeg libdvdcss2
+
+# 5 - the ripper
+curl -O https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.35/peacemachine-dvd-ripper-1.0.35-1.noarch.rpm
+sudo zypper in -y --allow-unsigned-rpm ./peacemachine-dvd-ripper-1.0.35-1.noarch.rpm
+```
+
+On **Tumbleweed**, swap both repo paths for `openSUSE_Tumbleweed` and `SuSE/16.0`
+keeps working for VideoLAN; on **Leap** use the `16.0` paths above.
+
+If Packman's HandBrake does not install, use the Flatpak instead - the app finds
+it automatically:
+
+```
+sudo zypper in -y flatpak        # then reboot or log out and back in
 sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 sudo flatpak install -y flathub fr.handbrake.ghb
 sudo flatpak override --device=all fr.handbrake.ghb
+flatpak run --command=HandBrakeCLI fr.handbrake.ghb --version
 ```
-
-That last line matters: a Flatpak is sandboxed and cannot see `/dev/sr0` without it.
-
-### When your distribution has no HandBrake (Alma, RHEL 10)
-
-RPM Fusion's EL branch ships ffmpeg and libdvdcss but **no HandBrake at all**, and
-the ripper cannot scan or rip without it. Use the Flatpak build - the app looks
-for it automatically when there is no native `HandBrakeCLI`:
-
-```
-sudo dnf install -y flatpak
-# reboot or log out and back in, then:
-sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-sudo flatpak install -y flathub fr.handbrake.ghb
-sudo flatpak override --device=all fr.handbrake.ghb
-```
-
-That last line matters: a Flatpak is sandboxed and cannot see `/dev/sr0` without it.
 
 ### From source, on anything
 
