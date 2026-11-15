@@ -414,6 +414,16 @@ def has_media(device):
         return False
 
 
+def disc_type(device):
+    """The filesystem type blkid reports, e.g. 'udf' for a DVD-Video."""
+    try:
+        out = subprocess.run(["blkid", "-o", "value", "-s", "TYPE", device],
+                             capture_output=True, text=True, timeout=5)
+        return (out.stdout or "").strip().splitlines()[0] if out.stdout.strip() else ""
+    except (OSError, subprocess.SubprocessError, IndexError):
+        return ""
+
+
 def list_sources():
     """Optical drives that exist right now, the ones with a disc first."""
     found = []
@@ -426,9 +436,18 @@ def list_sources():
             real = os.path.realpath(alias)
             if real not in found and os.path.basename(real).startswith("sr"):
                 found.append(real)
-    # drives holding a disc come first, so the one the user just plugged in
-    # beats an empty tray or a stale virtual CD
-    return sorted(found, key=lambda device: (not has_media(device), device))
+    # A drive holding a DVD-Video filesystem (udf) is almost certainly the disc
+    # the user cares about; a plain iso9660 image is usually an installer ISO.
+    # Order: video disc, then any disc, then an empty tray (C0D3D, 2026-11-15).
+    def rank(device):
+        kind = disc_type(device)
+        if kind == "udf":
+            return 0
+        if kind == "iso9660":
+            return 2 if not has_media(device) else 1
+        return 3 if not has_media(device) else 1
+
+    return sorted(found, key=lambda device: (rank(device), device))
 
 
 # --------------------------------------------------------------------------

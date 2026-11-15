@@ -1,3 +1,11 @@
+peacemachine-dvd-ripper (1.0.12) unstable; urgency=medium
+
+  * Pick a DVD-Video (udf) disc ahead of a plain iso9660 image. A leftover
+    installer ISO on sr0 was being chosen over the real DVD, so the automatic
+    scan sometimes opened the wrong drive and found nothing.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 04:30:00 -0500
+
 peacemachine-dvd-ripper (1.0.10) unstable; urgency=medium
 
   * Read the scan with communicate() and a 15-minute timeout instead of threads
