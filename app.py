@@ -1008,7 +1008,7 @@ class RipperWindow(Gtk.ApplicationWindow):
             "TVmaze — episode names",
             "GTK4 and PyGObject",
         ])
-        about.set_logo_icon_name("media-optical")
+        about.set_logo_icon_name("org.jimmy.DvdRipper")
         about.present()
 
     def build_source_card(self):
