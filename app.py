@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.14"
+APP_VERSION = "1.0.15"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -839,6 +839,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.cancel_requested = False
         self.running = False
         self.scan_generation = 0
+        self.pending_scan = None
         self.dead = False
 
         self.set_default_size(1240, 860)
@@ -2500,6 +2501,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         GLib.timeout_add(300, self.watch_split)
         GLib.timeout_add(400, self.match_dropdown_height)
         GLib.timeout_add(2000, self.watch_drive)
+        GLib.timeout_add(250, self.watch_scan_result)
         GLib.timeout_add(300, self.place_titles_split)
 
         # a fresh session: nothing scanned, nothing remembered
@@ -2566,20 +2568,21 @@ class RipperWindow(Gtk.ApplicationWindow):
     SCAN_TIMEOUT = 900        # 15 minutes; a slow drive should never wedge us
 
     def scan_worker(self, command, source, token):
-        """Run the scan and parse the JSON.
+        """Run the scan and leave the result where the UI thread will find it.
 
-        Uses communicate() with a timeout, not threads reading the pipes: the
-        threaded version deadlocked on Debian and left the window on "Scanning…"
-        with HandBrake already gone (C0D3D, 2026-11-15). communicate() reads both
-        pipes to EOF or gives up, so the UI always hears back.
+        The result is handed over through self.pending_scan and picked up by a
+        250 ms timer, NOT through GLib.idle_add: on the Debian test VM the idle
+        callbacks from this thread were never dispatched, so a scan that had
+        already returned five titles left the window showing nothing at all
+        (C0D3D, 2026-11-15). A timer cannot be lost that way.
         """
         try:
             process = subprocess.Popen(command, stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE, text=True,
                                        start_new_session=True)
         except OSError as error:
-            GLib.idle_add(self.scan_failed,
-                          "HandBrake would not start: %s" % error, token)
+            self.pending_scan = ("error", "HandBrake would not start: %s" % error,
+                                 source, token)
             return
 
         try:
@@ -2590,25 +2593,43 @@ class RipperWindow(Gtk.ApplicationWindow):
                 out, err = process.communicate(timeout=10)
             except subprocess.TimeoutExpired:
                 out, err = "", ""
-            GLib.idle_add(self.scan_failed,
-                          "The scan timed out after %d minutes."
-                          % (self.SCAN_TIMEOUT // 60), token)
             ripper.log("scan timeout: %s" % source)
+            self.pending_scan = ("error",
+                                 "The scan timed out after %d minutes."
+                                 % (self.SCAN_TIMEOUT // 60), source, token)
             return
 
         for line in (err or "").splitlines():
-            GLib.idle_add(self.append_log_line, line.rstrip())
+            if line.strip():
+                ripper.log(line.rstrip())
 
         data = ripper.parse_scan(out or "")
         ripper.log("scan exit %s, %d bytes of JSON, %d titles"
                    % (process.returncode, len(out or ""),
                       0 if data is None else len(data["titles"])))
         if data is None or not data["titles"]:
-            GLib.idle_add(self.scan_failed,
-                          "No titles found on %s — is there really a video disc "
-                          "in that drive?" % source, token)
+            self.pending_scan = ("failed",
+                                 "No titles found on %s — is there really a video "
+                                 "disc in that drive?" % source, source, token)
             return
-        GLib.idle_add(self.scan_done, data, source, token)
+        self.pending_scan = ("done", data, source, token)
+
+    def watch_scan_result(self):
+        """Pick the finished scan up on the UI thread."""
+        if self.dead:
+            return False
+        pending = getattr(self, "pending_scan", None)
+        if pending is None:
+            return True
+        self.pending_scan = None
+        kind, payload, source, token = pending
+        ripper.log("scan result picked up: %s (token=%s generation=%s)"
+                   % (kind, token, self.scan_generation))
+        if kind == "done":
+            self.scan_done(payload, source, token)
+        else:
+            self.scan_failed(payload, token)
+        return True
 
     def scan_done(self, data, source, token=None):
         ripper.log("scan_done: token=%s generation=%s dead=%s"
@@ -2617,7 +2638,8 @@ class RipperWindow(Gtk.ApplicationWindow):
         if self.dead:
             return
         if token is not None and token != self.scan_generation:
-            # a newer scan already started; this result is stale
+            ripper.log("scan_done: stale result dropped (token %s, generation %s)"
+                       % (token, self.scan_generation))
             return False
         self.titles = data["titles"]
         self.main_feature = data["main"]
