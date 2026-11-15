@@ -2500,6 +2500,14 @@ class RipperWindow(Gtk.ApplicationWindow):
         return max(self.titles, key=lambda t: t.duration) if self.titles else None
 
     # ---------------------------------------------------------------- titles list
+    @staticmethod
+    def title_detail(title):
+        """Compact duration/chapters line for a title row."""
+        if title.chapters:
+            return "%s · %d ch" % (ripper.fmt_hms(title.duration),
+                                   len(title.chapters))
+        return ripper.fmt_hms(title.duration)
+
     def toggle_short_extras(self):
         """Show or hide the sub-five-minute extras in the title list."""
         self.show_short_extras = not getattr(self, "show_short_extras", False)
@@ -2583,12 +2591,13 @@ class RipperWindow(Gtk.ApplicationWindow):
                 badge.add_css_class("badge")
                 line.append(badge)
 
-            summary = Gtk.Label(label=title.summary(), xalign=1.0)
+            # compact detail: the full summary (resolution, codec, subtitles)
+            # was too wide for this column and got sliced (C0D3D, 2026-11-14),
+            # so it lives in the tooltip now
+            summary = Gtk.Label(label=self.title_detail(title), xalign=1.0)
             summary.add_css_class("title-summary")
             summary.set_ellipsize(Pango.EllipsizeMode.END)
-            # cap the natural width so the row can shrink instead of pushing the
-            # size column into the card edge
-            summary.set_max_width_chars(20)
+            summary.set_tooltip_text(title.summary())
             line.append(summary)
             row.summary_label = summary
             row.name_label = name
@@ -2877,7 +2886,7 @@ class RipperWindow(Gtk.ApplicationWindow):
             if title is not None and label is not None:
                 mapped = mapping.get(title.number)
                 name_label = getattr(child, "name_label", None)
-                label.set_text(title.summary())
+                label.set_text(self.title_detail(title))
                 if mapped and name_label is not None:
                     name_label.set_text(mapped)
                     name_label.add_css_class("mapped-name")
