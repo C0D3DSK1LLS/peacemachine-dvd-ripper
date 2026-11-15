@@ -1,3 +1,13 @@
+peacemachine-dvd-ripper (1.0.25) unstable; urgency=medium
+
+  * Dropdown list text is red instead of the toolkit's purple, and stays red on
+    hover.
+  * QUALITY starts on Fast - H.264 x264.
+  * The NVENC entry says in its own name that it needs an NVIDIA card and will
+    not work in a virtual machine.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 05:37:00 -0500
+
 peacemachine-dvd-ripper (1.0.24) unstable; urgency=medium
 
   * Force every label inside a popup to white. The unselected rows of a dropdown

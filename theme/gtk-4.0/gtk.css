@@ -1788,61 +1788,56 @@ headerbar windowcontrols button image {
   color: inherit;
 }
 
-/* Popup and tooltip text is white (C0D3D, 2026-11-15): the dropdown menu and
-   the preset notes were inheriting the crimson control colour. */
-popover label,
-popover listview label,
-popover listview row label,
-tooltip label,
-listview label,
-menuitem label {
-  color: #ffffff;
+/* ---------------------------------------------------------------- popup text
+   C0D3D, 2026-11-15: dropdown list rows are RED, and stay red on hover and
+   selection - the toolkit was painting the hovered row in its own accent purple
+   over any row-level rule, so the colour is asserted on the hovered node itself
+   as the last word in the sheet. */
+popover,
+popover.background,
+popover > contents,
+popover * {
+  color: #ff0000;
 }
 
-/* Hover and selection in popups: green fill, WHITE text, never the desktop's
-   accent colour (C0D3D, 2026-11-15: hovering a dropdown went purple). */
+popover > contents,
+popover.background > contents {
+  background-color: #04100a;
+}
+
 popover listview row:hover,
 popover listview row:selected,
 popover row:hover,
 popover row:selected,
 listview row:hover,
 listview row:selected,
-menuitem:hover,
-menu menuitem:hover,
-dropdown popover listview row:hover,
-dropdown popover listview row:selected {
+menuitem:hover {
   background-image: none;
   background-color: #0b2316;
-  color: #ffffff;
-  box-shadow: none;
+  color: #ff0000;
 }
 
-popover listview row:hover label,
-popover listview row:selected label,
-popover row:hover label,
-popover row:selected label,
-listview row:hover label,
-listview row:selected label,
-menuitem:hover label {
-  color: #ffffff;
+popover listview row:hover *,
+popover listview row:selected *,
+popover row:hover *,
+popover row:selected *,
+popover *:hover,
+popover *:hover *,
+listview row:hover *,
+listview row:selected *,
+menuitem:hover * {
+  color: #ff0000;
 }
 
-dropdown > button:hover {
-  background-image: linear-gradient(to bottom, #0b2316, #06170e);
-  color: #ffffff;
-  border-color: #00ff41;
-}
-
-/* Every label inside a popup is white (C0D3D, 2026-11-15). The unselected rows
-   of a dropdown list were still taking the desktop accent colour (purple on a
-   stock Debian); this covers the whole popup tree rather than guessing which
-   node GTK 4.18 uses for a DropDown row. */
-popover,
-popover * {
-  color: #ffffff;
-}
-
-popover > contents,
-popover.background > contents {
-  background-color: #04100a;
+/* the dropdown list is a .view — that class carries its own text colour */
+.view,
+.view label,
+.view text,
+listview.view,
+listview.view label,
+listview.view row label,
+popover .view,
+popover .view label,
+popover .view row label {
+  color: #ff0000;
 }

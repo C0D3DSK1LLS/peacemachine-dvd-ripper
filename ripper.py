@@ -77,8 +77,8 @@ PRESETS = [
     },
     {
         "key": "gpu",
-        "label": "Fastest — NVENC H.264 (MKV)",
-        "short": "Fastest — NVENC H.264",
+        "label": "Fastest — NVENC H.264 (MKV) — needs an NVIDIA card, not a VM",
+        "short": "Fastest — NVENC H.264 (no VMs)",
         "ext": "mkv",
         "note": "GPU encode, quickest of the lot. Needs an NVIDIA card on the host - "
                 "it will NOT work in a virtual machine unless a GPU is passed through.",
