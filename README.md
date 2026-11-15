@@ -554,10 +554,22 @@ sudo pacman -S --needed gst-plugins-ugly gst-libav
 sudo flatpak install -y flathub io.mpv.Mpv
 ```
 
-Failing all that, mpv plays it on any of them:
+**Or just use mpv, which brings its own codecs** — one package, no plugin hunting:
 
 ```
 sudo apt install mpv
+```
+
+```
+sudo dnf install mpv
+```
+
+```
+sudo zypper in mpv
+```
+
+```
+sudo pacman -S --needed mpv
 ```
 
 Then open the file with it:
