@@ -100,7 +100,7 @@ class TopRule(Gtk.DrawingArea):
     rather than a straight CSS border.
     """
 
-    HEIGHT = 22
+    HEIGHT = 12
 
     def __init__(self):
         super().__init__()
@@ -118,20 +118,35 @@ class TopRule(Gtk.DrawingArea):
             return
         x_left = 1.0
         x_right = width - 1.0
-        if self.left_widget is not None:
-            ok, lx, _y = self.left_widget.translate_coordinates(area, 0, 0)
-            if ok:
-                x_left = max(1.0, lx)
-        if self.right_widget is not None:
-            ok, rx, _y = self.right_widget.translate_coordinates(
-                area, self.right_widget.get_width(), 0)
-            if ok:
-                x_right = min(width - 1.0, rx)
+
+        def edge_x(widget, at_right):
+            """Where that card's edge sits, in this widget's coordinates."""
+            if widget is None:
+                return None
+            res = widget.translate_coordinates(
+                area, widget.get_width() if at_right else 0, 0)
+            # GTK 4.24 hands back (x, y); older builds return (ok, x, y)
+            if isinstance(res, tuple):
+                if len(res) == 2:
+                    return float(res[0])
+                if len(res) == 3 and res[0]:
+                    return float(res[1])
+            return None
+
+        left = edge_x(self.left_widget, False)
+        right = edge_x(self.right_widget, True)
+        if left is not None:
+            x_left = max(1.0, left)
+        if right is not None:
+            x_right = min(width - 1.0, right)
         if x_right - x_left < 24:
             x_left, x_right = 1.0, width - 1.0
 
-        radius = min(9.0, (x_right - x_left) / 4.0, max(4.0, height - 8.0))
-        y_line = height - radius - 3.0   # room under it for the bend down
+        # sit right on top of the cards: only a few pixels of air under the run,
+        # and the ends curve straight down onto their corners
+        gap = 4.0
+        radius = min(gap, (x_right - x_left) / 4.0)
+        y_line = height - gap
 
         cr.new_path()
         cr.move_to(x_left, height)
@@ -1513,14 +1528,19 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.preview_label.set_xalign(0.5)
 
         settings_scroller = Gtk.ScrolledWindow()
-        # no scrollbar on the settings column (C0D3D, 2026-11-14): it eats the
-        # card's right edge, and the top rule has to line up with that edge.
-        # The wheel still scrolls it, because the handlers drive the adjustment
-        # directly rather than the scrollbar.
-        settings_scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.NEVER)
+        # The settings column must still scroll, so its policy stays AUTOMATIC;
+        # the bar itself is collapsed away in CSS (C0D3D, 2026-11-14). A NEVER
+        # policy makes GTK hand the child its full natural height instead, which
+        # is why the wheel stopped working.
+        settings_scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         settings_scroller.set_child(settings)
         settings_scroller.add_css_class("settings-scroller")
-        settings_scroller.set_overlay_scrolling(False)
+        # overlay scrolling keeps the bar out of the layout, so the card fills
+        # the whole column and the top rule lines up; the bar itself is hidden
+        # in CSS (C0D3D, 2026-11-14). It has to stay AUTOMATIC — a NEVER policy
+        # stops the wheel working because GTK then gives the child its full
+        # natural height instead of scrolling it.
+        settings_scroller.set_overlay_scrolling(True)
         settings_scroller.set_vexpand(True)
         # cap the column's minimum height: it scrolls, so it should never force
         # the queue box to be squeezed when the window gets short
@@ -2167,7 +2187,7 @@ class RipperWindow(Gtk.ApplicationWindow):
                 Gtk.Orientation.VERTICAL, width)
             natural = max(natural, 520)
             self.settings_scroller.set_policy(Gtk.PolicyType.NEVER,
-                                              Gtk.PolicyType.NEVER)
+                                              Gtk.PolicyType.AUTOMATIC)
             self.page.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
             self.paned.set_orientation(Gtk.Orientation.VERTICAL)
             self.paned.set_position(200)
@@ -2183,7 +2203,7 @@ class RipperWindow(Gtk.ApplicationWindow):
             self.queue_paned.set_size_request(-1, -1)
             self.page.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.NEVER)
             self.settings_scroller.set_policy(Gtk.PolicyType.NEVER,
-                                              Gtk.PolicyType.NEVER)
+                                              Gtk.PolicyType.AUTOMATIC)
             self.paned.set_orientation(Gtk.Orientation.HORIZONTAL)
             self.titles_scroller.set_min_content_height(120)
             self.queue_scroller.set_min_content_height(56)
