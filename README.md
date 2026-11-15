@@ -33,7 +33,7 @@ run on it, not simply the newest upload.
 | --- | --- | --- | --- |
 | Debian 12 (bookworm) | 4.8 | 1.0.40 | install, drive detection, scan, Find, Start, Stop, rip |
 | Debian 13 (trixie) | 4.18 | 1.0.26 | install, drive detection, scan, rip |
-| Ubuntu 22.04 LTS | 4.6 | 1.0.40 | install, Browse picks a file, drive detection, scan, theme switch, no duplicate window button |
+| Ubuntu 22.04 LTS | 4.6 | 1.0.40 | install, Browse and SAVE TO pick a file and a folder, drive detection, scan, theme switch, no duplicate window button |
 | Ubuntu 24.04 LTS | 4.14 | 1.0.37 | install, drive detection, scan, rip |
 | Ubuntu 26.04 | 4.20 | 1.0.26 | install, drive detection, scan, rip, Stop |
 | Fedora 45 | 4.20 | 1.0.26 | install (RPM Fusion + `--allowerasing ffmpeg`), scan, rip |
