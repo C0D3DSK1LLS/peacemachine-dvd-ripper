@@ -43,6 +43,39 @@ that combined distribution is GPL and must also offer their source.
 Note: ripping a disc you own for your own use is legal in many places, but the
 rules differ by country — check your own.
 
+## Copy and paste (published release)
+
+**Arch, Omarchy, Manjaro, EndeavourOS**
+
+```
+sudo pacman -S handbrake-cli ffmpeg libdvdcss
+sudo pacman -U https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.0/peacemachine-dvd-ripper-1.0.0-1-any.pkg.tar.zst
+```
+
+**Debian, Ubuntu, Kali, Mint**
+
+```
+sudo apt install handbrake-cli ffmpeg libdvd-pkg && sudo dpkg-reconfigure libdvd-pkg
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.0/peacemachine-dvd-ripper_1.0.0_all.deb
+sudo apt install ./peacemachine-dvd-ripper_1.0.0_all.deb
+```
+
+**Fedora**
+
+```
+sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+sudo dnf install rpmfusion-free-release-tainted HandBrake ffmpeg libdvdcss
+sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.0/peacemachine-dvd-ripper-1.0.0-1.noarch.rpm
+```
+
+**openSUSE Tumbleweed**
+
+```
+sudo zypper addrepo -f https://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_Tumbleweed/ packman
+sudo zypper in handbrake-cli ffmpeg libdvdcss
+sudo zypper in https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.0/peacemachine-dvd-ripper-1.0.0-1.noarch.rpm
+```
+
 ## Installing from a package
 
 Packages install the program to `/usr/share/peacemachine-dvd-ripper`, a launcher
