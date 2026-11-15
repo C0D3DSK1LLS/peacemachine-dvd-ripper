@@ -1097,6 +1097,15 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.titles_count.set_ellipsize(Pango.EllipsizeMode.END)
         self.titles_count.set_max_width_chars(20)
         head.append(self.titles_count)
+
+        # shows the short extras again on demand (C0D3D, 2026-11-14)
+        self.extras_button = Gtk.Button(label="Unhide")
+        self.extras_button.add_css_class("tiny-button")
+        self.extras_button.set_tooltip_text(
+            "Show the short extras that are hidden — clean OP/ED, trailers")
+        self.extras_button.set_visible(False)
+        self.extras_button.connect("clicked", lambda *_: self.toggle_short_extras())
+        head.append(self.extras_button)
         titles_box.append(head)
 
         self.titles_hint = plain(
@@ -2491,6 +2500,11 @@ class RipperWindow(Gtk.ApplicationWindow):
         return max(self.titles, key=lambda t: t.duration) if self.titles else None
 
     # ---------------------------------------------------------------- titles list
+    def toggle_short_extras(self):
+        """Show or hide the sub-five-minute extras in the title list."""
+        self.show_short_extras = not getattr(self, "show_short_extras", False)
+        self.rebuild_titles()
+
     def clear_titles(self):
         if self.running:
             self.flash_status("Stop the rip before clearing the titles.")
@@ -2514,7 +2528,8 @@ class RipperWindow(Gtk.ApplicationWindow):
         # they are not listed (C0D3D, 2026-11-14). They stay in self.titles, so
         # nothing else changes; a disc made only of short items still lists them.
         visible = [title for title in self.titles
-                   if title.duration >= SHORT_EXTRA_SECONDS]
+                   if getattr(self, "show_short_extras", False)
+                   or title.duration >= SHORT_EXTRA_SECONDS]
         if not visible:
             visible = list(self.titles)
         hidden_extras = len(self.titles) - len(visible)
@@ -2596,6 +2611,17 @@ class RipperWindow(Gtk.ApplicationWindow):
             "" if not hidden_extras else " · +%d hidden" % hidden_extras))
         if visible:
             self.titles_hint.set_visible(False)
+        if hasattr(self, "extras_button"):
+            extras_total = len([title for title in self.titles
+                                if title.duration < SHORT_EXTRA_SECONDS])
+            if getattr(self, "show_short_extras", False) and extras_total:
+                self.extras_button.set_label("Hide extras")
+                self.extras_button.set_visible(True)
+            elif hidden_extras:
+                self.extras_button.set_label("Unhide %d" % hidden_extras)
+                self.extras_button.set_visible(True)
+            else:
+                self.extras_button.set_visible(False)
         if hidden_extras:
             self.titles_hint.set_text(
                 "%d short extra%s under five minutes (clean OP/ED, trailers) "
