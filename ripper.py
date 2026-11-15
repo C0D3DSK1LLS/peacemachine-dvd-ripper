@@ -8,6 +8,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import time
 
 HANDBRAKE = shutil.which("HandBrakeCLI") or "/usr/bin/HandBrakeCLI"

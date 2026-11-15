@@ -1,3 +1,10 @@
+peacemachine-dvd-ripper (1.0.14) unstable; urgency=medium
+
+  * Fix a missing `import subprocess` in ripper.py: the new disc-type check
+    raised NameError, which broke drive detection entirely.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 04:35:00 -0500
+
 peacemachine-dvd-ripper (1.0.13) unstable; urgency=medium
 
   * No automatic scanning. The SOURCE box points itself at the drive holding the
