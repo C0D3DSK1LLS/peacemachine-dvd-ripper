@@ -30,6 +30,14 @@ install -Dm755 "$SRC/packaging/launcher/peacemachine-dvd-ripper" \
 install -Dm644 "$SRC/packaging/desktop/org.jimmy.DvdRipper.desktop" \
     "$DEST$PREFIX/share/applications/org.jimmy.DvdRipper.desktop"
 
+# Application icon, in every hicolor size the theme looks up.
+for size in 512 256 128 64 48 32; do
+    icon="$SRC/packaging/icons/org.jimmy.DvdRipper-$size.png"
+    [ -f "$icon" ] || continue
+    install -Dm644 "$icon" \
+        "$DEST$PREFIX/share/icons/hicolor/${size}x${size}/apps/org.jimmy.DvdRipper.png"
+done
+
 # Optional speech-to-text helper. Its virtualenv and models are never shipped.
 if [ -f "$SRC/asr/transcribe.py" ]; then
     install -d "$datadir/asr"

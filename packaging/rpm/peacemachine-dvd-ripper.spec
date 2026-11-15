@@ -1,5 +1,5 @@
 Name:           peacemachine-dvd-ripper
-Version:        1.0.48
+Version:        1.0.49
 Release:        1%{?dist}
 Summary:        Rip DVDs and video files into files your PC can play
 License:        MIT
@@ -48,6 +48,7 @@ sh packaging/install-files.sh . %{buildroot} %{_prefix}
 %license LICENSE
 %{_bindir}/peacemachine-dvd-ripper
 %{_datadir}/applications/org.jimmy.DvdRipper.desktop
+%{_datadir}/icons/hicolor/*/apps/org.jimmy.DvdRipper.png
 %{_docdir}/%{name}
 %{_datadir}/%{name}
 

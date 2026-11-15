@@ -34,7 +34,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.48"
+APP_VERSION = "1.0.49"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -1163,7 +1163,7 @@ class RipperWindow(Gtk.ApplicationWindow):
             "TVmaze — episode names",
             "GTK4 and PyGObject",
         ])
-        about.set_logo_icon_name("media-optical")
+        about.set_logo_icon_name("org.jimmy.DvdRipper")
         about.present()
 
     def build_source_card(self):
