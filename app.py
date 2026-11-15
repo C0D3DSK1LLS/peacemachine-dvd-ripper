@@ -1139,6 +1139,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.folder_spin.set_size_request(-1, 110)
 
         self.titles_split = Gtk.Paned(orientation=Gtk.Orientation.VERTICAL)
+        self.titles_split.add_css_class("titles-split")
         self.titles_split.set_wide_handle(True)
         self.titles_split.set_resize_start_child(True)
         self.titles_split.set_resize_end_child(False)
