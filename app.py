@@ -34,7 +34,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.46"
+APP_VERSION = "1.0.47"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -4557,7 +4557,16 @@ def install_asr():
         # fine without it (C0D3D, 2026-11-15).
         print("onnxruntime is not available for this Python - installing the "
               "engine without it (no silence trimming).")
-        got = subprocess.run([python, "-m", "pip", "install", "faster-whisper"])
+        # No PyAV wheel for this Python: install the engine without dependencies
+        # and add the ones it really needs, skipping PyAV. transcribe.py stubs
+        # that import because it decodes audio itself (C0D3D, 2026-11-15).
+        print("PyAV has no wheel here - installing the engine without it.")
+        got = subprocess.run([python, "-m", "pip", "install", "--no-deps",
+                              "faster-whisper"])
+        if got.returncode == 0:
+            got = subprocess.run([python, "-m", "pip", "install",
+                                  "ctranslate2", "tokenizers",
+                                  "huggingface-hub", "numpy", "tqdm"])
     if got.returncode != 0:
         print("")
         print("pip could not build one of the dependencies - it is PyAV ('av')")

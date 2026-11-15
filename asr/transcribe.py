@@ -231,6 +231,18 @@ def main():
 
     cuda_libs()
 
+    # faster-whisper imports PyAV for its own decoding path, which this script
+    # never uses - it feeds samples in directly. Where no PyAV wheel exists for
+    # the Python (Fedora 45's 3.15), satisfy the import with an empty module
+    # instead of requiring a build from source (C0D3D, 2026-11-15).
+    try:
+        import av  # noqa: F401
+    except Exception:
+        import types
+        print("PyAV is missing - using the import stub (no PyAV decoding here)",
+              flush=True)
+        sys.modules["av"] = types.ModuleType("av")
+
     from faster_whisper import WhisperModel  # noqa: E402  (after libs are set)
 
     device, compute = "cuda", "float16"
