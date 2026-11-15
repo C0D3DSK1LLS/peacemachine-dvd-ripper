@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.41"
+APP_VERSION = "1.0.42"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -909,9 +909,11 @@ class RipperWindow(Gtk.ApplicationWindow):
     def __init__(self, app):
         super().__init__(application=app)
         self.state = load_state()
-        # C0D3D (2026-11-11): a value that is missing from the file must not
-        # fall back to "off" — the transcript is the default on this box.
-        self.state.setdefault("transcript", "best")
+        # Transcripts need the optional speech-to-text venv (see
+        # --install-asr). Without it, default to off rather than stamping a
+        # finished rip as failed (C0D3D, 2026-11-15).
+        self.state.setdefault("transcript",
+                              "best" if ripper.asr_available() else "off")
         self.titles = []
         self.episode_rows = []
         self.episode_show = ""
@@ -4103,7 +4105,11 @@ class RipperWindow(Gtk.ApplicationWindow):
                 return "failed"
         if (process.returncode == 0
                 and job.transcript not in (None, "", "off")):
-            if self.run_transcript_pass(job) != "done":
+            outcome = self.run_transcript_pass(job)
+            if outcome == "skipped":
+                # the rip itself is good; only the optional subtitles are missing
+                job.detail = "transcript skipped - not installed"
+            elif outcome != "done":
                 job.detail = "transcript pass failed"
                 return "failed"
         if process.returncode != 0:
@@ -4173,8 +4179,9 @@ class RipperWindow(Gtk.ApplicationWindow):
     def run_transcript_pass(self, job):
         """Listen to the dub in the finished file and write matching subs."""
         if not ripper.asr_available():
-            ripper.log("transcript pass unavailable: ASR venv missing")
-            return "failed"
+            ripper.log("transcript pass skipped: ASR venv missing "
+                       "(run: peacemachine-dvd-ripper --install-asr)")
+            return "skipped"
         mode = ripper.TRANSCRIPT_BY_KEY.get(job.transcript) or {}
         model = mode.get("model")
         if not model:
@@ -4491,7 +4498,55 @@ def force_window_buttons():
         ripper.log("could not set the decoration layout: %r" % error)
 
 
+def install_asr():
+    """Build the optional speech-to-text venv, then verify it imports.
+
+    Runs before GTK so it works from a terminal, over SSH, or with no display.
+    """
+    target = ripper.asr_share_dir()
+    venv = os.path.join(target, "venv")
+    python = os.path.join(venv, "bin", "python")
+    print("Transcript venv: %s" % venv)
+    print("This downloads about 300 MB and takes a few minutes on a slow link.")
+    try:
+        os.makedirs(target, exist_ok=True)
+    except OSError as error:
+        print("Cannot create %s: %s" % (target, error))
+        return 1
+    if not os.path.isfile(python):
+        print("Creating the virtual environment...")
+        made = subprocess.run([sys.executable, "-m", "venv", venv])
+        if made.returncode != 0 or not os.path.isfile(python):
+            print("python3-venv is missing. Install it and run this again:")
+            print("  Debian/Ubuntu:  sudo apt install -y python3-venv")
+            print("  openSUSE:       sudo zypper in python3-virtualenv")
+            return 2
+    print("Installing faster-whisper and onnxruntime...")
+    pip = subprocess.run([python, "-m", "pip", "install", "--upgrade", "pip"])
+    if pip.returncode != 0:
+        print("pip could not be upgraded; carrying on with the bundled one.")
+    got = subprocess.run([python, "-m", "pip", "install",
+                          "faster-whisper", "onnxruntime"])
+    if got.returncode != 0:
+        print("The install failed. Nothing was broken - the ripper runs fine "
+              "without transcripts.")
+        return 3
+    print("Checking it imports...")
+    check = subprocess.run([python, "-c", "import faster_whisper; print("
+                            "faster_whisper.__name__, 'ok')"])
+    if check.returncode != 0:
+        print("Installed, but the import failed - see the message above.")
+        return 4
+    print("")
+    print("Done. Transcripts are ready; the model downloads on the first rip "
+          "that uses one.")
+    print("Set TRANSCRIPT in the app to fast, better or best.")
+    return 0
+
+
 def main():
+    if "--install-asr" in sys.argv[1:]:
+        return install_asr()
     force_window_buttons()
     use_matrix_icons()
     load_css()

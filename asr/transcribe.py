@@ -56,6 +56,22 @@ def cuda_libs():
                 break
 
 
+def cuda_libraries_ready():
+    """True only when cuBLAS and cuDNN actually load.
+
+    A GPU can be present while the CUDA runtime is not — the plain
+    faster-whisper install ships no cuBLAS, and the CUDA path then died with
+    "libcublas.so.12 is not found" (C0D3D, 2026-11-15).
+    """
+    import ctypes
+    for name in ("libcublas.so.12", "libcudnn.so.9"):
+        try:
+            ctypes.CDLL(name)
+        except OSError:
+            return False
+    return True
+
+
 def srt_time(seconds):
     if seconds < 0:
         seconds = 0.0
@@ -190,7 +206,7 @@ def main():
     device, compute = "cuda", "float16"
     try:
         import ctranslate2
-        if ctranslate2.get_cuda_device_count() < 1:
+        if ctranslate2.get_cuda_device_count() < 1 or not cuda_libraries_ready():
             device, compute = "cpu", "int8"
     except Exception:
         device, compute = "cpu", "int8"

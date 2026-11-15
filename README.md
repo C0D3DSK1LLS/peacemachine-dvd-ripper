@@ -8,7 +8,7 @@ per-episode naming in the style of FileBot.
 It scans a disc, lists every title with resolution, duration and an estimate,
 then queues encodes through HandBrake. Split modes cover whole titles, chapter
 ranges and timestamps; there is also a lossless `-c copy` split for existing
-video files, and an optional speech-to-text pass.
+video files, and an optional speech-to-text pass (see [Transcripts](#transcripts-optional)).
 
 It installs a launcher (`peacemachine-dvd-ripper`), a menu entry, and keeps your
 settings in `~/.local/state/peacemachine-dvd-ripper`.
@@ -42,7 +42,7 @@ run on it, not simply the newest upload.
 | Kali, Mint, Pop!_OS | - | - | same apt path as the Ubuntu builds above |
 | Arch / Omarchy | 4.20 | 1.0.37 | package installs clean; the author runs the same code |
 
-**1.0.41 is the current build for every distribution**, and is what the install
+**1.0.42 is the current build for every distribution**, and is what the install
 blocks below fetch. The table records the version each distribution was actually
 tested at.
 
@@ -51,7 +51,7 @@ tested at.
 **Run one command at a time.** Paste a single line, let it finish, then the next —
 running several at once is how you end up not knowing which one failed.
 
-Everything below installs **PeaceMachine DVD Ripper 1.0.41**. The application is
+Everything below installs **PeaceMachine DVD Ripper 1.0.42**. The application is
 the same on every distribution; only the package names differ.
 
 ### Arch, Omarchy, Manjaro, EndeavourOS, CachyOS
@@ -65,7 +65,7 @@ sudo pacman -S handbrake-cli ffmpeg libdvdcss
 2. The ripper:
 
 ```
-sudo pacman -U https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.41/peacemachine-dvd-ripper-1.0.41-1-any.pkg.tar.zst
+sudo pacman -U https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.42/peacemachine-dvd-ripper-1.0.42-1-any.pkg.tar.zst
 ```
 
 3. Launch it:
@@ -106,11 +106,11 @@ sudo dpkg-reconfigure libdvd-pkg
 3. The ripper:
 
 ```
-curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.41/peacemachine-dvd-ripper_1.0.41_all.deb
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.42/peacemachine-dvd-ripper_1.0.42_all.deb
 ```
 
 ```
-sudo apt install ./peacemachine-dvd-ripper_1.0.41_all.deb
+sudo apt install ./peacemachine-dvd-ripper_1.0.42_all.deb
 ```
 
 4. Launch it:
@@ -156,11 +156,11 @@ sudo dpkg-reconfigure libdvd-pkg
 4. The ripper:
 
 ```
-curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.41/peacemachine-dvd-ripper_1.0.41_all.deb
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.42/peacemachine-dvd-ripper_1.0.42_all.deb
 ```
 
 ```
-sudo apt install ./peacemachine-dvd-ripper_1.0.41_all.deb
+sudo apt install ./peacemachine-dvd-ripper_1.0.42_all.deb
 ```
 
 5. Launch it from a terminal, so any complaint is visible:
@@ -244,7 +244,7 @@ sudo dnf install rpmfusion-free-release-tainted HandBrake libdvdcss
 5. The ripper:
 
 ```
-sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.41/peacemachine-dvd-ripper-1.0.41-1.noarch.rpm
+sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.42/peacemachine-dvd-ripper-1.0.42-1.noarch.rpm
 ```
 
 If step 5 complains about the signature, add `--nogpgcheck` — the package is not
@@ -276,7 +276,7 @@ sudo dnf install rpmfusion-free-release-tainted ffmpeg libdvdcss
 3. The ripper — it installs fine and will say HandBrake is missing, which is next:
 
 ```
-sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.41/peacemachine-dvd-ripper-1.0.41-1.noarch.rpm
+sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.42/peacemachine-dvd-ripper-1.0.42-1.noarch.rpm
 ```
 
 4. Flatpak itself:
@@ -357,11 +357,11 @@ sudo zypper in -y handbrake-cli ffmpeg libdvdcss2
 5. The ripper:
 
 ```
-curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.41/peacemachine-dvd-ripper-1.0.41-1.noarch.rpm
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.42/peacemachine-dvd-ripper-1.0.42-1.noarch.rpm
 ```
 
 ```
-sudo zypper in -y --allow-unsigned-rpm ./peacemachine-dvd-ripper-1.0.41-1.noarch.rpm
+sudo zypper in -y --allow-unsigned-rpm ./peacemachine-dvd-ripper-1.0.42-1.noarch.rpm
 ```
 
 6. Launch it:
@@ -411,21 +411,60 @@ sudo flatpak override --device=all fr.handbrake.ghb
 flatpak run --command=HandBrakeCLI fr.handbrake.ghb --version
 ```
 
+### Transcripts (optional)
+
+A rip can carry subtitles transcribed from the dub. That needs a speech-to-text
+engine, which is **not** part of the package - it downloads a few hundred
+megabytes, so it is a separate step you can skip.
+
+1. `python3 -m venv`, on Debian and Ubuntu only (Fedora, openSUSE and Arch ship it):
+
+```
+sudo apt install -y python3-venv
+```
+
+2. Build the engine - it goes into `~/.local/share/peacemachine-dvd-ripper/asr`,
+   never into `/usr`:
+
+```
+peacemachine-dvd-ripper --install-asr
+```
+
+3. Open the ripper and set **TRANSCRIPT** to fast, better or best. The model
+   downloads the first time a rip uses it: ~500 MB for fast, ~1.5 GB for better,
+   ~1.6 GB for best.
+
+With **TRANSCRIPT: off** - or on a machine where step 2 was never run - the rip
+is unaffected; the queue row says "transcript skipped" and nothing else changes.
+
+A CUDA card is used automatically when the CUDA libraries are present. To add
+them to the transcript venv:
+
+```
+~/.local/share/peacemachine-dvd-ripper/asr/venv/bin/python -m pip install nvidia-cublas-cu12 nvidia-cudnn-cu12
+```
+
+To force the CPU (smaller, slower):
+
+```
+ASR_CPU=1 peacemachine-dvd-ripper
+```
+
 ### From source, on anything
 
 The only requirements are Python 3, GTK 4 with PyGObject, PyGObject's cairo
 bridge, HandBrake and ffmpeg:
 
 ```
-curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.41/peacemachine-dvd-ripper-1.0.41.tar.gz
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.42/peacemachine-dvd-ripper-1.0.42.tar.gz
 ```
 
 ```
-tar -xzf peacemachine-dvd-ripper-1.0.41.tar.gz
+tar -xzf peacemachine-dvd-ripper-1.0.42.tar.gz
 ```
 
 ```
-cd peacemachine-dvd-ripper-1.0.41
+cd peacemachine-dvd-ripper-1.0.42
 ```
 
 ```

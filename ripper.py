@@ -1021,8 +1021,40 @@ def deband_command(source_path, output_path, mode_key, quality=18):
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 ASR_DIR = os.path.join(APP_DIR, "asr")
-ASR_PYTHON = os.path.join(ASR_DIR, "venv", "bin", "python")
-ASR_SCRIPT = os.path.join(ASR_DIR, "transcribe.py")
+
+
+def asr_share_dir():
+    """Where an `--install-asr` venv goes.
+
+    It has to be writable by the user: the package installs into /usr, and the
+    venv is hundreds of megabytes (C0D3D, 2026-11-15).
+    """
+    override = os.environ.get("PEACEMACHINE_ASR_HOME")
+    if override:
+        return override
+    data = os.environ.get("XDG_DATA_HOME") or os.path.expanduser("~/.local/share")
+    return os.path.join(data, "peacemachine-dvd-ripper", "asr")
+
+
+def asr_runtime_dir():
+    """The directory whose venv/bin/python runs transcribe.py."""
+    for base in (asr_share_dir(), ASR_DIR):
+        if os.path.isfile(os.path.join(base, "venv", "bin", "python")):
+            return base
+    return asr_share_dir()
+
+
+def asr_python():
+    return os.path.join(asr_runtime_dir(), "venv", "bin", "python")
+
+
+def asr_script():
+    """transcribe.py — from the venv's folder if it is there, else the package."""
+    for base in (asr_runtime_dir(), ASR_DIR):
+        candidate = os.path.join(base, "transcribe.py")
+        if os.path.isfile(candidate):
+            return candidate
+    return os.path.join(ASR_DIR, "transcribe.py")
 
 TRANSCRIPT_MODES = [
     {"key": "off", "short": "Transcript: off", "model": None},
@@ -1035,13 +1067,13 @@ TRANSCRIPT_BY_KEY = {mode["key"]: mode for mode in TRANSCRIPT_MODES}
 
 
 def asr_available():
-    return os.path.isfile(ASR_PYTHON) and os.path.isfile(ASR_SCRIPT)
+    return os.path.isfile(asr_python()) and os.path.isfile(asr_script())
 
 
 def transcript_command(video_path, srt_path, model, audio_stream=0):
     """Speech-to-text over one audio stream, writing an SRT beside the video."""
     return cpu_limit_prefix() + [
-        ASR_PYTHON, ASR_SCRIPT,
+        asr_python(), asr_script(),
         "--input", video_path,
             "--output", srt_path,
             "--model", model,

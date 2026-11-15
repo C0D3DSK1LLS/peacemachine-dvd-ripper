@@ -1,3 +1,15 @@
+peacemachine-dvd-ripper (1.0.42) unstable; urgency=medium
+
+  * Transcripts are installable. `peacemachine-dvd-ripper --install-asr` builds
+    the speech-to-text venv in ~/.local/share/peacemachine-dvd-ripper/asr, since
+    it cannot live in /usr. TRANSCRIPT now defaults to off when that venv is
+    absent, and a missing venv marks the row "transcript skipped" instead of
+    failing a finished rip.
+  * The transcript pass falls back to the CPU when the CUDA libraries are absent
+    instead of dying on "libcublas.so.12 is not found".
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 14:40:00 -0500
+
 peacemachine-dvd-ripper (1.0.41) unstable; urgency=medium
 
   * HandBrake 1.5.x no longer breaks the rip. --crop-mode is only sent when the
