@@ -45,7 +45,24 @@ that combined distribution is GPL and must also offer their source.
 Note: ripping a disc you own for your own use is legal in many places, but the
 rules differ by country — check your own.
 
-## Copy and paste (published release)
+## Verified builds
+
+Each distribution below is pinned to the version that was actually installed and
+run on it, not simply the newest upload.
+
+| Distribution | Build | What was verified |
+| --- | --- | --- |
+| Debian 13 | **1.0.26** | install, drive detection, scan, Find, Start, Stop, rip |
+| Ubuntu 26.04 | **1.0.26** | install, drive detection, scan, rip, Stop |
+| Fedora 45 | **1.0.26** | install (RPM Fusion + `--allowerasing ffmpeg`), scan, rip |
+| AlmaLinux 10 | **1.0.29** | install, Flatpak HandBrake, scan, rip, Stop |
+| Kali, Mint, Pop!_OS | 1.0.26 | same apt path as Debian |
+| Arch / Omarchy | 1.0.26 | package installs clean; the author runs the same code |
+
+Newer builds exist in the releases list and are fine to try, but they are UI
+changes on top of the versions above rather than newly verified releases.
+
+## Install — copy and paste
 
 Everything below installs **PeaceMachine DVD Ripper 1.0.19**. The app is the same on
 every distribution; only the package names differ.
