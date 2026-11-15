@@ -2180,19 +2180,7 @@ class RipperWindow(Gtk.ApplicationWindow):
 
         # --- titles list / spinner inside the titles card
         if hasattr(self, "titles_split"):
-            height = self.titles_split.get_height()
-            if height > 0:
-                self.last_titles_height = height
-                rati = getattr(self, "spinner_ratio", 0.0)
-                target = (int(round(height * rati)) if rati > 0
-                          else getattr(self, "spinner_height", 235))
-                current = height - self.titles_split.get_position()
-                # follow a shrinking/growing block every tick so the circle
-                # resizes as the queue divider is dragged, not after it lands.
-                # While he is dragging this divider himself, keep out of the way.
-                if (abs(current - target) > 2
-                        and not getattr(self, "titles_split_dragging", False)):
-                    self.restore_titles_split()
+            self.sync_titles_split()
 
         # --- rip queue (vertical)
         if hasattr(self, "queue_paned"):
@@ -2578,7 +2566,13 @@ class RipperWindow(Gtk.ApplicationWindow):
         return False
 
     def sync_titles_split(self):
-        """Match the spinner's share to the block size, called on every move."""
+        """Match the spinner's share to the block, and notice his own drags.
+
+        The divider has no drag signal worth trusting, so we remember where we
+        last put it: if it moves while the block's height is unchanged, that was
+        him, and his position becomes the new share instead of being corrected
+        away (C0D3D, 2026-11-14).
+        """
         if self.dead or not hasattr(self, "titles_split"):
             return False
         if getattr(self, "titles_split_dragging", False):
@@ -2586,13 +2580,25 @@ class RipperWindow(Gtk.ApplicationWindow):
         height = self.titles_split.get_height()
         if height <= 0:
             return False
+        position = self.titles_split.get_position()
+        expected = getattr(self, "titles_split_expected", None)
+        steady = height == getattr(self, "titles_split_expected_height", None)
+        if steady and expected is not None and abs(position - expected) > 2:
+            spinner = max(60, height - position)
+            self.spinner_height = spinner
+            self.spinner_ratio = max(0.12, min(0.85, spinner / float(height)))
+            self.titles_split_expected = position
+            return False
         rati = getattr(self, "spinner_ratio", 0.0)
         if rati <= 0:
             return False
         wanted = int(round(height * rati))
-        position = max(120, min(height - 90, height - wanted))
-        if abs(self.titles_split.get_position() - position) > 1:
-            self.titles_split.set_position(position)
+        target = max(120, min(height - 90, height - wanted))
+        if abs(position - target) > 1:
+            self.titles_split.set_position(target)
+            position = self.titles_split.get_position()
+        self.titles_split_expected = position
+        self.titles_split_expected_height = height
         return False
 
     def restore_titles_split(self):
@@ -2618,6 +2624,8 @@ class RipperWindow(Gtk.ApplicationWindow):
         if abs(self.titles_split.get_position() - position) > 1:
             self.titles_split.set_position(position)
         self.spinner_height = height - self.titles_split.get_position()
+        self.titles_split_expected = self.titles_split.get_position()
+        self.titles_split_expected_height = height
         return False
 
     def place_titles_split(self):
