@@ -1,3 +1,11 @@
+peacemachine-dvd-ripper (1.0.1) unstable; urgency=medium
+
+  * Window buttons: the headerbar's clearance for the Hyprland hyprbars discs
+    is now applied only under Hyprland. On other desktops the app shows its own
+    minimise/maximise/close buttons at the window edge instead of leaving a gap.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 03:36:00 -0500
+
 peacemachine-dvd-ripper (1.0.0) unstable; urgency=medium
 
   * Initial release: DVD and video-file ripping with per-episode naming,

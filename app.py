@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.1"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -813,6 +813,14 @@ class RipperWindow(Gtk.ApplicationWindow):
         title_label = Gtk.Label(label="PEACEMACHINE DVD RIPPER")
         title_label.add_css_class("app-title")
         header.set_title_widget(title_label)
+
+        # On Hyprland the hyprbars plugin draws its own - [] x discs over the
+        # top-right corner, so the skin hides the app's close button and keeps
+        # the headerbar clear of them. Everywhere else the app keeps its own
+        # window buttons, right on the edge (C0D3D, 2026-11-15: the buttons sat
+        # "way off" in a Debian VM because the reservation is Hyprland-only).
+        if os.environ.get("HYPRLAND_INSTANCE_SIGNATURE"):
+            self.add_css_class("hypr")
 
 
         root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
