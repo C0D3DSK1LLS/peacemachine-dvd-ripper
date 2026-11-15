@@ -1,5 +1,7 @@
 # PeaceMachine DVD Ripper
 
+![PeaceMachine DVD Ripper main window](docs/screenshot.png)
+
 Rips a DVD — or any video file — into files your PC can play, with optional
 per-episode naming in the style of FileBot.
 
