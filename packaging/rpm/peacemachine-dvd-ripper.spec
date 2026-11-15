@@ -40,11 +40,11 @@ sh packaging/install-files.sh . %{buildroot} %{_prefix}
 
 %files
 %license LICENSE
-%doc README.md
 %{_bindir}/peacemachine-dvd-ripper
 %{_datadir}/applications/org.jimmy.DvdRipper.desktop
+%{_docdir}/%{name}
 %{_datadir}/%{name}
 
 %changelog
-* Sat Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.0-1
+* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.0-1
 - Initial package
