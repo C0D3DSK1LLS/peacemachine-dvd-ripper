@@ -2265,7 +2265,7 @@ class RipperWindow(Gtk.ApplicationWindow):
                 Gtk.Orientation.VERTICAL, width)
             self.queue_paned.set_size_request(-1, 200 + natural + queue_natural)
             self.queue_paned.set_position(200 + natural)
-            self.titles_scroller.set_min_content_height(120)
+            self.titles_scroller.set_min_content_height(0)
             self.queue_scroller.set_min_content_height(96)
         else:
             self.paned.set_size_request(-1, -1)
@@ -2274,7 +2274,7 @@ class RipperWindow(Gtk.ApplicationWindow):
             self.settings_scroller.set_policy(Gtk.PolicyType.NEVER,
                                               Gtk.PolicyType.AUTOMATIC)
             self.paned.set_orientation(Gtk.Orientation.HORIZONTAL)
-            self.titles_scroller.set_min_content_height(120)
+            self.titles_scroller.set_min_content_height(0)
             self.queue_scroller.set_min_content_height(56)
 
     def build_keys(self):
@@ -2586,14 +2586,14 @@ class RipperWindow(Gtk.ApplicationWindow):
         if steady and expected is not None and abs(position - expected) > 2:
             spinner = max(60, height - position)
             self.spinner_height = spinner
-            self.spinner_ratio = max(0.12, min(0.85, spinner / float(height)))
+            self.spinner_ratio = max(0.05, min(1.0, spinner / float(height)))
             self.titles_split_expected = position
             return False
         rati = getattr(self, "spinner_ratio", 0.0)
         if rati <= 0:
             return False
         wanted = int(round(height * rati))
-        target = max(120, min(height - 90, height - wanted))
+        target = max(0, min(height - 90, height - wanted))
         if abs(position - target) > 1:
             self.titles_split.set_position(target)
             position = self.titles_split.get_position()
@@ -2620,7 +2620,7 @@ class RipperWindow(Gtk.ApplicationWindow):
             rati = max(0.2, min(0.7, wanted / float(height)))
             self.spinner_ratio = rati
         wanted = int(round(height * rati))
-        position = max(120, min(height - 90, height - wanted))
+        position = max(0, min(height - 90, height - wanted))
         if abs(self.titles_split.get_position() - position) > 1:
             self.titles_split.set_position(position)
         self.spinner_height = height - self.titles_split.get_position()
