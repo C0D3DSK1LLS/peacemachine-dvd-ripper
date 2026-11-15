@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.7"
+APP_VERSION = "1.0.8"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -840,6 +840,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.running = False
         self.scan_generation = 0
         self.auto_scanned = False
+        self.auto_queue = []
         self.dead = False
 
         self.set_default_size(1240, 860)
@@ -2346,9 +2347,17 @@ class RipperWindow(Gtk.ApplicationWindow):
 
 
     def auto_scan_now(self):
-        """One automatic scan, from the drive watcher."""
+        """Automatic scan, and if that drive yields nothing, try the next one.
+
+        A leftover virtual CD on sr0 has a "disc" in it as far as the kernel is
+        concerned, so "has media" alone cannot tell it from a DVD. Scanning the
+        wrong one fails in a couple of seconds, so the honest fix is to try each
+        drive in turn until one gives titles (C0D3D, 2026-11-15).
+        """
         if self.dead or self.running:
             return False
+        current = self.source_entry.get_text().strip()
+        self.auto_queue = [drive for drive in ripper.list_sources() if drive != current]
         self.start_scan()
         return False
 
@@ -2638,6 +2647,13 @@ class RipperWindow(Gtk.ApplicationWindow):
     def scan_failed(self, message, token=None):
         if self.dead:
             return
+        if self.auto_queue and not self.running:
+            following = self.auto_queue.pop(0)
+            self.append_log("scan: nothing on %s, trying %s"
+                            % (self.source_entry.get_text().strip(), following))
+            self.source_entry.set_text(following)
+            GLib.idle_add(self.start_scan)
+            return False
         if token is not None and token != self.scan_generation:
             return False
         self.scan_now.set_sensitive(True)

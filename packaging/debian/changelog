@@ -1,3 +1,11 @@
+peacemachine-dvd-ripper (1.0.8) unstable; urgency=medium
+
+  * The automatic scan now tries every optical drive until one yields titles.
+    A virtual CD with an ISO in it looks like a disc to the kernel, so picking
+    "the drive with media" could still choose the wrong one.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 04:12:00 -0500
+
 peacemachine-dvd-ripper (1.0.7) unstable; urgency=medium
 
   * Scan a disc that is already in the drive without being asked. When a drive
