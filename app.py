@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.32"
+APP_VERSION = "1.0.33"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -1013,15 +1013,21 @@ class RipperWindow(Gtk.ApplicationWindow):
             save_state(self.state)
         ripper.log("theme: %s" % key)
 
-    def hug_children(self, flow):
-        """Flow boxes stretch their children by default; keep buttons to their own width."""
-        index = 0
-        while True:
-            child = flow.get_child_at_index(index)
-            if child is None:
-                break
+    def hug_children(self, container):
+        """Keep buttons at their own width inside a FlowBox or a plain Box."""
+        if hasattr(container, "get_child_at_index"):
+            index = 0
+            while True:
+                child = container.get_child_at_index(index)
+                if child is None:
+                    break
+                child.set_halign(Gtk.Align.START)
+                index += 1
+            return
+        child = container.get_first_child()
+        while child is not None:
             child.set_halign(Gtk.Align.START)
-            index += 1
+            child = child.get_next_sibling()
 
     def round_stepper(self, spin, step=1):
         """Wrap a spin button in its own round − / + buttons.
@@ -1896,22 +1902,16 @@ class RipperWindow(Gtk.ApplicationWindow):
 
         head.append(caption("RIP QUEUE"))
 
-        buttons = Gtk.FlowBox()
+        # A plain Box, not a FlowBox: a FlowBox hands out its spare width as gaps
+        # between the children, which is what kept spreading these out
+        # (C0D3D, 2026-11-15: "these need to remove gaps inbetween"). A Box packs
+        # them at their natural width with a fixed 8px, and the label shrinks
+        # first if the window is narrow.
+        buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         buttons.add_css_class("queue-buttons")
-        buttons.set_selection_mode(Gtk.SelectionMode.NONE)
-        # Six buttons in one row, packed tight, never stretched apart: a
-        # homogeneous FlowBox spread them across the full width with big gaps
-        # (C0D3D, 2026-11-15, Alma VM: "too much spacing inbetween the bottom
-        # buttons").  Natural width, so they hug, and it only wraps if the window
-        # is genuinely too narrow to hold them.
-        buttons.set_max_children_per_line(6)
-        buttons.set_min_children_per_line(5)
-        buttons.set_column_spacing(8)
-        buttons.set_row_spacing(2)
-        buttons.set_homogeneous(False)
-        buttons.set_halign(Gtk.Align.FILL)
+        buttons.set_halign(Gtk.Align.START)
         buttons.set_valign(Gtk.Align.CENTER)
-        buttons.set_hexpand(True)
+        buttons.set_hexpand(False)
 
         self.start_button = icon_button("Start", "media-playback-start-symbolic")
         self.start_button.add_css_class("compact-button")

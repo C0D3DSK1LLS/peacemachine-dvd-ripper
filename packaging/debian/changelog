@@ -1,3 +1,11 @@
+peacemachine-dvd-ripper (1.0.33) unstable; urgency=medium
+
+  * Queue buttons are a plain Box now, packed at their natural width with an 8px
+    gap. A FlowBox hands its spare width out as gaps between children, which is
+    what kept spreading them apart.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 06:50:00 -0500
+
 peacemachine-dvd-ripper (1.0.32) unstable; urgency=medium
 
   * Queue buttons: one row, natural width, filling the bar with small gaps -
