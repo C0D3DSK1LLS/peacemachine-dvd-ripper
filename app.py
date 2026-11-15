@@ -33,24 +33,22 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.25"
+APP_VERSION = "1.0.26"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
 DEFAULT_SPLIT_POSITION = 400     # titles column width
 DEFAULT_QUEUE_HEIGHT = 118       # rip queue height
 SHORT_EXTRA_SECONDS = 300        # titles shorter than this are extras, not listed
+# The packaged build ships two skins, Matrix and Basic (dark). C0D3D keeps the
+# light and Windows 11 sheets on his own desktop build only (2026-11-15).
 THEMES = [
     {"key": "matrix", "short": "Matrix"},
-    {"key": "basic-light", "short": "Basic (light grey)"},
     {"key": "basic-dark", "short": "Basic (dark)"},
-    {"key": "win11", "short": "Windows 11"},
 ]
 THEME_FILES = {
     "matrix": "gtk.css",
-    "basic-light": "basic-light.css",
     "basic-dark": "basic-dark.css",
-    "win11": "win11.css",
 }
 _theme_provider = None
 # tests and probes point this somewhere else so they can never overwrite his

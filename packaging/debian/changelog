@@ -1,3 +1,10 @@
+peacemachine-dvd-ripper (1.0.26) unstable; urgency=medium
+
+  * Ship two skins: Matrix and Basic (dark). The light grey and Windows 11
+    sheets were C0D3D's own desktop only and are no longer in the packages.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 05:23:00 -0500
+
 peacemachine-dvd-ripper (1.0.25) unstable; urgency=medium
 
   * Dropdown list text is red instead of the toolkit's purple, and stays red on
