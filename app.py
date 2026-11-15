@@ -106,16 +106,32 @@ class TopRule(Gtk.DrawingArea):
         super().__init__()
         self.set_content_height(self.HEIGHT)
         self.set_draw_func(self._draw)
+        # the rule's ends are pinned to the cards under it, so a visible
+        # scrollbar (which insets the settings card) cannot leave it hanging
+        self.left_widget = None
+        self.right_widget = None
 
     def _draw(self, area, cr, width, height):
         import cairo
 
         if width < 12 or height < 8:
             return
-        radius = min(9.0, width / 4.0, max(4.0, height - 8.0))
-        y_line = height - radius - 3.0   # room under it for the bend down
         x_left = 1.0
         x_right = width - 1.0
+        if self.left_widget is not None:
+            ok, lx, _y = self.left_widget.translate_coordinates(area, 0, 0)
+            if ok:
+                x_left = max(1.0, lx)
+        if self.right_widget is not None:
+            ok, rx, _y = self.right_widget.translate_coordinates(
+                area, self.right_widget.get_width(), 0)
+            if ok:
+                x_right = min(width - 1.0, rx)
+        if x_right - x_left < 24:
+            x_left, x_right = 1.0, width - 1.0
+
+        radius = min(9.0, (x_right - x_left) / 4.0, max(4.0, height - 8.0))
+        y_line = height - radius - 3.0   # room under it for the bend down
 
         cr.new_path()
         cr.move_to(x_left, height)
@@ -1022,6 +1038,8 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.top_rule.set_valign(Gtk.Align.START)
         wrapper.append(self.top_rule)
         wrapper.append(self.build_middle())
+        self.top_rule.left_widget = getattr(self, "titles_card", None)
+        self.top_rule.right_widget = getattr(self, "settings_card", None)
         return wrapper
 
     def build_middle(self):
@@ -1044,6 +1062,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         # ---- titles
         titles_box = card(6)
         titles_box.add_css_class("titles-card")
+        self.titles_card = titles_box
         head = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         _titles_cap = caption("TITLES ON THE DISC")
         _titles_cap.add_css_class("cap-green")
@@ -1494,7 +1513,11 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.preview_label.set_xalign(0.5)
 
         settings_scroller = Gtk.ScrolledWindow()
-        settings_scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        # no scrollbar on the settings column (C0D3D, 2026-11-14): it eats the
+        # card's right edge, and the top rule has to line up with that edge.
+        # The wheel still scrolls it, because the handlers drive the adjustment
+        # directly rather than the scrollbar.
+        settings_scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.NEVER)
         settings_scroller.set_child(settings)
         settings_scroller.add_css_class("settings-scroller")
         settings_scroller.set_overlay_scrolling(False)
@@ -2160,7 +2183,7 @@ class RipperWindow(Gtk.ApplicationWindow):
             self.queue_paned.set_size_request(-1, -1)
             self.page.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.NEVER)
             self.settings_scroller.set_policy(Gtk.PolicyType.NEVER,
-                                              Gtk.PolicyType.AUTOMATIC)
+                                              Gtk.PolicyType.NEVER)
             self.paned.set_orientation(Gtk.Orientation.HORIZONTAL)
             self.titles_scroller.set_min_content_height(120)
             self.queue_scroller.set_min_content_height(56)
