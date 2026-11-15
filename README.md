@@ -578,6 +578,10 @@ Then open the file with it:
 mpv "$HOME/Videos/DVD Rips/your-file.mkv"
 ```
 
+Installing mpv does **not** change what double-clicking does — the file manager
+still opens Videos. Use the plugins above for that, or launch mpv on the file
+directly.
+
 The transcript is **inside the .mkv** as a subtitle track called
 "English (transcript)", set as the default — there is no separate `.srt` file to
 find or load. Press `v` in mpv to toggle it if the player has subtitles hidden.
