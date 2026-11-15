@@ -22,6 +22,8 @@ install -m644 "$SRC/LICENSE" "$docdir/copyright"
 
 install -m644 "$SRC/theme/gtk-4.0/"*.css "$datadir/gtk-4.0/"
 install -m644 "$SRC/theme/gtk-4.0/settings.ini" "$datadir/gtk-4.0/"
+install -d "$datadir/gtk-4.0/art"
+install -m644 "$SRC/theme/gtk-4.0/art/"*.png "$datadir/gtk-4.0/art/"
 
 install -Dm755 "$SRC/packaging/launcher/peacemachine-dvd-ripper" \
     "$DEST$PREFIX/bin/$NAME"

@@ -28,6 +28,7 @@ fi
 [ -e "$CFG/dconf" ] || ln -sfn "$CONFIG_HOME/dconf" "$CFG/dconf"
 [ -e "$CFG/mimeapps.list" ] || ln -sfn "$CONFIG_HOME/mimeapps.list" "$CFG/mimeapps.list"
 
+export PEACEMACHINE_DVD_RIPPER_DATA="$DATA"
 export XDG_CONFIG_HOME="$CFG"
 export GTK_THEME=Adwaita:dark
 export DVD_RIPPER_STATE_DIR="$STATE"

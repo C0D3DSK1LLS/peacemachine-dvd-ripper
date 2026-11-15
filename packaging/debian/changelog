@@ -1,3 +1,15 @@
+peacemachine-dvd-ripper (1.0.2) unstable; urgency=medium
+
+  * Fix the Matrix skin on machines that are not C0D3D's: the rain tiles were
+    referenced by absolute home-directory paths, so the animated binary and the
+    card rain drew nothing. The tiles now ship with the package and the app
+    resolves them at runtime.
+  * Add python3-cairo as a dependency — it draws the orbiting folder spinner
+    and the blue binary behind it, and was missing, which is why the spinner
+    was invisible on a fresh install.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 03:40:00 -0500
+
 peacemachine-dvd-ripper (1.0.1) unstable; urgency=medium
 
   * Window buttons: the headerbar's clearance for the Hyprland hyprbars discs

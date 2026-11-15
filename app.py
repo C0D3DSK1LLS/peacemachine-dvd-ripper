@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.1"
+APP_VERSION = "1.0.2"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -4164,6 +4164,26 @@ def css_path(name):
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), "gtk.css")
 
 
+def art_dir():
+    """Where the rain tiles and the deband grain live.
+
+    The Matrix sheet points its background images at @ART@ because an installed
+    package cannot hard-code a home directory (C0D3D, 2026-11-15: the rain and
+    the spinner were dead in a Debian VM — the sheet named his own paths).
+    """
+    here = os.path.dirname(os.path.abspath(__file__))
+    candidates = [
+        os.path.join(os.environ.get("PEACEMACHINE_DVD_RIPPER_DATA", ""), "gtk-4.0", "art"),
+        os.path.join(here, "gtk-4.0", "art"),
+        os.path.join(here, "art"),
+        os.path.expanduser("~/.local/share/c0d3d/rain"),
+    ]
+    for folder in candidates:
+        if folder and os.path.isdir(folder) and os.listdir(folder):
+            return folder
+    return os.path.expanduser("~/.local/share/c0d3d/rain")
+
+
 def apply_theme(name):
     """Swap the whole stylesheet — Matrix, or one of the plain themes."""
     global _theme_provider, _current_theme
@@ -4181,8 +4201,21 @@ def apply_theme(name):
     path = css_path(name)
     if not os.path.exists(path):
         return
+    try:
+        with open(path, encoding="utf-8") as handle:
+            text = handle.read()
+    except OSError as error:
+        ripper.log("theme read failed: %s" % error)
+        return
+    # the rain tiles are shipped beside the sheets, so point @ART@ at the copy
+    # that actually exists on this machine
+    text = text.replace("@ART@", art_dir().replace("\\", "/"))
     provider = Gtk.CssProvider()
-    provider.load_from_path(path)
+    try:
+        provider.load_from_data(text.encode("utf-8"))
+    except GLib.Error as error:
+        ripper.log("theme parse failed (%s): %s" % (path, error.message))
+        return
     Gtk.StyleContext.add_provider_for_display(
         display, provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
     _theme_provider = provider

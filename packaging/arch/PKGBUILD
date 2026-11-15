@@ -1,16 +1,16 @@
 # Maintainer: William James Sova (C0D3D) <william@peacemachinestudios.com>
 pkgname=peacemachine-dvd-ripper
-pkgver=1.0.1
+pkgver=1.0.2
 pkgrel=1
 pkgdesc="Rip DVDs and video files into files your PC can play, with per-episode naming"
 arch=('any')
 url="https://peacemachinestudios.com"
 license=('MIT')
-depends=('python' 'python-gobject' 'gtk4' 'handbrake-cli' 'ffmpeg')
+depends=('python' 'python-gobject' 'python-cairo' 'gtk4' 'handbrake-cli' 'ffmpeg')
 optdepends=('libdvdcss: read encrypted commercial DVDs')
 provides=('dvd-ripper')
 source=("$pkgname-$pkgver.tar.gz::https://github.com/C0D3DSK1LLS/$pkgname/releases/download/v$pkgver/$pkgname-$pkgver.tar.gz")
-sha256sums=('213e8da43f9b1aa4010f26449618f405cc362e3c9e3f4dc0f5506bec4205ea68')
+sha256sums=('PLACEHOLDER')
 
 package() {
     local datadir="$pkgdir/usr/share/$pkgname"
@@ -30,6 +30,8 @@ package() {
     install -d "$datadir/gtk-4.0"
     install -m644 "$srcdir/$pkgname-$pkgver/theme/gtk-4.0/"*.css "$datadir/gtk-4.0/"
     install -m644 "$srcdir/$pkgname-$pkgver/theme/gtk-4.0/settings.ini" "$datadir/gtk-4.0/"
+    install -d "$datadir/gtk-4.0/art"
+    install -m644 "$srcdir/$pkgname-$pkgver/theme/gtk-4.0/art/"*.png "$datadir/gtk-4.0/art/"
 
     # optional speech-to-text helper (its models and venv are the user's own)
     if [ -f "$srcdir/$pkgname-$pkgver/asr/transcribe.py" ]; then

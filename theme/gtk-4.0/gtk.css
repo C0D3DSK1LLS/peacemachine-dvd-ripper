@@ -13,10 +13,10 @@ window, window.background, window.dialog, popover, tooltip, menu {
 
 .ripper-rain {
   background-color: #000000;
-  background-image: url("file:///home/jimmy/.local/share/c0d3d/rain/rain-a.png"),
-    url("file:///home/jimmy/.local/share/c0d3d/rain/rain-b.png"),
-    url("file:///home/jimmy/.local/share/c0d3d/rain/rain-c.png"),
-    url("file:///home/jimmy/.local/share/c0d3d/deband.png"),
+  background-image: url("file://@ART@/rain-a.png"),
+    url("file://@ART@/rain-b.png"),
+    url("file://@ART@/rain-c.png"),
+    url("file://@ART@/deband.png"),
     radial-gradient(circle at 0% 0%, rgba(255, 0, 0, 0.14), transparent 58%),
     radial-gradient(circle at 100% 100%, rgba(0, 255, 65, 0.08), transparent 62%);
   background-repeat: repeat, repeat, repeat, repeat, no-repeat, no-repeat;

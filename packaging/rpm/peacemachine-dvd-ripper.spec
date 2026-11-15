@@ -1,5 +1,5 @@
 Name:           peacemachine-dvd-ripper
-Version:        1.0.1
+Version:        1.0.2
 Release:        1%{?dist}
 Summary:        Rip DVDs and video files into files your PC can play
 License:        MIT
@@ -9,6 +9,7 @@ BuildArch:      noarch
 
 Requires:       python3
 Requires:       python3-gobject
+Requires:       python3-cairo
 Requires:       gtk4
 Requires:       ffmpeg
 
@@ -46,6 +47,10 @@ sh packaging/install-files.sh . %{buildroot} %{_prefix}
 %{_datadir}/%{name}
 
 %changelog
+* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.2-1
+- Ship the rain tiles and resolve them at runtime (they were absolute home paths)
+- Require python3-cairo for the spinner
+
 * Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.1-1
 - Headerbar clearance for the Hyprland hyprbars discs is Hyprland-only now;
   other desktops get the app's own window buttons at the edge
