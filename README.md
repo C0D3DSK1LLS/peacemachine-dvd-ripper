@@ -262,8 +262,8 @@ gsettings set org.gnome.desktop.interface enable-animations false
 
 ### Fedora
 
-Order matters: HandBrake, libdvdcss and the full ffmpeg all live in RPM Fusion, and
-Fedora's own `ffmpeg-free` conflicts with it.
+Order matters: HandBrake and the full ffmpeg both live in RPM Fusion, and Fedora's
+own `ffmpeg-free` conflicts with it. Verified on Fedora 45, Python 3.15, GTK 4.20.
 
 1. RPM Fusion, free half:
 
@@ -283,10 +283,10 @@ sudo dnf install https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-
 sudo dnf install --allowerasing ffmpeg
 ```
 
-4. HandBrake (this is the CLI package) and libdvdcss:
+4. HandBrake, the CLI package:
 
 ```
-sudo dnf install rpmfusion-free-release-tainted HandBrake libdvdcss
+sudo dnf install HandBrake
 ```
 
 5. The ripper:
@@ -295,21 +295,7 @@ sudo dnf install rpmfusion-free-release-tainted HandBrake libdvdcss
 sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.48/peacemachine-dvd-ripper-1.0.48-1.noarch.rpm
 ```
 
-If step 5 complains about the signature, add `--nogpgcheck` — the package is not
-signed yet.
-
-**libdvdcss on Fedora 45:** the tainted repository is not published for 45 yet, so
-step 4 fails on `rpmfusion-free-release-tainted` and `libdvdcss` cannot be found.
-HandBrake needs it to read an encrypted disc, so until RPM Fusion catch up, use the
-Flatpak instead - it bundles libdvdcss and the app finds it on its own:
-
-```
-flatpak install -y flathub fr.handbrake.ghb
-```
-
-```
-flatpak override --device=all fr.handbrake.ghb
-```
+If that complains about the signature, add `--nogpgcheck` — the rpm is not signed.
 
 6. Launch it:
 
@@ -317,11 +303,42 @@ flatpak override --device=all fr.handbrake.ghb
 peacemachine-dvd-ripper
 ```
 
-7. Optional — subtitles transcribed from the dub (Fedora's python3 already has
-   the venv module):
+7. Optional — subtitles transcribed from the dub. Fedora's python3 already has the
+   venv module, and this handles Python 3.15 with no PyAV or onnxruntime wheel:
 
 ```
 peacemachine-dvd-ripper --install-asr
+```
+
+8. To play the finished file, the desktop needs the codecs (a bare Fedora shows
+   "plugins which are not installed" for H.264 and AC-3):
+
+```
+sudo dnf install -y gstreamer1-plugins-ugly gstreamer1-libav
+```
+
+#### Commercial discs on Fedora 45
+
+An encrypted DVD needs **libdvdcss**, which lives in RPM Fusion's tainted
+repository — and that is **not published for Fedora 45 yet**, so
+`rpmfusion-free-release-tainted` and `libdvdcss` cannot be installed. Until RPM
+Fusion catch up, use the Flatpak HandBrake, which bundles libdvdcss; the app finds
+it on its own and prefers it when no system HandBrake exists:
+
+```
+sudo dnf install -y flatpak
+```
+
+```
+sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+```
+
+```
+sudo flatpak install -y flathub fr.handbrake.ghb
+```
+
+```
+sudo flatpak override --device=all fr.handbrake.ghb
 ```
 
 ### RHEL, AlmaLinux, Rocky Linux
