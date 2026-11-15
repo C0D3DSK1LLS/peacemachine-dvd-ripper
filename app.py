@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.44"
+APP_VERSION = "1.0.45"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -4541,6 +4541,13 @@ def install_asr():
         print("pip could not be upgraded; carrying on with the bundled one.")
     got = subprocess.run([python, "-m", "pip", "install",
                           "faster-whisper", "onnxruntime"])
+    if got.returncode != 0:
+        # onnxruntime only powers the silence filter, and it has no wheel for
+        # every Python yet (Fedora 45 ships 3.15). The engine itself installs
+        # fine without it (C0D3D, 2026-11-15).
+        print("onnxruntime is not available for this Python - installing the "
+              "engine without it (no silence trimming).")
+        got = subprocess.run([python, "-m", "pip", "install", "faster-whisper"])
     if got.returncode != 0:
         print("The install failed. Nothing was broken - the ripper runs fine "
               "without transcripts.")

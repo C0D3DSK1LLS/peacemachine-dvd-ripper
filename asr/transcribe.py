@@ -77,6 +77,15 @@ def cuda_libs():
                 break
 
 
+def vad_available():
+    """onnxruntime powers the silence filter; without it, transcribe plainly."""
+    try:
+        import onnxruntime  # noqa: F401
+        return True
+    except Exception:
+        return False
+
+
 def cuda_libraries_ready():
     """True only when cuBLAS and cuDNN actually load.
 
@@ -257,9 +266,9 @@ def main():
             language=args.language,
             task="transcribe",
             beam_size=args.beam,
-            vad_filter=True,
-            vad_parameters={"min_silence_duration_ms": 350,
-                            "speech_pad_ms": 120},
+            vad_filter=vad_available(),
+            vad_parameters=({"min_silence_duration_ms": 350,
+                             "speech_pad_ms": 120} if vad_available() else None),
             condition_on_previous_text=False,
             word_timestamps=True,
             no_speech_threshold=0.6,

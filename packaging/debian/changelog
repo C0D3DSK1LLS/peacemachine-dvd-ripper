@@ -1,3 +1,12 @@
+peacemachine-dvd-ripper (1.0.45) unstable; urgency=medium
+
+  * Transcripts install on a Python that has no onnxruntime wheel - Fedora 45
+    ships Python 3.15 and the whole install aborted on it. The engine is now
+    installed on its own when onnxruntime is unavailable, and the pass simply
+    runs without the silence filter.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 16:36:00 -0500
+
 peacemachine-dvd-ripper (1.0.44) unstable; urgency=medium
 
   * The transcript's model download no longer fails on a packaged install.
