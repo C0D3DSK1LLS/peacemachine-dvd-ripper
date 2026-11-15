@@ -4542,7 +4542,9 @@ def install_asr():
                                "--system-site-packages", venv])
         if made.returncode != 0 or not os.path.isfile(python):
             print("This Python has no venv module. Install it and run this again:")
-            print("  Debian/Ubuntu:  sudo apt install -y python3-venv")
+            print("  Debian/Ubuntu:  sudo apt install -y python3-venv"
+                  "   (or python3.%d-venv, which apt may name instead)"
+                  % sys.version_info.minor)
             print("  Fedora/RHEL/Arch/openSUSE: your python3 package ships it")
             return 2
     print("Installing faster-whisper and onnxruntime...")
