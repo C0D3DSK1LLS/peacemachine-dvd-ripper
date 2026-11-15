@@ -36,7 +36,7 @@ run on it, not simply the newest upload.
 | Ubuntu 22.04 LTS | 4.6 | 1.0.44 | install, Browse and SAVE TO pick a file and a folder, drive detection, scan, rip, transcripts end to end, theme switch, no duplicate window button |
 | Ubuntu 24.04 LTS | 4.14 | 1.0.37 | install, drive detection, scan, rip |
 | Ubuntu 26.04 | 4.20 | 1.0.26 | install, drive detection, scan, rip, Stop |
-| Fedora 45 | 4.20 | 1.0.26 | install (RPM Fusion + `--allowerasing ffmpeg`), scan, rip |
+| Fedora 45 | 4.20 | 1.0.48 | install (RPM Fusion + `--allowerasing ffmpeg`), Browse and SAVE TO pick a file and a folder, no duplicate window button, rip, transcripts on Python 3.15 |
 | AlmaLinux 10 | 4.18 | 1.0.37 | install, Flatpak HandBrake, scan, rip, Stop |
 | openSUSE Leap 16 | 4.18 | 1.0.37 | install, Flatpak HandBrake, scan, rip |
 | Kali, Mint, Pop!_OS | - | - | same apt path as the Ubuntu builds above |
@@ -297,6 +297,19 @@ sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases
 
 If step 5 complains about the signature, add `--nogpgcheck` — the package is not
 signed yet.
+
+**libdvdcss on Fedora 45:** the tainted repository is not published for 45 yet, so
+step 4 fails on `rpmfusion-free-release-tainted` and `libdvdcss` cannot be found.
+HandBrake needs it to read an encrypted disc, so until RPM Fusion catch up, use the
+Flatpak instead - it bundles libdvdcss and the app finds it on its own:
+
+```
+flatpak install -y flathub fr.handbrake.ghb
+```
+
+```
+flatpak override --device=all fr.handbrake.ghb
+```
 
 6. Launch it:
 
