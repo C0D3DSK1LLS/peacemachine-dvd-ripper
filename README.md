@@ -74,6 +74,13 @@ sudo pacman -U https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/d
 peacemachine-dvd-ripper
 ```
 
+4. Optional — subtitles transcribed from the dub, skippable. The engine is a
+   separate download (see [Transcripts](#transcripts-optional)):
+
+```
+peacemachine-dvd-ripper --install-asr
+```
+
 ### Debian
 
 Verified on Debian 12 (GTK 4.8) and Debian 13.
@@ -117,6 +124,17 @@ sudo apt install ./peacemachine-dvd-ripper_1.0.42_all.deb
 
 ```
 peacemachine-dvd-ripper
+```
+
+5. Optional — subtitles transcribed from the dub. Debian ships Python's venv
+   module separately:
+
+```
+sudo apt install -y python3-venv
+```
+
+```
+peacemachine-dvd-ripper --install-asr
 ```
 
 ### Ubuntu, Mint, Pop!_OS, Kali
@@ -167,6 +185,17 @@ sudo apt install ./peacemachine-dvd-ripper_1.0.42_all.deb
 
 ```
 peacemachine-dvd-ripper
+```
+
+6. Optional — subtitles transcribed from the dub. Ubuntu ships Python's venv
+   module separately:
+
+```
+sudo apt install -y python3-venv
+```
+
+```
+peacemachine-dvd-ripper --install-asr
 ```
 
 #### Running it inside a virtual machine
@@ -256,6 +285,13 @@ signed yet.
 peacemachine-dvd-ripper
 ```
 
+7. Optional — subtitles transcribed from the dub (Fedora's python3 already has
+   the venv module):
+
+```
+peacemachine-dvd-ripper --install-asr
+```
+
 ### RHEL, AlmaLinux, Rocky Linux
 
 RPM Fusion's **EL** branch has ffmpeg and libdvdcss but **no HandBrake at all**, so
@@ -322,6 +358,12 @@ flatpak run --command=HandBrakeCLI fr.handbrake.ghb --version
 peacemachine-dvd-ripper
 ```
 
+11. Optional — subtitles transcribed from the dub:
+
+```
+peacemachine-dvd-ripper --install-asr
+```
+
 ### openSUSE Leap and Tumbleweed
 
 HandBrake and ffmpeg come from **Packman**; libdvdcss from **VideoLAN's** repo,
@@ -368,6 +410,13 @@ sudo zypper in -y --allow-unsigned-rpm ./peacemachine-dvd-ripper-1.0.42-1.noarch
 
 ```
 peacemachine-dvd-ripper
+```
+
+7. Optional — subtitles transcribed from the dub (openSUSE's python3 already has
+   the venv module):
+
+```
+peacemachine-dvd-ripper --install-asr
 ```
 
 On **Tumbleweed**, use `openSUSE_Tumbleweed` in the Packman path.
@@ -417,20 +466,12 @@ A rip can carry subtitles transcribed from the dub. That needs a speech-to-text
 engine, which is **not** part of the package - it downloads a few hundred
 megabytes, so it is a separate step you can skip.
 
-1. `python3 -m venv`, on Debian and Ubuntu only (Fedora, openSUSE and Arch ship it):
+The step is in each distribution's list above: `peacemachine-dvd-ripper
+--install-asr`, plus `python3-venv` first on Debian and Ubuntu. It builds the
+engine in `~/.local/share/peacemachine-dvd-ripper/asr` — never in `/usr` — and
+may be re-run safely at any time.
 
-```
-sudo apt install -y python3-venv
-```
-
-2. Build the engine - it goes into `~/.local/share/peacemachine-dvd-ripper/asr`,
-   never into `/usr`:
-
-```
-peacemachine-dvd-ripper --install-asr
-```
-
-3. Open the ripper and set **TRANSCRIPT** to fast, better or best. The model
+Then open the ripper and set **TRANSCRIPT** to fast, better or best. The model
    downloads the first time a rip uses it: ~500 MB for fast, ~1.5 GB for better,
    ~1.6 GB for best.
 

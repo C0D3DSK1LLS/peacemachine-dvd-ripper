@@ -4517,9 +4517,9 @@ def install_asr():
         print("Creating the virtual environment...")
         made = subprocess.run([sys.executable, "-m", "venv", venv])
         if made.returncode != 0 or not os.path.isfile(python):
-            print("python3-venv is missing. Install it and run this again:")
+            print("This Python has no venv module. Install it and run this again:")
             print("  Debian/Ubuntu:  sudo apt install -y python3-venv")
-            print("  openSUSE:       sudo zypper in python3-virtualenv")
+            print("  Fedora/RHEL/Arch/openSUSE: your python3 package ships it")
             return 2
     print("Installing faster-whisper and onnxruntime...")
     pip = subprocess.run([python, "-m", "pip", "install", "--upgrade", "pip"])
