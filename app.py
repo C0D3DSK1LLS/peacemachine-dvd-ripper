@@ -143,21 +143,18 @@ class TopRule(Gtk.DrawingArea):
             x_left, x_right = 1.0, width - 1.0
 
         # sit right on top of the cards: only a few pixels of air under the run,
-        # and the ends curve straight down onto their corners
+        # and the ends drop straight down onto their corners — square, not
+        # rounded (C0D3D, 2026-11-14)
         gap = 4.0
-        radius = min(gap, (x_right - x_left) / 4.0)
         y_line = height - gap
 
         cr.new_path()
         cr.move_to(x_left, height)
-        cr.line_to(x_left, y_line + radius)
-        cr.arc(x_left + radius, y_line + radius, radius,
-               math.pi, 1.5 * math.pi)
-        cr.line_to(x_right - radius, y_line)
-        cr.arc(x_right - radius, y_line + radius, radius,
-               1.5 * math.pi, 2.0 * math.pi)
+        cr.line_to(x_left, y_line)
+        cr.line_to(x_right, y_line)
         cr.line_to(x_right, height)
-        cr.set_line_cap(1)           # cairo.LINE_CAP_ROUND
+        cr.set_line_cap(2)           # cairo.LINE_CAP_BUTT
+        cr.set_line_join(0)          # cairo.LINE_JOIN_MITER — square corners
 
         # double glow, then the crisp line on top
         for line_width, alpha in ((9.0, 0.09), (4.0, 0.30), (1.7, 1.0)):
