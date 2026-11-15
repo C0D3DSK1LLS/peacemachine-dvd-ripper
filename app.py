@@ -34,7 +34,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.47"
+APP_VERSION = "1.0.48"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -4581,8 +4581,16 @@ def install_asr():
         print("Nothing is broken - the ripper runs fine without transcripts.")
         return 3
     print("Checking it imports...")
-    check = subprocess.run([python, "-c", "import faster_whisper; print("
-                            "faster_whisper.__name__, 'ok')"])
+    # Mirror what transcribe.py does: PyAV is only needed by faster-whisper's
+    # own decoder, which this app does not use (C0D3D, 2026-11-15).
+    probe = ("import sys, types\n"
+             "try:\n"
+             "    import av\n"
+             "except Exception:\n"
+             "    sys.modules['av'] = types.ModuleType('av')\n"
+             "import faster_whisper, ctranslate2\n"
+             "print('faster_whisper ok')\n")
+    check = subprocess.run([python, "-c", probe])
     if check.returncode != 0:
         print("Installed, but the import failed - see the message above.")
         return 4

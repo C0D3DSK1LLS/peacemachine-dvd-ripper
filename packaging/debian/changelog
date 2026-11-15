@@ -1,3 +1,10 @@
+peacemachine-dvd-ripper (1.0.48) unstable; urgency=medium
+
+  * --install-asr's own import check now mirrors transcribe.py, so a stub for
+    the absent PyAV does not make a good install look broken.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 16:56:00 -0500
+
 peacemachine-dvd-ripper (1.0.47) unstable; urgency=medium
 
   * PyAV is no longer required. faster-whisper imports it for its own decoding
