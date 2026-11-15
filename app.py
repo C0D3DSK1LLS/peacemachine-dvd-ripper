@@ -2713,10 +2713,15 @@ class RipperWindow(Gtk.ApplicationWindow):
         default_on = {title.number for title in episodes} if tv_disc else set()
         if not tv_disc and longest is not None:
             default_on = {longest.number}
-        for title in visible:
+        # The list is numbered by position, not by HandBrake's playlist id, so a
+        # disc that drops a stub title cannot leave a gap in the numbering
+        # (C0D3D, 2026-11-15). The real title number rides in the tooltip and is
+        # what the rip uses.
+        for position, title in enumerate(visible, start=1):
             row = Gtk.ListBoxRow()
             row.add_css_class("title-row")
             row.title = title
+            row.set_tooltip_text("HandBrake title %d" % title.number)
             # 6px of spacing, not 10: in a narrow titles column (the 1080p at
             # half width) the row used to come out ~28px wider than the pane, so
             # the last deadline column sat flush against the clip edge and the
@@ -2731,7 +2736,7 @@ class RipperWindow(Gtk.ApplicationWindow):
             check.connect("toggled", lambda *_: self.title_ticked())
             line.append(check)
 
-            number = Gtk.Label(label="%02d" % title.number, xalign=0.5, width_chars=2)
+            number = Gtk.Label(label="%02d" % position, xalign=0.5, width_chars=2)
             number.add_css_class("title-number")
             line.append(number)
 
