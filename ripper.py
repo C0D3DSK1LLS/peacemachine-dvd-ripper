@@ -54,6 +54,96 @@ def cpu_limit_prefix():
     return []
 
 
+# --------------------------------------------------------- HandBrake probes
+_capability_cache = None
+
+# Options newer than HandBrake 1.5. On an older build they are refused, and
+# HandBrake still exits 0 - which left a 0 B file marked as a finished rip
+# (C0D3D, 2026-11-15: Ubuntu 22.04 ships 1.5.1 and has no --crop-mode).
+_VERSION_SENSITIVE = (
+    "--crop-mode",
+    "--no-markers",
+    "--encoder-tune",
+    "--all-audio",
+    "--audio-copy-mask",
+    "--audio-lang-list",
+    "--subtitle-lang-list",
+    "--first-audio",
+    "--first-subtitle",
+)
+
+
+def handbrake_capabilities():
+    """Every long option this HandBrakeCLI advertises in --help."""
+    global _capability_cache
+    if _capability_cache is None:
+        flags = set()
+        prefix = handbrake_prefix()
+        if prefix:
+            try:
+                run = subprocess.run(prefix + ["--help"], text=True, timeout=30,
+                                     stdout=subprocess.PIPE,
+                                     stderr=subprocess.STDOUT)
+                for token in re.findall(r"--[A-Za-z0-9][A-Za-z0-9-]*",
+                                        run.stdout or ""):
+                    flags.add(token)
+            except (OSError, subprocess.SubprocessError):
+                flags = set()
+        _capability_cache = flags
+    return _capability_cache
+
+
+def handbrake_supports(flag):
+    """True when the installed HandBrake knows this option.
+
+    A failed probe returns True, so an unreadable --help keeps the old
+    behaviour instead of silently dropping filters.
+    """
+    caps = handbrake_capabilities()
+    if not caps:
+        return True
+    return flag in caps
+
+
+def drop_unsupported(command):
+    """Remove optional flags this HandBrake does not know, value and all."""
+    kept = []
+    skip_value = False
+    for index, item in enumerate(command):
+        if skip_value:
+            skip_value = False
+            continue
+        flag = item.split("=", 1)[0]
+        if flag in _VERSION_SENSITIVE and not handbrake_supports(flag):
+            log("HandBrake does not know %s - dropped from the command" % flag)
+            following = command[index + 1] if index + 1 < len(command) else ""
+            if "=" not in item and following and not following.startswith("-"):
+                skip_value = True
+            continue
+        kept.append(item)
+    return kept
+
+
+def empty_output_reason(path, stderr_tail):
+    """None when the file has bytes in it, else a row-ready reason.
+
+    HandBrake exits 0 after refusing an unknown option, so the exit status
+    alone cannot be trusted (C0D3D, 2026-11-15).
+    """
+    try:
+        written = os.path.getsize(path)
+    except OSError:
+        written = 0
+    if written > 0:
+        return None
+    for line in stderr_tail or []:
+        low = line.lower()
+        if ("unknown option" in low or "invalid" in low
+                or "error" in low or "not supported" in low):
+            return line.strip()
+    return "HandBrake wrote no file"
+
+
 DIAG_DIR = os.path.expanduser("~/.local/state/ralph/diagnostics")
 DIAG_LOG = os.path.join(DIAG_DIR, "dvd-ripper.log")
 
@@ -597,7 +687,7 @@ def build_encode_command(source, title_number, output_path, preset_key,
         command += ["--start-at", "seconds:%d" % int(start)]
         if stop is not None:
             command += ["--stop-at", "seconds:%d" % int(max(1, stop - start))]
-    return command
+    return drop_unsupported(command)
 
 
 VIDEO_EXTENSIONS = {".mkv", ".mp4", ".m4v", ".avi", ".ts", ".m2ts", ".webm",

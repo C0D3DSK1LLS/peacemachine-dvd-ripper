@@ -1,3 +1,13 @@
+peacemachine-dvd-ripper (1.0.41) unstable; urgency=medium
+
+  * HandBrake 1.5.x no longer breaks the rip. --crop-mode is only sent when the
+    installed HandBrake advertises it in --help; Ubuntu 22.04 ships 1.5.1, which
+    refused the option, exited 0 and left a 0 B file marked as a finished rip.
+  * A job that exits 0 but writes no file, or an empty one, is now a failure, and
+    the row quotes HandBrake's own complaint.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 14:30:00 -0500
+
 peacemachine-dvd-ripper (1.0.40) unstable; urgency=medium
 
   * Older GTK now gets a plain Gtk.FileChooserDialog instead of

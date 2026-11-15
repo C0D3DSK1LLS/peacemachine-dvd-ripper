@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.40"
+APP_VERSION = "1.0.41"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -4069,9 +4069,12 @@ class RipperWindow(Gtk.ApplicationWindow):
 
         out_thread = threading.Thread(target=read_stdout, daemon=True)
         out_thread.start()
+        stderr_tail = []
         for line in process.stderr:
             text = line.rstrip()
             if text:
+                stderr_tail.append(text)
+                del stderr_tail[:-8]
                 ui_call(self.append_log_line, text)
         process.wait()
         out_thread.join(timeout=3)
@@ -4080,6 +4083,20 @@ class RipperWindow(Gtk.ApplicationWindow):
         if self.cancel_requested:
             job.detail = "stopped"
             return "cancelled"
+        # HandBrake exits 0 even when it refuses an option, so exit status alone
+        # is not proof of a rip: no file, or an empty one, is a failure
+        # (C0D3D, 2026-11-15 - Ubuntu 22.04's HandBrake 1.5.1 has no --crop-mode
+        # and left a 0 B file marked done).
+        if process.returncode == 0:
+            reason = ripper.empty_output_reason(job.path, stderr_tail)
+            if reason:
+                job.detail = reason
+                try:
+                    os.unlink(job.path)
+                except OSError:
+                    pass
+                ripper.log("no output written: %s" % reason)
+                return "failed"
         if process.returncode == 0 and job.deband not in (None, "", "off"):
             if self.run_deband_pass(job) != "done":
                 job.detail = "deband pass failed"
