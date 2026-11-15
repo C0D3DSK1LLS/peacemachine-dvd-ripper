@@ -10,7 +10,7 @@ depends=('python' 'python-gobject' 'python-cairo' 'gtk4' 'handbrake-cli' 'ffmpeg
 optdepends=('libdvdcss: read encrypted commercial DVDs')
 provides=('dvd-ripper')
 source=("$pkgname-$pkgver.tar.gz::https://github.com/C0D3DSK1LLS/$pkgname/releases/download/v$pkgver/$pkgname-$pkgver.tar.gz")
-sha256sums=('7da0a34d5324eb1178ee487ff880a4b9be91162f2b1694e9c1863f686286ae85')
+sha256sums=('a8a061798c6d7a3209119ad852a48df67de948330a17670aadcc1a31734b8d3b')
 
 package() {
     local datadir="$pkgdir/usr/share/$pkgname"
@@ -25,6 +25,12 @@ package() {
     install -Dm755 "$srcdir/$pkgname-$pkgver/packaging/launcher/peacemachine-dvd-ripper" \
         "$pkgdir/usr/bin/$pkgname"
     install -Dm644 "$srcdir/$pkgname-$pkgver/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+
+    # icon
+    for size in 512 256 128 64 48 32; do
+        install -Dm644 "$srcdir/$pkgname-$pkgver/packaging/icons/org.jimmy.DvdRipper-$size.png" \
+            "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/org.jimmy.DvdRipper.png"
+    done
 
     # skins
     install -d "$datadir/gtk-4.0"
