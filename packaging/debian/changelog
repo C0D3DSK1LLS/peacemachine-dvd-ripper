@@ -1,3 +1,12 @@
+peacemachine-dvd-ripper (1.0.10) unstable; urgency=medium
+
+  * Read the scan with communicate() and a 15-minute timeout instead of threads
+    draining the pipes. The threaded reader deadlocked on Debian and left the
+    window on "Scanning..." with no HandBrake process alive, which also stopped
+    the automatic drive fall-through from ever happening.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 04:20:00 -0500
+
 peacemachine-dvd-ripper (1.0.9) unstable; urgency=medium
 
   * Run the HandBrake scan directly instead of through systemd-run. Reading the

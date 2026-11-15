@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.9"
+APP_VERSION = "1.0.10"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -2584,38 +2584,50 @@ class RipperWindow(Gtk.ApplicationWindow):
         threading.Thread(target=self.scan_worker, args=(command, source, token),
                          daemon=True).start()
 
+    SCAN_TIMEOUT = 900        # 15 minutes; a slow drive should never wedge us
+
     def scan_worker(self, command, source, token):
-        collected = []
+        """Run the scan and parse the JSON.
+
+        Uses communicate() with a timeout, not threads reading the pipes: the
+        threaded version deadlocked on Debian and left the window on "Scanning…"
+        with HandBrake already gone (C0D3D, 2026-11-15). communicate() reads both
+        pipes to EOF or gives up, so the UI always hears back.
+        """
         try:
             process = subprocess.Popen(command, stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE, text=True,
-                                       bufsize=1, start_new_session=True)
+                                       start_new_session=True)
         except OSError as error:
             GLib.idle_add(self.scan_failed,
                           "HandBrake would not start: %s" % error, token)
             return
 
-        def read_stdout():
-            for line in process.stdout:
-                collected.append(line)
+        try:
+            out, err = process.communicate(timeout=self.SCAN_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            try:
+                out, err = process.communicate(timeout=10)
+            except subprocess.TimeoutExpired:
+                out, err = "", ""
+            GLib.idle_add(self.scan_failed,
+                          "The scan timed out after %d minutes."
+                          % (self.SCAN_TIMEOUT // 60), token)
+            ripper.log("scan timeout: %s" % source)
+            return
 
-        def read_stderr():
-            for line in process.stderr:
-                GLib.idle_add(self.append_log_line, line.rstrip())
+        for line in (err or "").splitlines():
+            GLib.idle_add(self.append_log_line, line.rstrip())
 
-        out_thread = threading.Thread(target=read_stdout, daemon=True)
-        err_thread = threading.Thread(target=read_stderr, daemon=True)
-        out_thread.start()
-        err_thread.start()
-        process.wait()
-        out_thread.join(timeout=2)
-        err_thread.join(timeout=2)
-        text = "".join(collected)
-        data = ripper.parse_scan(text)
+        data = ripper.parse_scan(out or "")
+        ripper.log("scan exit %s, %d bytes of JSON, %d titles"
+                   % (process.returncode, len(out or ""),
+                      0 if data is None else len(data["titles"])))
         if data is None or not data["titles"]:
             GLib.idle_add(self.scan_failed,
-                          "No titles found. Is there really a disc in the drive?",
-                          token)
+                          "No titles found on %s — is there really a video disc "
+                          "in that drive?" % source, token)
             return
         GLib.idle_add(self.scan_done, data, source, token)
 
