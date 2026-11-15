@@ -39,6 +39,7 @@ APP_VERSION = "1.0.0"
 # size and position ... the default, and open it to that on launch").
 DEFAULT_SPLIT_POSITION = 400     # titles column width
 DEFAULT_QUEUE_HEIGHT = 118       # rip queue height
+SHORT_EXTRA_SECONDS = 300        # titles shorter than this are extras, not listed
 THEMES = [
     {"key": "matrix", "short": "Matrix"},
     {"key": "basic-light", "short": "Basic (light)"},
@@ -2501,18 +2502,26 @@ class RipperWindow(Gtk.ApplicationWindow):
                 break
             self.titles_list.remove(child)
 
-        longest = self.longest_title()
+        # Extras under five minutes are the disc's clean OP/ED and trailers, so
+        # they are not listed (C0D3D, 2026-11-14). They stay in self.titles, so
+        # nothing else changes; a disc made only of short items still lists them.
+        visible = [title for title in self.titles
+                   if title.duration >= SHORT_EXTRA_SECONDS]
+        if not visible:
+            visible = list(self.titles)
+        hidden_extras = len(self.titles) - len(visible)
+        longest = max(visible, key=lambda t: t.duration) if visible else None
         # A TV disc usually carries the episodes plus a "play all" playlist that
         # runs them back to back. Ticking that by default would rip the whole
         # disc as one 2-hour file, so on a disc with several episode-length
         # titles the episodes get ticked and the long one is left alone.
-        episodes = [title for title in self.titles if 900 <= title.duration <= 5400]
-        play_all = [title for title in self.titles if title.duration > 5400]
+        episodes = [title for title in visible if 900 <= title.duration <= 5400]
+        play_all = [title for title in visible if title.duration > 5400]
         tv_disc = len(episodes) >= 2
         default_on = {title.number for title in episodes} if tv_disc else set()
         if not tv_disc and longest is not None:
             default_on = {longest.number}
-        for title in self.titles:
+        for title in visible:
             row = Gtk.ListBoxRow()
             row.add_css_class("title-row")
             row.title = title
@@ -2571,10 +2580,21 @@ class RipperWindow(Gtk.ApplicationWindow):
             row.set_child(line)
             self.titles_list.append(row)
 
-        self.titles_count.set_text("%d title%s" % (
-            len(self.titles), "" if len(self.titles) == 1 else "s"))
-        if self.titles:
+        count = len(visible)
+        self.titles_count.set_text("%d title%s%s" % (
+            count, "" if count == 1 else "s",
+            "" if not hidden_extras else
+            "  ·  %d short extra%s hidden" % (
+                hidden_extras, "" if hidden_extras == 1 else "s")))
+        if visible:
             self.titles_hint.set_visible(False)
+        if hidden_extras:
+            self.titles_hint.set_text(
+                "%d short extra%s under five minutes (clean OP/ED, trailers) "
+                "%s hidden — they are not ripped."
+                % (hidden_extras, "" if hidden_extras == 1 else "s",
+                   "is" if hidden_extras == 1 else "are"))
+            self.titles_hint.set_visible(True)
         if tv_disc:
             self.titles_hint.set_text(
                 "%d episodes found. The long PLAY ALL title is left unticked — "
