@@ -1,0 +1,21 @@
+Source: peacemachine-dvd-ripper
+Section: video
+Priority: optional
+Maintainer: William James Sova (C0D3D) <william@peacemachinestudios.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://peacemachinestudios.com
+Rules-Requires-Root: no
+
+Package: peacemachine-dvd-ripper
+Architecture: all
+Depends: python3, python3-gi, gir1.2-gtk-4.0, handbrake-cli, ffmpeg, ${misc:Depends}
+Recommends: libdvd-pkg
+Suggests: python3-numpy
+Description: Rip DVDs and video files into files your PC can play
+ PeaceMachine DVD Ripper drives HandBrake from a GTK4 window: it scans a disc,
+ lists every title with resolution, duration and a size estimate, and names
+ per-episode files from a TV show's episode list.
+ .
+ Split modes cover whole titles, chapter ranges and timestamps, with a lossless
+ copy split for existing video files. It ships the Matrix, light and dark skins.

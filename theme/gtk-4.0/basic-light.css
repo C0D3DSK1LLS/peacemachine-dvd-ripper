@@ -1,0 +1,1426 @@
+/* C0D3D (2026-11-11): the whole interface one dash larger than the
+   system font (Adwaita Sans 11), on top of the per-widget sizes below. */
+window, window.background, window.dialog, popover, tooltip, menu {
+  font-size: 12pt;
+}
+
+/* DVD Ripper — Basic (light). Neutral, plain, Windows-ish. No rain, no glow. */
+
+.ripper-rain {
+  background-color: #f3f3f3;
+  background-image: none;
+  animation: none;
+  padding: 8px;
+}
+
+@define-color window_bg_color #f3f3f3;
+@define-color window_fg_color #1f1f1f;
+@define-color view_bg_color #ffffff;
+@define-color view_fg_color #1f1f1f;
+@define-color headerbar_bg_color #ffffff;
+@define-color headerbar_fg_color #1f1f1f;
+@define-color accent_color #4a4a4a;
+@define-color accent_bg_color #4a4a4a;
+@define-color accent_fg_color #ffffff;
+@define-color popover_bg_color #ffffff;
+
+window,
+.background {
+  background-color: #f3f3f3;
+  color: #1f1f1f;
+}
+
+headerbar {
+  background: #ffffff;
+  box-shadow: inset 0 -1px 0 #dcdcdc;
+  color: #1f1f1f;
+  min-height: 30px;
+  padding-right: 104px;
+}
+
+.app-title {
+  color: #1f1f1f;
+  font-weight: 600;
+  letter-spacing: 1px;
+  font-size: 14px;
+}
+
+headerbar button.close,
+headerbar .titlebutton.close,
+windowcontrols button.close {
+  opacity: 0;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+}
+
+headerbar button {
+  background: #ffffff;
+  border: 1px solid #cfcfcf;
+  border-radius: 9px;
+  padding: 3px 10px;
+  margin: 0 2px;
+  color: #1f1f1f;
+}
+
+headerbar button:hover {
+  background: #f0f0f0;
+  border-color: #b9b9b9;
+}
+
+.card {
+  background-image: none;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 11px;
+  padding: 8px 10px;
+  box-shadow: none;
+}
+
+.eyebrow {
+  color: #5c5c5c;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+}
+
+.value {
+  color: #1f1f1f;
+  font-size: 13px;
+}
+
+.dim {
+  color: #6b6b6b;
+  font-size: 12px;
+}
+
+.preview {
+  color: #333333;
+  font-size: 12px;
+  padding-top: 2px;
+}
+
+entry,
+entry.source-entry {
+  background-color: #ffffff;
+  border: 1px solid #cfcfcf;
+  border-radius: 13px;
+  color: #1f1f1f;
+  padding: 4px 8px;
+  min-height: 22px;
+  box-shadow: none;
+  caret-color: #4a4a4a;
+}
+
+entry:focus,
+entry.source-entry:focus {
+  border-color: #4a4a4a;
+  box-shadow: 0 0 0 1px #4a4a4a inset;
+}
+
+entry selection {
+  background-color: #4a4a4a;
+  color: #ffffff;
+}
+
+button {
+  background-image: none;
+  background-color: #fbfbfb;
+  border: 1px solid #cfcfcf;
+  border-radius: 13px;
+  color: #1f1f1f;
+  padding: 4px 11px;
+  box-shadow: none;
+}
+
+button:hover {
+  background-color: #f0f0f0;
+  border-color: #b9b9b9;
+}
+
+button:active {
+  background-color: #e6e6e6;
+}
+
+button:disabled {
+  color: #a0a0a0;
+  border-color: #e0e0e0;
+  background-color: #f7f7f7;
+}
+
+button.primary-action {
+  background-image: none;
+  background-color: #4a4a4a;
+  border-color: #4a4a4a;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+button.primary-action:hover {
+  background-color: #333333;
+}
+
+button.primary-action:disabled {
+  background-color: #dcdcdc;
+  border-color: #dcdcdc;
+  color: #ffffff;
+}
+
+button.wide-action {
+  padding: 7px 11px;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+}
+
+button.tiny-button {
+  padding: 1px 8px;
+  font-size: 11px;
+  color: #5c5c5c;
+}
+
+button.mode-button:checked {
+  background-color: #ededed;
+  border-color: #4a4a4a;
+  color: #4a4a4a;
+  font-weight: 600;
+}
+
+dropdown {
+  min-width: 0;
+}
+
+dropdown > button {
+  min-width: 0;
+  background-image: none;
+  background-color: #fbfbfb;
+  border: 1px solid #cfcfcf;
+  color: #1f1f1f;
+  padding: 3px 8px;
+}
+
+dropdown > button:hover {
+  background-color: #f0f0f0;
+}
+
+popover > contents,
+popover.background > contents {
+  background-color: #ffffff;
+  border: 1px solid #dcdcdc;
+  color: #1f1f1f;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+
+popover listview row:hover {
+  background-color: #f0f0f0;
+}
+
+popover listview row:selected {
+  background-color: #ededed;
+  color: #1f1f1f;
+}
+
+checkbutton check {
+  background-color: #ffffff;
+  border: 1px solid #b9b9b9;
+  border-radius: 6px;
+  min-width: 14px;
+  min-height: 14px;
+}
+
+checkbutton check:checked {
+  background-image: none;
+  background-color: #4a4a4a;
+  border-color: #4a4a4a;
+  color: #ffffff;
+}
+
+checkbutton label {
+  color: #1f1f1f;
+  font-size: 12px;
+}
+
+.title-list,
+.title-list > row,
+.queue-list,
+.queue-list > row {
+  background-color: transparent;
+}
+
+.title-row,
+.job-row {
+  border-bottom: 1px solid #ededed;
+  padding: 3px 2px;
+  border-radius: 6px;
+}
+
+.title-row:hover,
+.job-row:hover {
+  background-color: #f4f4f4;
+}
+
+.job-row:selected {
+  background-color: #ededed;
+}
+
+.title-number {
+  color: #6b6b6b;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.title-name {
+  color: #1f1f1f;
+  font-size: 13px;
+}
+
+.title-name.mapped-name {
+  color: #4a4a4a;
+}
+
+.title-summary {
+  color: #5c5c5c;
+  font-size: 12px;
+}
+
+.title-size {
+  color: #333333;
+  font-size: 12px;
+}
+
+.badge {
+  color: #ffffff;
+  background-color: #4a4a4a;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 1px 5px;
+}
+
+.badge.warn-badge {
+  background-color: #6b6b6b;
+  color: #ffffff;
+}
+
+.job-state {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: #6b6b6b;
+}
+
+.job-state.running { color: #4a4a4a; }
+.job-state.done { color: #1a7f37; }
+.job-state.failed { color: #1f1f1f; }
+.job-state.cancelled { color: #6b6b6b; }
+.job-state.queued { color: #6b6b6b; }
+
+.job-name {
+  color: #1f1f1f;
+  font-size: 13px;
+}
+
+.job-mode {
+  color: #5c5c5c;
+  font-size: 12px;
+}
+
+.job-detail {
+  color: #333333;
+  font-size: 12px;
+}
+
+progressbar.rip-progress trough {
+  background-color: #e6e6e6;
+  border: 1px solid #dcdcdc;
+  border-radius: 9px;
+  min-height: 12px;
+  box-shadow: none;
+}
+
+progressbar.rip-progress progress {
+  background-image: none;
+  background-color: #4a4a4a;
+  border-radius: 13px;
+  min-height: 12px;
+  box-shadow: none;
+}
+
+.progress-text {
+  color: #333333;
+  font-size: 12px;
+}
+
+.counter {
+  color: #5c5c5c;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.spinner {
+  color: #4a4a4a;
+}
+
+.progress-strip {
+  background-image: none;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 11px;
+  padding: 6px 10px;
+  box-shadow: none;
+}
+
+.terminal-frame {
+  border: 1px solid #e0e0e0;
+  border-radius: 13px;
+  background-color: #ffffff;
+  box-shadow: none;
+}
+
+textview.terminal,
+textview.terminal text {
+  background-color: #ffffff;
+  color: #1f1f1f;
+  font-size: 12px;
+  padding: 4px 6px;
+}
+
+textview.split-editor,
+textview.split-editor text {
+  background-color: #ffffff;
+  color: #1f1f1f;
+  font-size: 12px;
+  padding: 3px 6px;
+}
+
+textview.split-editor {
+  border: 1px solid #cfcfcf;
+  border-radius: 13px;
+  box-shadow: none;
+  caret-color: #4a4a4a;
+}
+
+.episode-list row {
+  border-bottom: 1px solid #ededed;
+  border-radius: 6px;
+  padding: 3px 4px;
+}
+
+.episode-list row:hover {
+  background-color: #f4f4f4;
+}
+
+.episode-list row:selected {
+  background-color: #ededed;
+}
+
+.episode-number {
+  color: #6b6b6b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.episode-name {
+  color: #1f1f1f;
+  font-size: 13px;
+}
+
+scrolledwindow,
+.settings-scroller {
+  background-color: transparent;
+}
+
+scrollbar {
+  background-color: transparent;
+  border: none;
+}
+
+scrollbar slider {
+  background-color: #c4c4c4;
+  border-radius: 11px;
+  min-width: 9px;
+  min-height: 9px;
+}
+
+scrollbar slider:hover {
+  background-color: #9e9e9e;
+}
+
+paned > separator {
+  background-color: transparent;
+  min-width: 6px;
+}
+
+paned > separator:hover {
+  background-color: #dcdcdc;
+}
+
+tooltip {
+  background-color: #ffffff;
+  border: 1px solid #dcdcdc;
+  color: #1f1f1f;
+}
+
+.theme-label {
+  color: #5c5c5c;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+
+/* tight buttons: text sits close to the edge so a row fits on one line */
+button.compact-button {
+  padding: 2px 7px;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* compact settings column: shorter controls, tighter captions */
+.card {
+  padding: 6px 8px;
+}
+
+.eyebrow {
+  font-size: 14px;
+  letter-spacing: 0.9px;
+  font-weight: 700;
+}
+
+.dim {
+  font-size: 13px;
+}
+
+.value {
+  font-size: 12px;
+}
+
+.preview {
+  font-size: 12px;
+  padding-top: 0;
+}
+
+dropdown > button {
+  padding: 1px 6px;
+  min-height: 22px;
+}
+
+entry,
+entry.source-entry {
+  padding: 3px 6px;
+  min-height: 24px;
+}
+
+button {
+  padding: 3px 9px;
+}
+
+button.compact-button {
+  padding: 2px 7px;
+}
+
+spinbutton {
+  min-height: 22px;
+}
+
+checkbutton label {
+  font-size: 11px;
+}
+
+.title-row,
+.job-row {
+  /* roomy enough that glyph tops and descenders cannot be shaved at any scale */
+  padding: 4px 3px;
+}
+
+.title-name,
+.job-name,
+.episode-name {
+  font-size: 12px;
+}
+
+.title-summary,
+.job-mode,
+.job-detail,
+.title-size,
+.progress-text,
+.episode-number {
+  font-size: 11px;
+}
+
+/* Divider bars are deep red with a double glow (C0D3D, 2026-11-14). */
+.section-rule {
+  background-image: none;
+  background-color: #000000;
+  border-radius: 2px;
+  box-shadow: 0 0 5px rgba(120, 120, 120, 0.85),
+              0 0 12px rgba(120, 120, 120, 0.55),
+              0 0 24px rgba(120, 120, 120, 0.30);
+}
+
+/* the theme button's own label follows the light theme, not the dark base */
+
+.theme-list row label {
+  color: #1f1f1f;
+}
+
+.theme-list row:selected label {
+  color: #4a4a4a;
+}
+
+/* bigger dropdown text */
+dropdown > button,
+dropdown > button > label {
+  font-size: 15px;
+}
+
+button.crimson-button {
+  color: #2f9e52;
+  border-color: #e0e0e0;
+  background-image: none;
+  background-color: #ffffff;
+}
+
+button.crimson-button:hover {
+  color: #000000;
+  border-color: #4a4a4a;
+  background-color: #fff5f7;
+}
+
+/* the theme picker is a MenuButton: style its inner button too */
+menubutton.crimson-button > button {
+  color: inherit;
+  border-color: inherit;
+  background-image: none;
+}
+
+menubutton.crimson-button > button > label {
+  color: #000000;
+}
+
+menubutton.crimson-button > button:hover > label {
+  color: #ff2d55;
+}
+
+spinbutton button {
+  color: #000000;
+  border-color: #000000;
+  border-radius: 9px;
+}
+
+button.orange-button {
+  border-color: #6b6b6b;
+}
+
+button.orange-button:hover {
+  border-color: #ffa500;
+}
+
+button.orange-button:disabled {
+  border-color: #7a5200;
+  color: #6f9b79;
+}
+
+/* Orange frame on the split-mode toggles (C0D3D, 2026-11-10). */
+button.mode-button.orange-button:checked {
+  background-image: none;
+  background-color: #ffffff;
+  border-color: #6b6b6b;
+}
+
+/* Round − / + steppers beside the number boxes (C0D3D, 2026-11-10): they are
+   real buttons pinned to a square size, so they stay circles no matter how tall
+   the row or the font gets. */
+button.round-step {
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0;
+  border-radius: 99px;
+  font-weight: 700;
+}
+
+/* The spin button's own steppers are replaced by that pair. */
+spinbutton button {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  background-image: none;
+  box-shadow: none;
+  opacity: 0;
+}
+
+button.round-step {
+  color: #000000;
+  border-color: #000000;
+  border-radius: 99px;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0;
+  font-weight: 700;
+}
+
+button.round-step:hover {
+  color: #1f1f1f;
+  border-color: #1f1f1f;
+}
+
+entry:focus-within,
+entry:focus,
+entry:focus-visible {
+  border-color: #4a4a4a;
+  outline: 2px solid transparent;
+  outline-offset: 0;
+}
+
+/* Compact rip-queue header (C0D3D, 2026-11-11): the five action buttons sit
+   tight under the caption and the list starts right below them. */
+.queue-buttons {
+  margin: 0;
+  padding: 0;
+}
+
+.queue-buttons button {
+  min-height: 0;
+  padding: 1px 8px;
+}
+
+/* Extra vertical slack for list rows (C0D3D, 2026-11-11): at fractional desktop
+   scales the glyph tops of Inter get shaved when a row is only as tall as its
+   text, so every row label gets room of its own and the row another few pixels. */
+.title-name,
+.job-name,
+.job-state,
+.job-mode,
+.job-detail,
+.title-summary,
+.title-size,
+.title-number {
+  min-height: 16px;
+}
+
+/* C0D3D (2026-11-11): a hair of vertical breathing room. At the 1080p
+   monitor's fractional scale Pango can report a text box a pixel shorter than
+   the ink, which shaves the tops of ascenders and digits — this gives every
+   label and field that pixel back. */
+window label, window button, window entry, window spinbutton,
+window dropdown > button, popover label {
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+
+.source-floating {
+  background-image: none;
+  background-color: #ffffff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
+/* Plain themes carry no colour text (C0D3D, 2026-11-11): the Matrix greens,
+   crimsons, ambers and blues belong to the Matrix skin. Everything in here is
+   black, white or grey. */
+
+button.crimson-button {
+  color: #1f1f1f;
+  border-color: #b9b9b9;
+}
+
+button.crimson-button:hover {
+  color: #000000;
+  border-color: #7a7a7a;
+  background-color: #f0f0f0;
+}
+
+menubutton.crimson-button > button > label {
+  color: #1f1f1f;
+}
+
+menubutton.crimson-button > button:hover > label {
+  color: #000000;
+}
+
+spinbutton button {
+  color: #1f1f1f;
+  border-color: #b9b9b9;
+}
+
+button.round-step {
+  color: #1f1f1f;
+  border-color: #b9b9b9;
+}
+
+button.round-step:hover {
+  color: #000000;
+  border-color: #7a7a7a;
+}
+
+button.orange-button,
+button.orange-button:hover {
+  border-color: #b9b9b9;
+}
+
+button.orange-button:hover {
+  border-color: #7a7a7a;
+}
+
+button.orange-button:disabled {
+  border-color: #d6d6d6;
+  color: #8a8a8a;
+}
+
+button.mode-button.orange-button:checked {
+  border-color: #1f1f1f;
+}
+
+button.mode-button:checked {
+  color: #1f1f1f;
+  border-color: #1f1f1f;
+  background-color: #e4e4e4;
+}
+
+.title-name.mapped-name,
+.spinner {
+  color: #1f1f1f;
+}
+
+.theme-list row:selected label {
+  color: #1f1f1f;
+}
+
+.job-state.running,
+.job-state.done,
+.job-state.failed {
+  color: #1f1f1f;
+}
+
+.job-state.cancelled {
+  color: #5c5c5c;
+}
+
+.job-state.queued {
+  color: #6b6b6b;
+}
+
+.badge.warn-badge {
+  background-color: #5c5c5c;
+  color: #ffffff;
+}
+
+/* The − / + steppers draw themselves with cairo (C0D3D, 2026-11-11), so
+   this is only the ink colour they read back. */
+.circle-step {
+  color: #1f1f1f;
+}
+
+progressbar.job-bar { min-width: 110px; }
+progressbar.job-bar trough {
+  background-color: #eef1ee; border: 1px solid #d8dcd8;
+  border-radius: 9px; min-height: 7px;
+}
+progressbar.job-bar progress {
+  background-image: none; background-color: #2f9e52;
+  border-radius: 7px; min-height: 7px;
+}
+progressbar.job-bar.job-bar-failed progress { background-color: #1f1f1f; }
+
+.chapter-hint { color: #444; font-family: monospace; font-size: 11px; }
+.split-note {
+  color: #5a6b5e;
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+/* full-colour icons in file choosers, like the rest of the skin */
+filechooser,
+filechooser * {
+  -gtk-icon-style: regular;
+}
+
+.job-menu {
+  padding: 5px;
+}
+
+.job-menu button {
+  min-height: 0;
+  padding: 3px 12px;
+}
+
+/* light blue frame on the show picker (C0D3D, 2026-11-12) */
+dropdown.sky-frame > button {
+  border: 1px solid #2a7fbf;
+}
+
+dropdown.sky-frame > button:hover {
+  border-color: #1b5f93;
+}
+
+/* Plain-theme ink (C0D3D, 2026-11-12): buttons keep the theme's own text
+   colour at rest AND on hover — no green, no crimson. */
+button.crimson-button,
+button.crimson-button:hover,
+button.crimson-button:checked,
+button.crimson-button:disabled,
+menubutton.crimson-button > button > label,
+menubutton.crimson-button > button:hover > label,
+button.orange-button,
+button.orange-button:hover,
+button.mode-button,
+button.mode-button:checked,
+button.mode-button:hover,
+button.round-step,
+button.round-step:hover,
+spinbutton button,
+spinbutton button:hover {
+  color: #1f1f1f;
+}
+
+button.crimson-button:disabled,
+button.orange-button:disabled,
+spinbutton button:disabled {
+  color: #8a8a8a;
+}
+
+/* No colour on the plain light theme (C0D3D, 2026-11-12): every label is
+   black, the steppers are a black disc with a white glyph, nothing else is
+   tinted. Rules are appended last so they beat the blue accents above. */
+label,
+entry,
+spinbutton,
+button,
+button label,
+dropdown > button,
+dropdown > button > label,
+checkbutton label,
+popover label,
+tooltip label,
+listview label,
+menubutton label,
+menubutton > button,
+menubutton > button > label,
+textview,
+.eyebrow,
+.dim,
+.preview,
+.value,
+.counter,
+.job-mode,
+.job-state,
+.job-name,
+.job-detail,
+.title-name,
+.title-summary,
+.title-number,
+.episode-number,
+.theme-label,
+.split-note,
+.app-title,
+headerbar,
+window.about label,
+window.about .title {
+  color: #000000;
+}
+
+image,
+button image,
+checkbutton check,
+.circle-step {
+  color: #000000;
+}
+
+.circle-step {
+  color: #1a1a1a;
+}
+
+entry:focus,
+entry:focus-within,
+button:focus,
+button:hover,
+dropdown > button:hover,
+dropdown > button:focus {
+  color: #000000;
+}
+
+/* no coloured controls either (C0D3D, 2026-11-12): a ticked box is plain
+   black on white, and nothing uses GTK's accent colour. */
+@define-color accent_color #000000;
+@define-color accent_bg_color #000000;
+@define-color accent_fg_color #ffffff;
+checkbutton check:checked,
+checkbutton check:indeterminate {
+  background-image: none;
+  background-color: #000000;
+  border-color: #000000;
+  color: #ffffff;
+}
+
+
+/* No scrollbar on the settings column, but it still has to scroll — a NEVER
+   policy makes GTK expand the child instead of scrolling it, so the bar is
+   collapsed here instead (C0D3D, 2026-11-14). */
+.settings-scroller scrollbar,
+.settings-scroller scrollbar slider {
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  opacity: 0;
+}
+
+/* Square corners on the two top panels, so the white rule meets them flush
+   (C0D3D, 2026-11-14). */
+.titles-card,
+.settings-frame {
+  border-radius: 0;
+}
+
+/* The rip queue card is square too (C0D3D, 2026-11-14). */
+.queue-card {
+  border-radius: 0;
+}
+
+/* Dropdown text is light grey with a glow (C0D3D, 2026-11-14). Hover and
+   checked states keep their own colours, which are more specific. */
+dropdown > button,
+dropdown.sky-frame > button,
+dropdown > button > label,
+dropdown > button label,
+dropdown.sky-frame > button > label {
+  color: #e6e6e6;
+}
+
+dropdown > button > label,
+dropdown > button label,
+dropdown.sky-frame > button > label {
+  text-shadow: 0 0 4px rgba(213, 213, 213, 0.85),
+               0 0 11px rgba(213, 213, 213, 0.45);
+}
+
+/* Hovered dropdown text is red with no glow (C0D3D, 2026-11-14). */
+dropdown > button:hover,
+dropdown > button:hover label,
+dropdown > button:hover > label,
+dropdown.sky-frame > button:hover label,
+dropdown.sky-frame > button:hover > label,
+dropdown.sky-frame > button:hover {
+  color: #ff0000;
+  text-shadow: none;
+}
+
+/* QUALITY / AUDIO / SUBTITLES / TRANSCRIPT captions are red with a glow
+   (C0D3D, 2026-11-14). */
+.cap-red {
+  color: #b0121a;
+  text-shadow: 0 0 6px rgba(176, 18, 26, 0.85),
+               0 0 16px rgba(176, 18, 26, 0.45);
+}
+
+/* Ticked boxes are a white face with a dark tick and a triple glow
+   (C0D3D, 2026-11-14). */
+checkbutton check:checked {
+  background-image: none;
+  background-color: #ffffff;
+  border-color: #ffffff;
+  color: #000000;
+  box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.55),
+              0 0 6px rgba(255, 255, 255, 0.85),
+              0 0 14px rgba(255, 255, 255, 0.55),
+              0 0 26px rgba(255, 255, 255, 0.28);
+}
+
+/* FILE NAME / FIRST EPISODE / EPISODE NAMES / EPISODES captions are dark blue
+   with a white glow so they stay readable (C0D3D, 2026-11-14). */
+.cap-green {
+  color: #1e78a8;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.90),
+               0 0 14px rgba(255, 255, 255, 0.55);
+}
+
+/* No glow on the blue captions (C0D3D, 2026-11-14). */
+.cap-green {
+  text-shadow: none;
+}
+
+/* The red captions get a black halo on top of their glow, so the rain behind
+   cannot muddy the letters (C0D3D, 2026-11-14). */
+.cap-red {
+  text-shadow: 0 0 2px rgba(0, 0, 0, 1.0),
+               0 0 6px rgba(176, 18, 26, 0.85),
+               0 0 16px rgba(176, 18, 26, 0.45),
+               0 0 22px rgba(0, 0, 0, 0.95);
+}
+
+/* The divider between the title list and the spinner is a real grab strip
+   (C0D3D, 2026-11-14). */
+paned.titles-split > separator {
+  min-height: 8px;
+  background-color: rgba(255, 255, 255, 0.10);
+  border-top: 1px solid rgba(0, 255, 65, 0.35);
+  border-bottom: 1px solid rgba(0, 255, 65, 0.35);
+}
+paned.titles-split > separator:hover {
+  background-color: rgba(0, 255, 65, 0.22);
+}
+
+/* Black bar with a glow between the split-mode row and the note, with padding
+   either side of it (C0D3D, 2026-11-14). */
+.note-spacer {
+  min-height: 2px;
+  background-color: #000000;
+  border-radius: 3px;
+  margin-top: 9px;
+  margin-bottom: 9px;
+  box-shadow: 0 0 6px rgba(226, 226, 226, 0.55),
+              0 0 16px rgba(226, 226, 226, 0.28);
+}
+
+/* Button ink is orange with a glow, red with a glow while hovered
+   (C0D3D, 2026-11-14). */
+button,
+button label,
+button.crimson-button,
+button.orange-button,
+button.compact-button,
+button.mode-button,
+button.tiny-button,
+button.wide-action,
+.queue-buttons button,
+menubutton > button,
+menubutton > button > label {
+  color: #d5d5d5;
+  text-shadow: 0 0 5px rgba(213, 213, 213, 0.85),
+               0 0 12px rgba(213, 213, 213, 0.45);
+}
+
+button:hover,
+button:hover label,
+button.crimson-button:hover,
+button.orange-button:hover,
+button.compact-button:hover,
+button.mode-button:hover,
+button.tiny-button:hover,
+button.wide-action:hover,
+button.round-step:hover,
+menubutton > button:hover > label {
+  color: #ff0000;
+  text-shadow: 0 0 6px rgba(255, 0, 0, 0.90),
+               0 0 14px rgba(255, 0, 0, 0.50);
+}
+
+/* Every caption is the same green with a glow (C0D3D, 2026-11-15). */
+.cap-red,
+.cap-green,
+.cap-orange {
+  color: #00e64d;
+  text-shadow: 0 0 6px rgba(0, 230, 77, 0.85),
+               0 0 16px rgba(0, 230, 77, 0.45);
+}
+
+/* Dropdown frames wear the same aqua as the buttons, same double glow
+   (C0D3D, 2026-11-15). */
+dropdown > button,
+dropdown.sky-frame > button {
+  border: 1px solid #00ffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05),
+              0 0 7px rgba(0, 255, 255, 0.75),
+              0 0 20px rgba(0, 255, 255, 0.45);
+}
+
+dropdown > button:hover,
+dropdown.sky-frame > button:hover,
+dropdown > button:active,
+dropdown.sky-frame > button:active,
+dropdown > button:checked,
+dropdown.sky-frame > button:checked {
+  border-color: #66ffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06),
+              0 0 10px rgba(0, 255, 255, 0.90),
+              0 0 28px rgba(0, 255, 255, 0.55);
+}
+
+dropdown > button:disabled,
+dropdown.sky-frame > button:disabled {
+  border-color: #1c4a4a;
+  box-shadow: none;
+}
+
+/* The − stepper is white, the + stepper deep red; both keep their glow
+   (C0D3D, 2026-11-15). The disc, rim and glyph all follow this colour. */
+.circle-step.circle-minus {
+  color: #ffffff;
+}
+
+.circle-step.circle-plus {
+  color: #b0121a;
+}
+
+/* -------------------------------------------------------------------------
+   Black and white only: no coloured text anywhere in the light theme
+   (C0D3D, 2026-11-15). Every rule below is a later, same-or-higher
+   specificity override of the coloured ones above it.
+   ------------------------------------------------------------------------- */
+window,
+window label,
+label,
+.dim,
+.preview,
+.value,
+.eyebrow,
+.split-note,
+.split-note label,
+.title-name,
+.title-number,
+.title-summary,
+.title-size,
+.job-name,
+.job-state,
+.job-mode,
+.job-detail,
+.episode-number,
+.episode-name,
+.episode-list row,
+.theme-option,
+.theme-list row label,
+.theme-button,
+.source-entry,
+.settings-scroller label,
+.cap-red,
+.cap-green,
+.cap-orange,
+.cap-green label,
+.cap-red label,
+.cap-orange label {
+  color: #111111;
+  text-shadow: none;
+}
+
+/* buttons: black ink, black on hover, no coloured glow */
+button,
+button label,
+button.compact-button,
+button.crimson-button,
+button.orange-button,
+button.mode-button,
+button.tiny-button,
+button.wide-action,
+button.primary-action,
+button.round-step,
+.queue-buttons button,
+menubutton > button,
+menubutton > button > label {
+  color: #111111;
+  text-shadow: none;
+  border: 1px solid #b9b9b9;
+  box-shadow: none;
+}
+
+button:hover,
+button:hover label,
+button.compact-button:hover,
+button.crimson-button:hover,
+button.orange-button:hover,
+button.mode-button:hover,
+button.tiny-button:hover,
+button.wide-action:hover,
+button.round-step:hover,
+menubutton > button:hover > label {
+  color: #000000;
+  border-color: #7a7a7a;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.20);
+}
+
+button:checked,
+button.mode-button:checked,
+button.orange-button:checked,
+button.mode-button.orange-button:checked {
+  color: #000000;
+  border-color: #555555;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.28);
+}
+
+/* dropdowns and fields: grey frames, black text */
+dropdown > button,
+dropdown.sky-frame > button {
+  color: #111111;
+  border: 1px solid #b9b9b9;
+  box-shadow: none;
+}
+
+dropdown > button > label,
+dropdown > button label,
+dropdown.sky-frame > button > label {
+  color: #111111;
+  text-shadow: none;
+}
+
+dropdown > button:hover,
+dropdown.sky-frame > button:hover,
+dropdown > button:hover label,
+dropdown > button:hover > label,
+dropdown.sky-frame > button:hover label {
+  color: #000000;
+  border-color: #7a7a7a;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.20);
+}
+
+dropdown > button:checked,
+dropdown > button:active,
+dropdown.sky-frame > button:checked {
+  color: #000000;
+  border-color: #555555;
+}
+
+entry,
+entry.source-entry,
+entry.number-box {
+  color: #111111;
+  border: 1px solid #b9b9b9;
+  box-shadow: none;
+}
+
+/* the coloured card frames become grey hairlines */
+.titles-card,
+.queue-card,
+.settings-frame,
+.source-floating,
+.section-rule,
+.note-spacer,
+progressbar.job-bar trough,
+progressbar.rip-progress trough {
+  border-color: #b9b9b9;
+  box-shadow: none;
+}
+
+/* badges are black pills with white text */
+.badge,
+.warn-badge {
+  color: #ffffff;
+  background-color: #111111;
+  text-shadow: none;
+}
+
+/* ticked boxes: black face, white tick */
+checkbutton check:checked {
+  background-color: #111111;
+  border-color: #111111;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+/* the spinner and the steppers lose their colour */
+.circle-step.circle-minus,
+.circle-step.circle-plus {
+  color: #111111;
+}
+
+/* Surfaces are a very light grey rather than pure white (C0D3D, 2026-11-15). */
+window,
+.background {
+  background-color: #efefef;
+}
+
+.card,
+.titles-card,
+.queue-card,
+.settings-frame,
+.source-floating {
+  background-color: #f6f6f6;
+}
+
+entry,
+entry.source-entry,
+entry.number-box,
+dropdown > button,
+dropdown.sky-frame > button,
+menubutton > button,
+.theme-list,
+popover,
+popover > contents {
+  background-color: #fafafa;
+}
+
+/* header strip matches the light grey body (C0D3D, 2026-11-15) */
+headerbar,
+.titlebar,
+headerbar.background {
+  background-color: #efefef;
+  box-shadow: none;
+  border-bottom: 1px solid #dcdcdc;
+}
+
+/* A proper mid grey — much darker than the old near-white, still well clear of
+   the dark theme (C0D3D, 2026-11-15). */
+window,
+.background,
+headerbar,
+.titlebar,
+headerbar.background {
+  background-color: #9f9f9f;
+  border-bottom-color: #7d7d7d;
+}
+
+.card,
+.titles-card,
+.queue-card,
+.settings-frame,
+.source-floating {
+  background-color: #b2b2b2;
+  border-color: #7d7d7d;
+}
+
+entry,
+entry.source-entry,
+entry.number-box,
+dropdown > button,
+dropdown.sky-frame > button,
+menubutton > button,
+.theme-list,
+popover,
+popover > contents {
+  background-color: #c2c2c2;
+  border-color: #7d7d7d;
+}
+
+button,
+button.compact-button,
+button.crimson-button,
+button.orange-button,
+button.mode-button,
+button.tiny-button,
+button.wide-action,
+button.primary-action,
+button.round-step,
+.queue-buttons button,
+menubutton > button {
+  background-color: #bcbcbc;
+  border-color: #7d7d7d;
+  color: #111111;
+}
+
+button:hover {
+  background-color: #c6c6c6;
+  border-color: #6a6a6a;
+}
+
+.section-rule,
+.note-spacer {
+  background-color: #6f6f6f;
+}
+
+/* RIP QUEUE card corners are round again (C0D3D, 2026-11-15). */
+.queue-card {
+  border-radius: 12px;
+}
+
+/* Only the bottom-left corner of the titles card is rounded (C0D3D, 2026-11-15). */
+.titles-card {
+  border-radius: 0 0 0 12px;
+}
+
+/* Only the bottom-right corner of the settings card is rounded
+   (C0D3D, 2026-11-15). */
+.settings-frame {
+  border-radius: 0 0 12px 0;
+}

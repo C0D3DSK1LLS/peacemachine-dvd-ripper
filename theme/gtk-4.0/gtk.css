@@ -1,0 +1,1759 @@
+/* C0D3D (2026-11-11): the whole interface one dash larger than the
+   system font (Adwaita Sans 11), on top of the per-widget sizes below. */
+window, window.background, window.dialog, popover, tooltip, menu {
+  font-size: 12pt;
+}
+
+/* DVD Ripper — house palette: black surfaces, light green text, crimson chrome. */
+
+@keyframes dvd-binary-rain {
+  from { background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0; }
+  to { background-position: 0 480px, 0 -768px, 0 384px, 0 0, 0 0, 0 0; }
+}
+
+.ripper-rain {
+  background-color: #000000;
+  background-image: url("file:///home/jimmy/.local/share/c0d3d/rain/rain-a.png"),
+    url("file:///home/jimmy/.local/share/c0d3d/rain/rain-b.png"),
+    url("file:///home/jimmy/.local/share/c0d3d/rain/rain-c.png"),
+    url("file:///home/jimmy/.local/share/c0d3d/deband.png"),
+    radial-gradient(circle at 0% 0%, rgba(255, 0, 0, 0.14), transparent 58%),
+    radial-gradient(circle at 100% 100%, rgba(0, 255, 65, 0.08), transparent 62%);
+  background-repeat: repeat, repeat, repeat, repeat, no-repeat, no-repeat;
+  background-size: 384px 480px, 512px 384px, 288px 384px, 96px 96px, 100% 100%, 100% 100%;
+  animation: dvd-binary-rain 14s steps(180, end) infinite;
+  padding: 8px;
+}
+
+@define-color window_bg_color #000000;
+@define-color window_fg_color #c9ffd2;
+@define-color view_bg_color #000000;
+@define-color view_fg_color #c9ffd2;
+@define-color headerbar_bg_color #000000;
+@define-color headerbar_fg_color #c9ffd2;
+@define-color accent_color #00ff41;
+@define-color accent_bg_color #00ff41;
+@define-color accent_fg_color #000000;
+@define-color popover_bg_color #05100a;
+
+window,
+.background {
+  background-color: #000000;
+  color: #c9ffd2;
+}
+
+/* ---------------------------------------------------------------- headerbar */
+headerbar {
+  background: #000000;
+  box-shadow: inset 0 -1px 0 #25753d, inset 0 1px 0 #284c34, 0 4px 16px rgba(0, 0, 0, 0.8);
+  color: #ff0000;
+  min-height: 30px;
+  padding-right: 104px;
+}
+
+.app-title {
+  color: #ff0000;
+  font-weight: 700;
+  letter-spacing: 3px;
+  font-size: 14px;
+}
+
+headerbar button.close,
+headerbar .titlebutton.close,
+windowcontrols button.close {
+  opacity: 0;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+}
+
+headerbar button {
+  background: #000000;
+  border: 1px solid #ff0000;
+  border-radius: 9px;
+  padding: 3px 9px;
+  margin: 0 2px;
+  color: #ff0000;
+  box-shadow: inset 0 1px 0 rgba(255, 0, 0, 0.22);
+}
+
+headerbar button:hover {
+  border-color: #ff3333;
+  color: #ff3333;
+  box-shadow: inset 0 1px 0 rgba(255, 0, 0, 0.3), 0 0 9px rgba(255, 0, 0, 0.35);
+}
+
+/* ---------------------------------------------------------------- cards */
+.card {
+  background-image: linear-gradient(to bottom, rgba(16, 34, 22, 0.46), rgba(6, 16, 10, 0.58));
+  border: 1px solid #14351f;
+  border-radius: 13px;
+  padding: 8px 10px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+
+.eyebrow {
+  color: #00ffff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+}
+
+.value {
+  color: #c9ffd2;
+  font-size: 13px;
+}
+
+.dim {
+  color: #c9ffd2;
+  font-size: 12px;
+}
+
+.preview {
+  color: #98e6a5;
+  font-size: 12px;
+  padding-top: 2px;
+}
+
+/* ---------------------------------------------------------------- entries */
+entry,
+entry.source-entry {
+  background-color: #000000;
+  border: 1px solid #1d3b25;
+  border-radius: 9px;
+  color: #c9ffd2;
+  padding: 4px 8px;
+  min-height: 22px;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.9);
+  caret-color: #00ff41;
+}
+
+entry:focus,
+entry.source-entry:focus {
+  border-color: #00ff41;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.9), 0 0 8px rgba(0, 255, 65, 0.3);
+}
+
+entry selection {
+  background-color: #0f3a1f;
+  color: #eafff0;
+}
+
+/* ---------------------------------------------------------------- buttons */
+button {
+  background-image: linear-gradient(to bottom, #07180f, #030d07);
+  border: 1px solid #1d3b25;
+  border-radius: 9px;
+  color: #9fe3b0;
+  padding: 4px 11px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+button:hover {
+  border-color: #00ff41;
+  color: #c9ffd2;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 0 10px rgba(0, 255, 65, 0.25);
+}
+
+button:active {
+  background-image: linear-gradient(to bottom, #0c2a17, #06180e);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+button:disabled {
+  color: #3f5c47;
+  border-color: #12251a;
+}
+
+button.primary-action {
+  background-image: linear-gradient(to bottom, #0f3a1f, #071c10);
+  border-color: #00ff41;
+  color: #c9ffd2;
+  font-weight: 700;
+}
+
+button.primary-action:hover {
+  background-image: linear-gradient(to bottom, #145028, #0a2614);
+  box-shadow: 0 0 12px rgba(0, 255, 65, 0.4);
+}
+
+button.primary-action:disabled {
+  background-image: linear-gradient(to bottom, #0a1d12, #06110b);
+  border-color: #1d3b25;
+  color: #3f5c47;
+}
+
+button.wide-action {
+  padding: 7px 11px;
+  font-size: 13px;
+  letter-spacing: 0.6px;
+}
+
+button.tiny-button {
+  padding: 1px 8px;
+  font-size: 11px;
+  color: #6f9b79;
+}
+
+button.tiny-button:hover {
+  color: #c9ffd2;
+}
+
+button.mode-button {
+  color: #6f9b79;
+}
+
+button.mode-button:checked {
+  background-image: linear-gradient(to bottom, #0f2718, #08160e);
+  border-color: #14351f;
+  color: #ff0000;
+  box-shadow: inset 0 1px 0 rgba(0, 255, 65, 0.16);
+}
+
+spinbutton button {
+  color: #ff0000;
+  border-color: #ff0000;
+  border-radius: 9px;
+}
+
+spinbutton button:hover {
+  color: #ff3333;
+  border-color: #ff3333;
+  box-shadow: 0 0 8px rgba(255, 0, 0, 0.3);
+}
+
+spinbutton button:disabled {
+  color: #55202c;
+  border-color: #3a1620;
+}
+
+/* ---------------------------------------------------------------- dropdowns */
+dropdown {
+  min-width: 0;
+}
+
+dropdown > button {
+  min-width: 0;
+  background-image: linear-gradient(to bottom, #06170e, #020b06);
+  border: 1px solid #1d3b25;
+  color: #c9ffd2;
+  padding: 3px 8px;
+}
+
+dropdown > button:hover {
+  border-color: #00ff41;
+  box-shadow: 0 0 9px rgba(0, 255, 65, 0.25);
+}
+
+popover > contents,
+popover.background > contents {
+  background-color: #04100a;
+  border: 1px solid #1d3b25;
+  color: #c9ffd2;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.9), 0 0 12px rgba(0, 255, 65, 0.12);
+}
+
+popover listview row:hover {
+  background-color: #0b2316;
+}
+
+popover listview row:selected {
+  background-color: #12351f;
+  color: #eafff0;
+}
+
+/* ---------------------------------------------------------------- checkboxes */
+checkbutton check {
+  background-color: #000000;
+  border: 1px solid #1d3b25;
+  border-radius: 6px;
+  min-width: 14px;
+  min-height: 14px;
+}
+
+checkbutton check:checked {
+  background-image: linear-gradient(to bottom, #00ff41, #00b32e);
+  border-color: #00ff41;
+  color: #000000;
+}
+
+checkbutton label {
+  color: #98e6a5;
+  font-size: 12px;
+}
+
+/* ---------------------------------------------------------------- title list */
+.title-list,
+.title-list > row {
+  background-color: transparent;
+}
+
+.title-row {
+  border-bottom: 1px solid rgba(15, 42, 23, 0.65);
+  padding: 3px 2px;
+  border-radius: 13px;
+}
+
+.title-row:hover {
+  background-color: rgba(11, 35, 22, 0.75);
+}
+
+.title-number {
+  color: #ff0000;
+  font-family: "JetBrainsMono Nerd Font", "DejaVu Sans Mono", monospace;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.title-name {
+  color: #c9ffd2;
+  font-size: 13px;
+}
+
+.title-summary {
+  color: #8fd6ff;
+  font-size: 12px;
+}
+
+.title-size {
+  color: #98e6a5;
+  font-size: 12px;
+  font-family: "JetBrainsMono Nerd Font", "DejaVu Sans Mono", monospace;
+}
+
+.badge {
+  color: #000000;
+  background-color: #ff0000;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  padding: 1px 5px;
+}
+
+/* ---------------------------------------------------------------- queue */
+.queue-list,
+.queue-list > row {
+  background-color: transparent;
+}
+
+.job-row {
+  border-bottom: 1px solid rgba(15, 42, 23, 0.65);
+  padding: 2px 3px;
+  border-radius: 13px;
+}
+
+.job-row:hover {
+  background-color: rgba(11, 35, 22, 0.7);
+}
+
+.job-row:selected {
+  background-color: rgba(18, 53, 31, 0.9);
+}
+
+.job-state {
+  font-family: "JetBrainsMono Nerd Font", "DejaVu Sans Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: #6f9b79;
+}
+
+.job-state.running { color: #00ff41; }
+.job-state.done { color: #8fd6ff; }
+.job-state.failed { color: #ff4444; }
+.job-state.cancelled { color: #ffb347; }
+.job-state.queued { color: #6f9b79; }
+
+.job-name {
+  color: #c9ffd2;
+  font-size: 13px;
+}
+
+.job-mode {
+  color: #cc0000;
+  font-size: 12px;
+}
+
+.job-detail {
+  color: #98e6a5;
+  font-size: 12px;
+  font-family: "JetBrainsMono Nerd Font", "DejaVu Sans Mono", monospace;
+}
+
+/* ---------------------------------------------------------------- progress */
+progressbar.rip-progress trough {
+  background-color: #04120a;
+  border: 1px solid #14351f;
+  border-radius: 11px;
+  min-height: 12px;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+progressbar.rip-progress progress {
+  background-image: linear-gradient(to right, #0a5c22, #00ff41);
+  border-radius: 9px;
+  min-height: 12px;
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.45);
+}
+
+.progress-text {
+  color: #98e6a5;
+  font-family: "JetBrainsMono Nerd Font", "DejaVu Sans Mono", monospace;
+  font-size: 12px;
+}
+
+spinner {
+  color: #00ff41;
+}
+
+/* ---------------------------------------------------------------- log + split */
+.terminal-frame {
+  border: 1px solid #14351f;
+  border-radius: 11px;
+  background-color: #030905;
+  box-shadow: inset 0 0 12px rgba(0, 255, 65, 0.07);
+}
+
+textview.terminal,
+textview.terminal text {
+  background-color: #030905;
+  color: #9fe3b0;
+  font-family: "JetBrainsMono Nerd Font", "DejaVu Sans Mono", monospace;
+  font-size: 12px;
+  padding: 4px 6px;
+}
+
+textview.split-editor,
+textview.split-editor text {
+  background-color: #000000;
+  color: #c9ffd2;
+  font-family: "JetBrainsMono Nerd Font", "DejaVu Sans Mono", monospace;
+  font-size: 12px;
+  padding: 3px 6px;
+}
+
+textview.split-editor {
+  border: 1px solid #1d3b25;
+  border-radius: 9px;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.9);
+  caret-color: #00ff41;
+}
+
+textview.split-editor:focus-within {
+  border-color: #00ff41;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.9), 0 0 8px rgba(0, 255, 65, 0.3);
+}
+
+/* ---------------------------------------------------------------- chrome */
+scrolledwindow {
+  background-color: transparent;
+}
+
+scrollbar {
+  background-color: transparent;
+  border: none;
+}
+
+scrollbar slider {
+  background-color: #1d3b25;
+  border-radius: 11px;
+  min-width: 8px;
+  min-height: 8px;
+}
+
+scrollbar slider:hover {
+  background-color: #00ff41;
+}
+
+paned > separator {
+  background-color: transparent;
+  min-width: 6px;
+}
+
+paned > separator:hover {
+  background-color: rgba(0, 255, 65, 0.35);
+}
+
+tooltip {
+  background-color: #04100a;
+  border: 1px solid #1d3b25;
+  color: #c9ffd2;
+}
+
+.settings-scroller {
+  background-color: transparent;
+}
+
+.title-summary.mapped {
+  color: #00ff41;
+}
+
+.episode-list row {
+  border-bottom: 1px solid rgba(15, 42, 23, 0.7);
+  border-radius: 13px;
+  padding: 3px 4px;
+}
+
+.episode-list row:hover {
+  background-color: rgba(11, 35, 22, 0.8);
+}
+
+.episode-list row:selected {
+  background-color: #12351f;
+}
+
+.episode-number {
+  color: #ff0000;
+  font-family: "JetBrainsMono Nerd Font", "DejaVu Sans Mono", monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.episode-name {
+  color: #c9ffd2;
+  font-size: 13px;
+}
+
+.badge.warn-badge {
+  background-color: #ffb347;
+  color: #000000;
+}
+
+.progress-strip {
+  background-image: none;
+  background-color: rgba(0, 0, 0, 0.90);
+  border: 1px solid #14351f;
+  border-radius: 13px;
+  padding: 6px 10px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.counter {
+  color: #ff0000;
+  font-family: "JetBrainsMono Nerd Font", "DejaVu Sans Mono", monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.theme-label {
+  color: #cc0000;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+
+/* tight buttons: text sits close to the edge so a row fits on one line */
+button.compact-button {
+  padding: 2px 7px;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* compact settings column: shorter controls, tighter captions */
+.card {
+  padding: 6px 8px;
+}
+
+.eyebrow {
+  font-size: 14px;
+  letter-spacing: 0.9px;
+  font-weight: 700;
+}
+
+.dim {
+  font-size: 13px;
+}
+
+.value {
+  font-size: 12px;
+}
+
+.preview {
+  font-size: 12px;
+  padding-top: 0;
+}
+
+dropdown > button {
+  padding: 1px 6px;
+  min-height: 22px;
+}
+
+entry,
+entry.source-entry {
+  padding: 3px 6px;
+  min-height: 24px;
+}
+
+button {
+  padding: 3px 9px;
+}
+
+button.compact-button {
+  padding: 2px 7px;
+}
+
+spinbutton {
+  min-height: 22px;
+}
+
+checkbutton label {
+  font-size: 11px;
+}
+
+.title-row,
+.job-row {
+  /* roomy enough that glyph tops and descenders cannot be shaved at any scale */
+  padding: 4px 3px;
+}
+
+.title-name,
+.job-name,
+.episode-name {
+  font-size: 12px;
+}
+
+.title-summary,
+.job-mode,
+.job-detail,
+.title-size,
+.progress-text,
+.episode-number {
+  font-size: 11px;
+}
+
+.section-rule {
+  background-image: none;
+  background-color: #000000;
+  border-radius: 2px;
+  box-shadow: 0 0 5px rgba(226, 226, 226, 0.85),
+              0 0 12px rgba(226, 226, 226, 0.55),
+              0 0 24px rgba(226, 226, 226, 0.30);
+}
+
+/* bigger dropdown text */
+dropdown > button,
+dropdown > button > label {
+  font-size: 15px;
+}
+
+/* crimson getup for the source-row buttons */
+button.crimson-button {
+  color: #ff0000;
+  border-color: #14351f;
+  background-image: linear-gradient(to bottom, #071009, #040805);
+}
+
+button.crimson-button:hover {
+  color: #ff0000;
+  border-color: #1d3b25;
+  box-shadow: 0 0 8px rgba(0, 255, 65, 0.18);
+}
+
+/* the theme picker is a MenuButton: style its inner button too */
+menubutton.crimson-button > button {
+  color: inherit;
+  border-color: inherit;
+  background-image: none;
+}
+
+menubutton.crimson-button > button > label {
+  color: #ff0000;
+}
+
+menubutton.crimson-button > button:hover > label {
+  color: #ff3333;
+}
+
+/* matrix green control text — soft light green, easy on the eye */
+dropdown > button,
+dropdown > button > label {
+  color: #ff0000;
+}
+
+entry,
+entry.source-entry {
+  color: #c9ffd2;      /* light matrix green (C0D3D, 2026-11-12) */
+}
+
+spinbutton {
+  color: #ff0000;
+}
+
+/* yellow frame for the queue buttons (C0D3D, 2026-11-12) */
+button.orange-button {
+  border-color: #ffd700;
+}
+
+button.orange-button:hover {
+  border-color: #fff27a;
+  color: #ff0000;
+  box-shadow: 0 0 16px rgba(255, 215, 0, 0.55),
+              0 0 5px rgba(255, 250, 200, 0.7);
+}
+
+button.orange-button:disabled {
+  border-color: #6b5c00;
+  color: #6f9b79;
+}
+
+/* No white text anywhere (C0D3D, 2026-11-10): labels that inherit Adwaita's
+   white get the house light green. Classed labels (captions, crimson text)
+   still win, so they keep their own colour. */
+dropdown > button > label,
+dropdown > button,
+popover label,
+tooltip label,
+listview label,
+menubutton label {
+  color: #ff0000;
+}
+
+/* About dialog: same house colours instead of Adwaita's white text */
+window.about label,
+window.about .title,
+window.about text {
+  color: #ff0000;
+}
+
+window.about label link,
+window.about link {
+  color: #00ff41;
+}
+
+/* Orange frame on the split-mode toggles (C0D3D, 2026-11-10) - the checked
+   state has its own border rule, so it is restated here at higher specificity. */
+button.mode-button.orange-button:checked {
+  background-image: none;
+  background-color: #000000;
+  border-color: #ffd700;
+  box-shadow: inset 0 1px 0 rgba(255, 215, 0, 0.22), 0 0 8px rgba(255, 215, 0, 0.2);
+}
+
+/* the checked toggle needs its own hover bloom — the rule above wins on
+   box-shadow otherwise (C0D3D, 2026-11-12) */
+button.orange-button:checked:hover {
+  border-color: #fff27a;
+  box-shadow: inset 0 1px 0 rgba(255, 215, 0, 0.28),
+              0 0 16px rgba(255, 215, 0, 0.55),
+              0 0 5px rgba(255, 250, 200, 0.7);
+}
+
+/* Round − / + steppers beside the number boxes (C0D3D, 2026-11-10): they are
+   real buttons pinned to a square size, so they stay circles no matter how tall
+   the row or the font gets. */
+button.round-step {
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0;
+  border-radius: 99px;
+  font-weight: 700;
+}
+
+/* The spin button's own steppers are replaced by that pair. */
+spinbutton button {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  background-image: none;
+  box-shadow: none;
+  opacity: 0;
+}
+
+/* Keep the crimson ink the stock steppers had. */
+button.round-step {
+  color: #ff0000;
+  border-color: #ff0000;
+  border-radius: 99px;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0;
+  font-weight: 700;
+  box-shadow: inset 0 1px 0 rgba(255, 0, 0, 0.22);
+}
+
+button.round-step:hover {
+  color: #ff3333;
+  border-color: #ff3333;
+  box-shadow: 0 0 8px rgba(255, 0, 0, 0.32);
+}
+
+/* Numbers field focus (C0D3D, 2026-11-11): drop Adwaita's blue focus outline,
+   the house ring is the green border + glow. */
+entry:focus-within,
+entry:focus,
+entry:focus-visible,
+entry.source-entry:focus {
+  border-color: #00ff41;
+  outline: 2px solid transparent;
+  outline-offset: 0;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.9), 0 0 8px rgba(0, 255, 65, 0.3);
+}
+
+/* Compact rip-queue header (C0D3D, 2026-11-11): the five action buttons sit
+   tight under the caption and the list starts right below them. */
+.queue-buttons {
+  margin: 0;
+  padding: 0;
+}
+
+.queue-buttons button {
+  min-height: 0;
+  padding: 1px 8px;
+}
+
+/* Extra vertical slack for list rows (C0D3D, 2026-11-11): at fractional desktop
+   scales the glyph tops of Inter get shaved when a row is only as tall as its
+   text, so every row label gets room of its own and the row another few pixels. */
+.title-name,
+.job-name,
+.job-state,
+.job-mode,
+.job-detail,
+.title-summary,
+.title-size,
+.title-number {
+  min-height: 16px;
+}
+
+/* C0D3D (2026-11-11): a hair of vertical breathing room. At the 1080p
+   monitor's fractional scale Pango can report a text box a pixel shorter than
+   the ink, which shaves the tops of ascenders and digits — this gives every
+   label and field that pixel back. */
+window label, window button, window entry, window spinbutton,
+window dropdown > button, popover label {
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+
+/* the SOURCE card floats above the panes, so it must be solid — the shared .card
+   face is translucent and the titles/settings text showed through it */
+/* The dropped-down SOURCE card is plain black again (C0D3D, 2026-11-14):
+   no rain, no transparency. */
+.source-floating {
+  background-color: #000000;
+  background-image: none;
+  animation: none;
+  border: 1px solid #dc143c;
+  box-shadow: inset 0 0 10px rgba(220, 20, 60, 0.28),
+              0 0 9px rgba(220, 20, 60, 0.70),
+              0 0 24px rgba(220, 20, 60, 0.35);
+}
+
+/* The − / + steppers draw themselves with cairo (C0D3D, 2026-11-11), so
+   this is only the ink colour they read back. */
+.circle-step {
+  color: #ff7a1a;
+}
+
+/* The number fields (FIRST EPISODE, EPISODES) wear a light blue frame so the
+   two editable values stand out from the dropdowns around them (C0D3D,
+   2026-11-11). */
+entry.number-box,
+entry.number-box:focus,
+entry.number-box:focus-within {
+  border-color: #d5d5d5;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.9), 0 0 8px rgba(229, 229, 229, 0.55);
+}
+
+/* per-row queue progress (C0D3D, 2026-11-12) */
+progressbar.job-bar {
+  min-width: 110px;
+}
+
+progressbar.job-bar trough {
+  background-color: #04120a;
+  border: 1px solid #14351f;
+  border-radius: 9px;
+  min-height: 7px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+progressbar.job-bar progress {
+  background-image: linear-gradient(to right, #0a5c22, #00ff41);
+  border-radius: 7px;
+  min-height: 7px;
+  box-shadow: 0 0 8px rgba(0, 255, 65, 0.45);
+}
+
+progressbar.job-bar.job-bar-idle trough {
+  border-color: #0d2415;
+}
+
+progressbar.job-bar.job-bar-idle progress {
+  background-image: none;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+progressbar.job-bar.job-bar-failed progress {
+  background-image: none;
+  background-color: #ff0000;
+  box-shadow: 0 0 8px rgba(255, 0, 0, 0.5);
+}
+
+.chapter-hint {
+  color: #98e6a5;
+  font-family: monospace;
+  font-size: 11px;
+  margin-top: 2px;
+}
+.split-note {
+  color: #ff0000;
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+/* full-colour icons in file choosers, like the rest of the skin */
+filechooser,
+filechooser * {
+  -gtk-icon-style: regular;
+}
+
+.job-menu {
+  padding: 5px;
+}
+
+.job-menu button {
+  min-height: 0;
+  padding: 3px 12px;
+}
+
+
+/* black dropdowns, crimson frame and ink, label goes green on hover
+   (C0D3D, 2026-11-12) */
+dropdown > button,
+dropdown.sky-frame > button {
+  background-image: none;
+  background-color: #000000;
+  border: 1px solid #ff0000;
+  color: #ff0000;
+  box-shadow: none;
+}
+
+dropdown > button > label,
+dropdown.sky-frame > button > label {
+  color: #ff0000;
+}
+
+dropdown > button:hover,
+dropdown.sky-frame > button:hover {
+  border-color: #ff4444;
+  color: #00ff41;
+  box-shadow: 0 0 9px rgba(255, 0, 0, 0.28);
+}
+
+/* the label is a grandchild of the button in GTK4, so name it directly */
+dropdown > button:hover label,
+dropdown.sky-frame > button:hover label {
+  color: #00ff41;
+}
+
+dropdown > button:hover > label,
+dropdown.sky-frame > button:hover > label {
+  color: #00ff41;
+}
+
+dropdown > button:active,
+dropdown > button:checked {
+  background-color: #000000;
+  border-color: #ff4444;
+  color: #00ff41;
+}
+
+dropdown > button:active label,
+dropdown > button:checked label {
+  color: #00ff41;
+}
+
+dropdown > button:active > label,
+dropdown > button:checked > label {
+  color: #00ff41;
+}
+
+dropdown > button:disabled {
+  border-color: #4a1b25;
+  color: #7a3b46;
+}
+
+dropdown > button:disabled > label {
+  color: #7a3b46;
+}
+
+/* Green frames with a double glow on the text fields (C0D3D, 2026-11-12):
+   black field, bright green border, a tight inner haze plus a wide outer
+   halo, both brighter while focused. */
+entry,
+entry.source-entry,
+entry.number-box {
+  background-image: none;
+  background-color: #000000;
+  border: 1px solid #d5d5d5;
+  box-shadow: inset 0 0 10px rgba(229, 229, 229, 0.22),
+              0 0 7px rgba(229, 229, 229, 0.75),
+              0 0 20px rgba(229, 229, 229, 0.45);
+}
+
+entry:focus,
+entry:focus-within,
+entry:focus-visible,
+entry.source-entry:focus,
+entry.number-box:focus,
+entry.number-box:focus-within {
+  border-color: #f2f2f2;
+  outline: 2px solid transparent;
+  outline-offset: 0;
+  box-shadow: inset 0 0 13px rgba(242, 242, 242, 0.32),
+              0 0 10px rgba(229, 229, 229, 0.90),
+              0 0 28px rgba(229, 229, 229, 0.55);
+}
+
+entry:disabled,
+entry.number-box:disabled {
+  border-color: #4a4a4a;
+  box-shadow: none;
+}
+
+/* Dark blue frame on every picker (C0D3D, 2026-11-12), with the same glow as
+   the purple text fields. This sits AFTER the crimson dropdown block on
+   purpose: the frame goes blue, the ink stays crimson. */
+dropdown.sky-frame > button {
+  border-color: #1e3a8a;
+  box-shadow: 0 0 7px rgba(37, 99, 235, 0.42);
+}
+
+dropdown.sky-frame > button:hover,
+dropdown.sky-frame > button:active,
+dropdown.sky-frame > button:checked {
+  border-color: #3f6bdc;
+  box-shadow: 0 0 11px rgba(59, 99, 220, 0.58);
+}
+
+dropdown.sky-frame > button:disabled {
+  border-color: #16244a;
+  box-shadow: none;
+}
+
+/* Light grey ink on the pickers, green on hover (C0D3D, 2026-11-12) — the
+   arrow follows the text. */
+dropdown.sky-frame > button,
+dropdown.sky-frame > button > label,
+dropdown.sky-frame > button:active,
+dropdown.sky-frame > button:active label,
+dropdown.sky-frame > button:active > label,
+dropdown.sky-frame > button:checked,
+dropdown.sky-frame > button:checked label {
+  color: #c8c8c8;
+}
+
+dropdown.sky-frame > button:hover,
+dropdown.sky-frame > button:hover label,
+dropdown.sky-frame > button:hover > label {
+  color: #00ff41;
+}
+
+dropdown.sky-frame > button:disabled,
+dropdown.sky-frame > button:disabled > label {
+  color: #5c5c5c;
+}
+
+/* ---- glows on every coloured frame ---- */
+
+/* generated by ~/.local/share/c0d3d/theme-glow/add-glow.py */
+
+headerbar button {
+  box-shadow: inset 0 1px 0 rgba(255, 0, 0, 0.22);
+}
+
+headerbar button:hover {
+  box-shadow: 0 0 10px rgba(255, 45, 85, 0.50), 0 0 22px rgba(255, 45, 85, 0.20);
+}
+
+.card {
+  box-shadow: 0 0 10px rgba(20, 53, 31, 0.50), 0 0 22px rgba(20, 53, 31, 0.20);
+}
+
+entry, entry.source-entry {
+  box-shadow: 0 0 10px rgba(29, 59, 37, 0.50), 0 0 22px rgba(29, 59, 37, 0.20);
+}
+
+entry:focus, entry.source-entry:focus {
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.50), 0 0 22px rgba(0, 255, 65, 0.20);
+}
+
+button {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+button:hover {
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.50), 0 0 22px rgba(0, 255, 65, 0.20);
+}
+
+button.primary-action {
+  box-shadow: none;
+}
+
+button.mode-button:checked {
+  box-shadow: inset 0 1px 0 rgba(0, 255, 65, 0.16);
+}
+
+spinbutton button {
+  box-shadow: none;
+}
+
+spinbutton button:hover {
+  box-shadow: 0 0 10px rgba(255, 45, 85, 0.50), 0 0 22px rgba(255, 45, 85, 0.20);
+}
+
+dropdown > button {
+  box-shadow: 0 0 10px rgba(29, 59, 37, 0.50), 0 0 22px rgba(29, 59, 37, 0.20);
+}
+
+dropdown > button:hover {
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.50), 0 0 22px rgba(0, 255, 65, 0.20);
+}
+
+popover > contents, popover.background > contents {
+  box-shadow: 0 0 10px rgba(29, 59, 37, 0.50), 0 0 22px rgba(29, 59, 37, 0.20);
+}
+
+checkbutton check {
+  box-shadow: 0 0 10px rgba(29, 59, 37, 0.50), 0 0 22px rgba(29, 59, 37, 0.20);
+}
+
+checkbutton check:checked {
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.50), 0 0 22px rgba(0, 255, 65, 0.20);
+}
+
+progressbar.rip-progress trough {
+  box-shadow: 0 0 10px rgba(20, 53, 31, 0.50), 0 0 22px rgba(20, 53, 31, 0.20);
+}
+
+.terminal-frame {
+  box-shadow: 0 0 10px rgba(20, 53, 31, 0.50), 0 0 22px rgba(20, 53, 31, 0.20);
+}
+
+textview.split-editor {
+  box-shadow: 0 0 10px rgba(29, 59, 37, 0.50), 0 0 22px rgba(29, 59, 37, 0.20);
+}
+
+textview.split-editor:focus-within {
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.50), 0 0 22px rgba(0, 255, 65, 0.20);
+}
+
+tooltip {
+  box-shadow: 0 0 10px rgba(29, 59, 37, 0.50), 0 0 22px rgba(29, 59, 37, 0.20);
+}
+
+.progress-strip {
+  box-shadow: 0 0 10px rgba(20, 53, 31, 0.50), 0 0 22px rgba(20, 53, 31, 0.20);
+}
+
+button.crimson-button {
+  box-shadow: none;
+}
+
+button.crimson-button:hover {
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.55), 0 0 22px rgba(255, 0, 0, 0.25);
+}
+
+button.orange-button {
+  box-shadow: none;
+}
+
+button.orange-button:hover {
+  box-shadow: 0 0 10px rgba(255, 242, 122, 0.50), 0 0 22px rgba(255, 242, 122, 0.20);
+}
+
+button.mode-button.orange-button:checked {
+  box-shadow: none;
+}
+
+button.orange-button:checked:hover {
+  box-shadow: 0 0 10px rgba(255, 242, 122, 0.50), 0 0 22px rgba(255, 242, 122, 0.20);
+}
+
+button.round-step {
+  box-shadow: none;
+}
+
+button.round-step:hover {
+  box-shadow: 0 0 10px rgba(255, 45, 85, 0.50), 0 0 22px rgba(255, 45, 85, 0.20);
+}
+
+entry:focus-within, entry:focus, entry:focus-visible, entry.source-entry:focus {
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.50), 0 0 22px rgba(0, 255, 65, 0.20);
+}
+
+/* The dropped SOURCE card wears a thin crimson frame with a double glow
+   (C0D3D, 2026-11-14). */
+.source-floating {
+  box-shadow: inset 0 0 10px rgba(220, 20, 60, 0.28),
+              0 0 9px rgba(220, 20, 60, 0.70),
+              0 0 24px rgba(220, 20, 60, 0.35);
+}
+
+entry.number-box, entry.number-box:focus, entry.number-box:focus-within {
+  border-color: #d5d5d5;
+  box-shadow: inset 0 0 10px rgba(229, 229, 229, 0.22),
+              0 0 7px rgba(229, 229, 229, 0.75),
+              0 0 20px rgba(229, 229, 229, 0.45);
+}
+
+progressbar.job-bar trough {
+  box-shadow: 0 0 10px rgba(20, 53, 31, 0.50), 0 0 22px rgba(20, 53, 31, 0.20);
+}
+
+progressbar.job-bar.job-bar-idle trough {
+  box-shadow: 0 0 10px rgba(13, 36, 21, 0.50), 0 0 22px rgba(13, 36, 21, 0.20);
+}
+
+dropdown > button, dropdown.sky-frame > button {
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.50), 0 0 22px rgba(255, 0, 0, 0.20);
+}
+
+dropdown > button:hover, dropdown.sky-frame > button:hover {
+  box-shadow: 0 0 10px rgba(255, 68, 68, 0.50), 0 0 22px rgba(255, 68, 68, 0.20);
+}
+
+dropdown > button:active, dropdown > button:checked {
+  box-shadow: 0 0 10px rgba(255, 68, 68, 0.50), 0 0 22px rgba(255, 68, 68, 0.20);
+}
+
+entry, entry.source-entry, entry.number-box {
+  box-shadow: inset 0 0 10px rgba(229, 229, 229, 0.22),
+              0 0 7px rgba(229, 229, 229, 0.75),
+              0 0 20px rgba(229, 229, 229, 0.45);
+}
+
+entry:focus, entry:focus-within, entry:focus-visible, entry.source-entry:focus, entry.number-box:focus, entry.number-box:focus-within {
+  box-shadow: inset 0 0 13px rgba(242, 242, 242, 0.32),
+              0 0 10px rgba(229, 229, 229, 0.90),
+              0 0 28px rgba(229, 229, 229, 0.55);
+}
+
+dropdown.sky-frame > button {
+  box-shadow: 0 0 10px rgba(30, 58, 138, 0.50), 0 0 22px rgba(30, 58, 138, 0.20);
+}
+
+dropdown.sky-frame > button:hover, dropdown.sky-frame > button:active, dropdown.sky-frame > button:checked {
+  box-shadow: 0 0 10px rgba(63, 107, 220, 0.50), 0 0 22px rgba(63, 107, 220, 0.20);
+}
+
+/* Every button wears an aqua frame with a double glow (C0D3D, 2026-11-12).
+   Appended last so it beats the per-class frames above; text colours and fills
+   are left alone. */
+button,
+button.compact-button,
+button.crimson-button,
+button.orange-button,
+button.mode-button,
+button.tiny-button,
+button.wide-action,
+button.primary-action,
+button.round-step,
+.glass-button {
+  border: 1px solid #00ffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05),
+              0 0 7px rgba(0, 255, 255, 0.75),
+              0 0 20px rgba(0, 255, 255, 0.45);
+}
+
+button:hover,
+button.compact-button:hover,
+button.crimson-button:hover,
+button.orange-button:hover,
+button.mode-button:hover,
+button.tiny-button:hover,
+button.wide-action:hover,
+button.round-step:hover {
+  border-color: #66ffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06),
+              0 0 10px rgba(0, 255, 255, 0.90),
+              0 0 28px rgba(0, 255, 255, 0.55);
+}
+
+button:active,
+button:checked,
+button.mode-button:checked,
+button.orange-button:checked,
+button.mode-button.orange-button:checked {
+  border-color: #99ffff;
+  box-shadow: inset 0 1px 0 rgba(153, 255, 255, 0.25),
+              0 0 10px rgba(0, 255, 255, 0.85),
+              0 0 26px rgba(0, 255, 255, 0.50);
+}
+
+button.mode-button.orange-button:checked:hover {
+  box-shadow: inset 0 1px 0 rgba(153, 255, 255, 0.28),
+              0 0 12px rgba(0, 255, 255, 0.95),
+              0 0 32px rgba(0, 255, 255, 0.55);
+}
+
+button.orange-button:checked:hover {
+  box-shadow: inset 0 1px 0 rgba(153, 255, 255, 0.28),
+              0 0 12px rgba(0, 255, 255, 0.95),
+              0 0 32px rgba(0, 255, 255, 0.55);
+}
+
+button:disabled,
+button.orange-button:disabled,
+button.primary-action:disabled {
+  border-color: #004d4d;
+  box-shadow: none;
+}
+
+/* Button text is red, yellow on hover (C0D3D, 2026-11-12). */
+button:hover,
+button:hover label,
+button.compact-button:hover,
+button.crimson-button:hover,
+button.orange-button:hover,
+button.mode-button:hover,
+button.tiny-button:hover,
+button.wide-action:hover,
+button.round-step:hover,
+button.mode-button.orange-button:checked:hover,
+.circle-step:hover {
+  color: #ff9a3c;
+}
+
+/* every button's ink is red, yellow on hover (C0D3D, 2026-11-12) — the queue
+   and split buttons were still picking up the old light-green body colour. */
+button,
+button label,
+button.crimson-button,
+button.orange-button,
+button.compact-button,
+button.mode-button,
+button.tiny-button,
+button.wide-action,
+.queue-buttons button,
+menubutton > button,
+menubutton > button > label {
+  color: #ff0000;
+}
+
+button.mode-button:checked,
+button.orange-button:checked,
+button.mode-button.orange-button:checked {
+  color: #ff0000;
+}
+
+/* Titles column sits a shade darker than the other panels (C0D3D, 2026-11-12),
+   and the bottom strip is plain black with a hint of transparency. */
+.titles-card {
+  background-image: linear-gradient(to bottom, rgba(12, 26, 17, 0.58), rgba(4, 10, 7, 0.68));
+}
+
+/* The rip queue is plain black, and the titles column is twice as dark as the
+   other panels (C0D3D, 2026-11-12). */
+.queue-card {
+  background-image: none;
+  background-color: rgba(0, 0, 0, 0.68);
+}
+
+.titles-card {
+  background-image: linear-gradient(to bottom, rgba(6, 13, 9, 0.78), rgba(2, 5, 4, 0.85));
+}
+
+/* Button icons are recoloured masks, so each one can take its own tint
+   (C0D3D, 2026-11-12). Without this the theme's full-colour SVGs ignore the
+   colour set per button. */
+button image {
+  -gtk-icon-style: symbolic;
+}
+
+/* Section titles wear a terminal font (C0D3D, 2026-11-12). */
+.eyebrow {
+  font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", "DejaVu Sans Mono", monospace;
+  font-weight: 700;
+}
+
+/* Thin aqua frame with a double glow around the titles column
+   (C0D3D, 2026-11-12). */
+.titles-card {
+  border: 1px solid #00ffff;
+  box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.16),
+              0 0 8px rgba(0, 255, 255, 0.70),
+              0 0 22px rgba(0, 255, 255, 0.40);
+}
+
+/* Light grey frame with a double glow around the settings column
+   (C0D3D, 2026-11-14). The glow is inset: the scrolled window inside this
+   column clips anything drawn outside the card. */
+.settings-frame {
+  border: 1px solid #cfcfcf;
+  box-shadow: inset 0 0 4px rgba(207, 207, 207, 0.90),
+              inset 0 0 18px rgba(207, 207, 207, 0.38);
+}
+
+/* The white rule above the two panels is drawn with cairo in app.py
+   (TopRule), so the ends can curve down around the frames. */
+
+/* Deep purple frame with a double glow, weighted along the bottom
+   (C0D3D, 2026-11-14; was red). */
+.queue-card {
+  border: 1px solid #6a0dad;
+  box-shadow: inset 0 0 10px rgba(106, 13, 173, 0.20),
+              0 0 9px rgba(138, 43, 226, 0.70),
+              0 0 22px rgba(106, 13, 173, 0.40),
+              0 12px 26px rgba(106, 13, 173, 0.45);
+}
+
+/* Bigger checkboxes on an orange face (C0D3D, 2026-11-12). Unchecked keep the
+   orange frame with a glow; checked fills orange with a dark tick. */
+checkbutton check {
+  min-width: 20px;
+  min-height: 20px;
+  border: 1px solid #ff8c22;
+  border-radius: 6px;
+  background-image: none;
+  background-color: rgba(255, 140, 34, 0.16);
+  box-shadow: inset 0 0 6px rgba(255, 140, 34, 0.35),
+              0 0 8px rgba(255, 140, 34, 0.55);
+}
+
+checkbutton check:checked {
+  background-image: none;
+  background-color: #ff8c22;
+  border-color: #ffb05e;
+  color: #000000;
+  box-shadow: inset 0 0 6px rgba(255, 176, 94, 0.45),
+              0 0 10px rgba(255, 140, 34, 0.85),
+              0 0 22px rgba(255, 140, 34, 0.45);
+}
+
+checkbutton check:checked:disabled {
+  background-color: rgba(255, 140, 34, 0.45);
+  box-shadow: none;
+}
+
+/* the tick has to be big enough to see on a 20px box */
+checkbutton check:checked > image,
+checkbutton check:checked > .check {
+  min-width: 16px;
+  min-height: 16px;
+}
+
+/* EPISODE NAMES sits straight under the file-name input (C0D3D, 2026-11-12). */
+.tight-top {
+  margin-top: -23px;
+}
+
+/* the EPISODE NAMES row sits tight under the file-name input (C0D3D,
+   2026-11-12) */
+.episode-row {
+  margin-top: -18px;
+}
+
+.tight-top {
+  margin-top: 0;
+}
+
+/* the clean-up row ends flush against the separator below it (C0D3D,
+   2026-11-12) */
+.anime-group {
+  margin-bottom: -7px;
+}
+
+/* separators: black bars with a double glow (C0D3D, 2026-11-12) */
+/* The divider bars between sections are deep red with a double glow
+   (C0D3D, 2026-11-14). */
+.section-rule {
+  background-image: none;
+  background-color: #000000;
+  border-radius: 2px;
+  box-shadow: 0 0 5px rgba(226, 226, 226, 0.85),
+              0 0 12px rgba(226, 226, 226, 0.55),
+              0 0 24px rgba(226, 226, 226, 0.30);
+}
+
+/* these four captions are green (C0D3D, 2026-11-12) */
+.cap-green {
+  color: #00e64d;
+  text-shadow: 0 0 6px rgba(0, 230, 77, 0.85),
+               0 0 16px rgba(0, 230, 77, 0.45);
+}
+
+/* these two captions are orange with a glow (C0D3D, 2026-11-12) */
+.cap-orange {
+  color: #00e64d;
+  text-shadow: 0 0 6px rgba(0, 230, 77, 0.85),
+               0 0 16px rgba(0, 230, 77, 0.45);
+}
+
+/* light grey ring outside every dropdown's blue frame, with a glow
+   (C0D3D, 2026-11-12) */
+dropdown > button,
+dropdown.sky-frame > button,
+dropdown > button:hover,
+dropdown.sky-frame > button:hover,
+dropdown > button:active,
+dropdown > button:checked {
+  box-shadow: 0 0 0 1px rgba(222, 222, 222, 0.9),
+              0 0 8px rgba(230, 230, 230, 0.55),
+              0 0 20px rgba(230, 230, 230, 0.28);
+}
+
+/* the aqua captions glow too (C0D3D, 2026-11-12) */
+.eyebrow {
+  text-shadow: 0 0 6px rgba(0, 255, 255, 0.75),
+               0 0 16px rgba(0, 255, 255, 0.35);
+}
+
+.cap-green {
+  text-shadow: 0 0 6px rgba(0, 230, 77, 0.85),
+               0 0 16px rgba(0, 230, 77, 0.45);
+}
+
+.cap-orange {
+  text-shadow: 0 0 6px rgba(0, 230, 77, 0.85),
+               0 0 16px rgba(0, 230, 77, 0.45);
+}
+
+/* dropdown text goes deep purple on hover (C0D3D, 2026-11-12) */
+dropdown > button:hover,
+dropdown > button:hover > label,
+dropdown.sky-frame > button:hover,
+dropdown.sky-frame > button:hover > label,
+dropdown > button:active,
+dropdown > button:active > label {
+  color: #6a0dad;
+}
+
+/* deep purple wins over the old green hover, whatever the label nesting
+   (C0D3D, 2026-11-12) */
+dropdown > button:hover label,
+dropdown.sky-frame > button:hover label,
+dropdown:hover label,
+dropdown:hover > button,
+dropdown:hover > button > label {
+  color: #6a0dad;
+}
+
+/* No scrollbar on the settings column, but it still has to scroll — a NEVER
+   policy makes GTK expand the child instead of scrolling it, so the bar is
+   collapsed here instead (C0D3D, 2026-11-14). */
+.settings-scroller scrollbar,
+.settings-scroller scrollbar slider {
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  opacity: 0;
+}
+
+/* Square corners on the two top panels, so the white rule meets them flush
+   (C0D3D, 2026-11-14). */
+.titles-card,
+.settings-frame {
+  border-radius: 0;
+}
+
+/* The rip queue card is square too (C0D3D, 2026-11-14). */
+.queue-card {
+  border-radius: 0;
+}
+
+/* Dropdown text is light grey with a glow (C0D3D, 2026-11-14). Hover and
+   checked states keep their own colours, which are more specific. */
+dropdown > button,
+dropdown.sky-frame > button,
+dropdown > button > label,
+dropdown > button label,
+dropdown.sky-frame > button > label {
+  color: #d5d5d5;
+}
+
+dropdown > button > label,
+dropdown > button label,
+dropdown.sky-frame > button > label {
+  text-shadow: 0 0 4px rgba(213, 213, 213, 0.85),
+               0 0 11px rgba(213, 213, 213, 0.45);
+}
+
+/* Hovered dropdown text is red with no glow (C0D3D, 2026-11-14). */
+dropdown > button:hover,
+dropdown > button:hover label,
+dropdown > button:hover > label,
+dropdown.sky-frame > button:hover label,
+dropdown.sky-frame > button:hover > label,
+dropdown.sky-frame > button:hover {
+  color: #ff0000;
+  text-shadow: none;
+}
+
+/* QUALITY / AUDIO / SUBTITLES / TRANSCRIPT captions are red with a glow
+   (C0D3D, 2026-11-14). */
+.cap-red {
+  color: #b0121a;
+  text-shadow: 0 0 6px rgba(176, 18, 26, 0.85),
+               0 0 16px rgba(176, 18, 26, 0.45);
+}
+
+/* Ticked boxes are a white face with a dark tick and a triple glow
+   (C0D3D, 2026-11-14). */
+checkbutton check:checked {
+  background-image: none;
+  background-color: #ffffff;
+  border-color: #ffffff;
+  color: #000000;
+  box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.55),
+              0 0 6px rgba(255, 255, 255, 0.85),
+              0 0 14px rgba(255, 255, 255, 0.55),
+              0 0 26px rgba(255, 255, 255, 0.28);
+}
+
+/* FILE NAME / FIRST EPISODE / EPISODE NAMES / EPISODES captions are dark blue
+   with a white glow so they stay readable (C0D3D, 2026-11-14). */
+.cap-green {
+  color: #1e78a8;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.90),
+               0 0 14px rgba(255, 255, 255, 0.55);
+}
+
+/* No glow on the blue captions (C0D3D, 2026-11-14). */
+.cap-green {
+  text-shadow: none;
+}
+
+/* The red captions get a black halo on top of their glow, so the rain behind
+   cannot muddy the letters (C0D3D, 2026-11-14). */
+.cap-red {
+  text-shadow: 0 0 2px rgba(0, 0, 0, 1.0),
+               0 0 6px rgba(176, 18, 26, 0.85),
+               0 0 16px rgba(176, 18, 26, 0.45),
+               0 0 22px rgba(0, 0, 0, 0.95);
+}
+
+/* The divider between the title list and the spinner is a real grab strip
+   (C0D3D, 2026-11-14). */
+paned.titles-split > separator {
+  min-height: 8px;
+  background-color: rgba(255, 255, 255, 0.10);
+  border-top: 1px solid rgba(0, 255, 65, 0.35);
+  border-bottom: 1px solid rgba(0, 255, 65, 0.35);
+}
+paned.titles-split > separator:hover {
+  background-color: rgba(0, 255, 65, 0.22);
+}
+
+/* Black bar with a glow between the split-mode row and the note, with padding
+   either side of it (C0D3D, 2026-11-14). */
+.note-spacer {
+  min-height: 2px;
+  background-color: #000000;
+  border-radius: 3px;
+  margin-top: 9px;
+  margin-bottom: 9px;
+  box-shadow: 0 0 6px rgba(226, 226, 226, 0.55),
+              0 0 16px rgba(226, 226, 226, 0.28);
+}
+
+/* Button ink is orange with a glow, red with a glow while hovered
+   (C0D3D, 2026-11-14). */
+button,
+button label,
+button.crimson-button,
+button.orange-button,
+button.compact-button,
+button.mode-button,
+button.tiny-button,
+button.wide-action,
+.queue-buttons button,
+menubutton > button,
+menubutton > button > label {
+  color: #d5d5d5;
+  text-shadow: 0 0 5px rgba(213, 213, 213, 0.85),
+               0 0 12px rgba(213, 213, 213, 0.45);
+}
+
+button:hover,
+button:hover label,
+button.crimson-button:hover,
+button.orange-button:hover,
+button.compact-button:hover,
+button.mode-button:hover,
+button.tiny-button:hover,
+button.wide-action:hover,
+button.round-step:hover,
+menubutton > button:hover > label {
+  color: #ff0000;
+  text-shadow: 0 0 6px rgba(255, 0, 0, 0.90),
+               0 0 14px rgba(255, 0, 0, 0.50);
+}
+
+/* Every caption is the same green with a glow (C0D3D, 2026-11-15). */
+.cap-red,
+.cap-green,
+.cap-orange {
+  color: #00e64d;
+  text-shadow: 0 0 6px rgba(0, 230, 77, 0.85),
+               0 0 16px rgba(0, 230, 77, 0.45);
+}
+
+/* Dropdown frames wear the same aqua as the buttons, same double glow
+   (C0D3D, 2026-11-15). */
+dropdown > button,
+dropdown.sky-frame > button {
+  border: 1px solid #00ffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05),
+              0 0 7px rgba(0, 255, 255, 0.75),
+              0 0 20px rgba(0, 255, 255, 0.45);
+}
+
+dropdown > button:hover,
+dropdown.sky-frame > button:hover,
+dropdown > button:active,
+dropdown.sky-frame > button:active,
+dropdown > button:checked,
+dropdown.sky-frame > button:checked {
+  border-color: #66ffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06),
+              0 0 10px rgba(0, 255, 255, 0.90),
+              0 0 28px rgba(0, 255, 255, 0.55);
+}
+
+dropdown > button:disabled,
+dropdown.sky-frame > button:disabled {
+  border-color: #1c4a4a;
+  box-shadow: none;
+}
+
+/* The − stepper is white, the + stepper deep red; both keep their glow
+   (C0D3D, 2026-11-15). The disc, rim and glyph all follow this colour. */
+.circle-step.circle-minus {
+  color: #ffffff;
+}
+
+.circle-step.circle-plus {
+  color: #b0121a;
+}
+
+/* RIP QUEUE frame is light blue with rounded corners (C0D3D, 2026-11-15). */
+.queue-card {
+  border: 1px solid #7fb3ff;
+  border-radius: 12px;
+  box-shadow: inset 0 0 10px rgba(110, 165, 255, 0.18),
+              0 0 9px rgba(127, 179, 255, 0.70),
+              0 0 22px rgba(37, 99, 235, 0.38);
+}
+
+/* Only the bottom-left corner of the titles card is rounded (C0D3D, 2026-11-15). */
+.titles-card {
+  border-radius: 0 0 0 12px;
+}
+
+/* Only the bottom-right corner of the settings card is rounded
+   (C0D3D, 2026-11-15). */
+.settings-frame {
+  border-radius: 0 0 12px 0;
+}

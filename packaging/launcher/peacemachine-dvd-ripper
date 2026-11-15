@@ -1,0 +1,35 @@
+#!/bin/sh
+# PeaceMachine DVD Ripper — installed launcher.
+#
+# The app keeps its skins in a private GTK config home so they never collide
+# with the user's own ~/.config/gtk-4.0. Settings and history go to the normal
+# XDG state directory.
+set -eu
+
+DATA="${PEACEMACHINE_DVD_RIPPER_DATA:-/usr/share/peacemachine-dvd-ripper}"
+CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+CFG="${XDG_DATA_HOME:-$HOME/.local/share}/peacemachine-dvd-ripper/config"
+STATE="${XDG_STATE_HOME:-$HOME/.local/state}/peacemachine-dvd-ripper"
+
+mkdir -p "$CFG/gtk-4.0" "$STATE"
+
+# Link the shipped skins in, so a package update changes them without a rebuild.
+for sheet in "$DATA"/gtk-4.0/*.css; do
+    [ -e "$sheet" ] || continue
+    ln -sfn "$sheet" "$CFG/gtk-4.0/$(basename "$sheet")"
+done
+# settings.ini is copied, not linked: GTK rewrites nothing, but a user may edit it.
+if [ -e "$DATA/gtk-4.0/settings.ini" ] && [ ! -e "$CFG/gtk-4.0/settings.ini" ]; then
+    cp -f "$DATA/gtk-4.0/settings.ini" "$CFG/gtk-4.0/settings.ini"
+fi
+
+# The private config home still has to see the real dconf database and the
+# user's mimeapps.list, or Gio cannot open folders and settings look empty.
+[ -e "$CFG/dconf" ] || ln -sfn "$CONFIG_HOME/dconf" "$CFG/dconf"
+[ -e "$CFG/mimeapps.list" ] || ln -sfn "$CONFIG_HOME/mimeapps.list" "$CFG/mimeapps.list"
+
+export XDG_CONFIG_HOME="$CFG"
+export GTK_THEME=Adwaita:dark
+export DVD_RIPPER_STATE_DIR="$STATE"
+
+exec python3 "$DATA/app.py" "$@"

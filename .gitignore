@@ -4,3 +4,7 @@ state.json
 episode-cache.json
 asr/venv/
 asr/models/
+dist/
+packaging/arch/src/
+packaging/arch/pkg/
+packaging/arch/*.tar.gz

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=PeaceMachine DVD Ripper
+GenericName=DVD Ripper
+Comment=Rip a DVD into files your PC can play
+Exec=peacemachine-dvd-ripper %f
+Icon=media-optical
+Terminal=false
+Categories=AudioVideo;Video;Utility;
+Keywords=dvd;rip;handbrake;episode;video;transcode;
+StartupNotify=true
+StartupWMClass=org.jimmy.DvdRipper

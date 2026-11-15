@@ -1,0 +1,42 @@
+# Maintainer: William James Sova (C0D3D) <william@peacemachinestudios.com>
+pkgname=peacemachine-dvd-ripper
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="Rip DVDs and video files into files your PC can play, with per-episode naming"
+arch=('any')
+url="https://peacemachinestudios.com"
+license=('MIT')
+depends=('python' 'python-gobject' 'gtk4' 'handbrake-cli' 'ffmpeg')
+optdepends=('libdvdcss: read encrypted commercial DVDs')
+provides=('dvd-ripper')
+# AUR / release form (swap in when the source is published, then update the sums):
+#   source=("$pkgname-$pkgver.tar.gz::https://github.com/<you>/dvd-ripper/archive/v$pkgver.tar.gz")
+#   sha256sums=('<sha256 of that tarball>')
+source=("$pkgname-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+package() {
+    local datadir="$pkgdir/usr/share/$pkgname"
+
+    install -d "$datadir" "$pkgdir/usr/bin" "$pkgdir/usr/share/applications" \
+              "$pkgdir/usr/share/licenses/$pkgname"
+
+    # program
+    install -m644 "$srcdir/$pkgname-$pkgver"/{app.py,ripper.py,names.py,LICENSE,README.md} "$datadir/"
+    install -Dm644 "$srcdir/$pkgname-$pkgver/packaging/desktop/org.jimmy.DvdRipper.desktop" \
+        "$pkgdir/usr/share/applications/org.jimmy.DvdRipper.desktop"
+    install -Dm755 "$srcdir/$pkgname-$pkgver/packaging/launcher/peacemachine-dvd-ripper" \
+        "$pkgdir/usr/bin/$pkgname"
+    install -Dm644 "$srcdir/$pkgname-$pkgver/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+
+    # skins
+    install -d "$datadir/gtk-4.0"
+    install -m644 "$srcdir/$pkgname-$pkgver/theme/gtk-4.0/"*.css "$datadir/gtk-4.0/"
+    install -m644 "$srcdir/$pkgname-$pkgver/theme/gtk-4.0/settings.ini" "$datadir/gtk-4.0/"
+
+    # optional speech-to-text helper (its models and venv are the user's own)
+    if [ -f "$srcdir/$pkgname-$pkgver/asr/transcribe.py" ]; then
+        install -d "$datadir/asr"
+        install -m644 "$srcdir/$pkgname-$pkgver/asr/transcribe.py" "$datadir/asr/"
+    fi
+}
