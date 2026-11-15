@@ -730,7 +730,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         # the queue grows with the window, so a bigger window shows more rips
         self.queue_paned.set_resize_start_child(True)
         self.queue_paned.set_resize_end_child(True)
-        self.queue_paned.set_start_child(self.build_middle())
+        self.queue_paned.set_start_child(self.build_middle_wrap())
         self.queue_card = self.build_queue_card()
         self.queue_paned.set_end_child(self.queue_card)
         self.queue_paned.set_vexpand(True)
@@ -971,6 +971,16 @@ class RipperWindow(Gtk.ApplicationWindow):
         dialog.open(self, None, done)
 
     # ---------------------------------------------------------------- middle
+    def build_middle_wrap(self):
+        """The two columns, with a glowing white rule across their top edge."""
+        wrapper = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.top_rule = Gtk.Box()
+        self.top_rule.add_css_class("top-rule")
+        self.top_rule.set_valign(Gtk.Align.START)
+        wrapper.append(self.top_rule)
+        wrapper.append(self.build_middle())
+        return wrapper
+
     def build_middle(self):
         paned = Gtk.Paned(orientation=Gtk.Orientation.HORIZONTAL)
         paned.set_position(520)
@@ -1038,6 +1048,7 @@ class RipperWindow(Gtk.ApplicationWindow):
 
         _blocks = {}
         self.settings_card = settings
+        settings.add_css_class("settings-frame")
 
         self.preset_dropdown = Gtk.DropDown.new_from_strings(
             [preset.get("short") or preset["label"] for preset in ripper.PRESETS])
