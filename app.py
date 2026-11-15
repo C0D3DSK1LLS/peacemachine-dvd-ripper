@@ -42,15 +42,11 @@ DEFAULT_QUEUE_HEIGHT = 118       # rip queue height
 SHORT_EXTRA_SECONDS = 300        # titles shorter than this are extras, not listed
 THEMES = [
     {"key": "matrix", "short": "Matrix"},
-    {"key": "basic-light", "short": "Basic (light grey)"},
     {"key": "basic-dark", "short": "Basic (dark)"},
-    {"key": "win11", "short": "Windows 11"},
 ]
 THEME_FILES = {
     "matrix": "gtk.css",
-    "basic-light": "basic-light.css",
     "basic-dark": "basic-dark.css",
-    "win11": "win11.css",
 }
 _theme_provider = None
 # tests and probes point this somewhere else so they can never overwrite his
@@ -2421,7 +2417,10 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.apply_startup_choices()
         # anime tuning is always ticked on startup (C0D3D, 2026-11-12)
         self.anime_check.set_active(True)
-        self.set_theme(saved.get("theme") or "matrix", remember=False)
+        saved_theme = saved.get("theme") or "matrix"
+        if saved_theme not in THEME_FILES:
+            saved_theme = "matrix"
+        self.set_theme(saved_theme, remember=False)
         if saved.get("markers") is False:
             self.markers.set_active(False)
         if saved.get("episode_show"):
