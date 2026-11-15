@@ -1,3 +1,12 @@
+peacemachine-dvd-ripper (1.0.40) unstable; urgency=medium
+
+  * Older GTK now gets a plain Gtk.FileChooserDialog instead of
+    Gtk.FileChooserNative. The native chooser routes through
+    xdg-desktop-portal, which on a bare Debian 12 opens but reports "the folder
+    contents could not be displayed" and lists nothing.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 11:58:00 -0500
+
 peacemachine-dvd-ripper (1.0.39) unstable; urgency=medium
 
   * Browse... and the SAVE TO folder button work on older GTK again. They used

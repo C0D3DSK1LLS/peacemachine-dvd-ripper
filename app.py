@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.39"
+APP_VERSION = "1.0.40"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -876,25 +876,33 @@ def choose_file(parent, title, filters=(), initial=None, folder=False, on_pick=N
 
     action = (Gtk.FileChooserAction.SELECT_FOLDER if folder
               else Gtk.FileChooserAction.OPEN)
-    native = Gtk.FileChooserNative.new(title, parent, action, "_Choose", "_Cancel")
+    # A plain Gtk.FileChooserDialog, NOT Gtk.FileChooserNative: the native one
+    # goes through xdg-desktop-portal, which on a bare Debian 12 answers
+    # "the folder contents could not be displayed" and shows nothing
+    # (C0D3D, 2026-11-15). This is GTK's own chooser widget, no portal involved.
+    dialog = Gtk.FileChooserDialog(title=title, transient_for=parent, modal=True,
+                                   action=action)
+    dialog.add_button("_Cancel", Gtk.ResponseType.CANCEL)
+    dialog.add_button("_Choose", Gtk.ResponseType.ACCEPT)
+    dialog.set_default_size(940, 620)
     for item in filters:
-        native.add_filter(item)
+        dialog.add_filter(item)
     if initial:
         try:
-            native.set_current_folder(Gio.File.new_for_path(initial))
+            dialog.set_current_folder(Gio.File.new_for_path(initial))
         except Exception:
             pass
 
-    def on_response(dialog, response):
-        picked = dialog.get_file() if response == Gtk.ResponseType.ACCEPT else None
+    def on_response(chooser, response):
+        picked = chooser.get_file() if response == Gtk.ResponseType.ACCEPT else None
         try:
-            dialog.destroy()
+            chooser.destroy()
         except Exception:
             pass
         on_pick(picked)
 
-    native.connect("response", on_response)
-    native.show()
+    dialog.connect("response", on_response)
+    dialog.present()
 
 
 class RipperWindow(Gtk.ApplicationWindow):
