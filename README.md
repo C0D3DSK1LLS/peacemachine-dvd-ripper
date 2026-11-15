@@ -119,6 +119,9 @@ sudo flatpak install -y flathub fr.handbrake.ghb
 
 # 4 - let the sandbox see the DVD drive, or HandBrake cannot read the disc
 sudo flatpak override --device=all fr.handbrake.ghb
+
+# 5 - check it is reachable (prints a version number)
+flatpak run --command=HandBrakeCLI fr.handbrake.ghb --version
 ```
 
 The ripper looks for a native `HandBrakeCLI` first and falls back to
