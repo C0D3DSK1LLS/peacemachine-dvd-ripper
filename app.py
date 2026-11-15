@@ -808,6 +808,12 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.queue_paned.set_end_child(self.queue_card)
         self.queue_paned.set_vexpand(True)
 
+        # follow the queue divider live instead of on the 300ms poll: the signal
+        # fires with every pixel of his drag, so the spinner resizes smoothly
+        # (C0D3D, 2026-11-14)
+        self.queue_paned.connect("notify::position",
+                                 lambda *_: self.sync_titles_split())
+
         # The card floats OVER the panes instead of sitting in the box above them
         # (C0D3D, 2026-11-11: "i dont want anything else to move when i hover over
         # top"). An overlay child is given no layout space of its own, so showing
@@ -1158,6 +1164,8 @@ class RipperWindow(Gtk.ApplicationWindow):
         gesture.connect("drag-begin", self.titles_split_drag_begin)
         gesture.connect("drag-end", lambda *_: self.titles_split_drag_end())
         self.titles_split.add_controller(gesture)
+        self.titles_split.connect("notify::max-position",
+                                  lambda *_: self.sync_titles_split())
         titles_box.append(self.titles_split)
         paned.set_start_child(titles_box)
 
@@ -2567,6 +2575,24 @@ class RipperWindow(Gtk.ApplicationWindow):
             spinner = max(90, height - self.titles_split.get_position())
             self.spinner_height = spinner
             self.spinner_ratio = max(0.15, min(0.85, spinner / float(height)))
+        return False
+
+    def sync_titles_split(self):
+        """Match the spinner's share to the block size, called on every move."""
+        if self.dead or not hasattr(self, "titles_split"):
+            return False
+        if getattr(self, "titles_split_dragging", False):
+            return False
+        height = self.titles_split.get_height()
+        if height <= 0:
+            return False
+        rati = getattr(self, "spinner_ratio", 0.0)
+        if rati <= 0:
+            return False
+        wanted = int(round(height * rati))
+        position = max(120, min(height - 90, height - wanted))
+        if abs(self.titles_split.get_position() - position) > 1:
+            self.titles_split.set_position(position)
         return False
 
     def restore_titles_split(self):
