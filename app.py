@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.19"
+APP_VERSION = "1.0.20"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -69,6 +69,22 @@ STATE_FILE = os.path.join(STATE_DIR, "state.json")
 # (C0D3D, 2026-11-15: found on a Debian 13 install.)
 _CAIRO_BRIDGE = None
 
+
+def ui_call(function, *args):
+    """Queue a UI update for the main loop.
+
+    GLib.idle_add is never dispatched on some desktops: measured on Debian 13,
+    bootstrap, scan results and every button handler that used it were silently
+    dead - Find did nothing, Start never ran, Stop did not stop (C0D3D,
+    2026-11-15). Timeouts always run, so this uses one.
+    """
+    def run():
+        try:
+            function(*args)
+        except Exception as error:      # never lose a UI update silently
+            ripper.log("ui_call failed in %s: %r" % (getattr(function, "__name__", function), error))
+        return False
+    GLib.timeout_add(20, run)
 
 def cairo_bridge_ok():
     """True when GTK can hand us a cairo context. Logged once, then cached."""
@@ -3271,7 +3287,7 @@ class RipperWindow(Gtk.ApplicationWindow):
 
     def search_worker(self, query):
         shows = episode_names.search(query)
-        GLib.idle_add(self.apply_shows, shows, query)
+        ui_call(self.apply_shows, shows, query)
 
     def apply_shows(self, shows, query):
         if self.dead:
@@ -3311,7 +3327,7 @@ class RipperWindow(Gtk.ApplicationWindow):
 
     def episodes_worker(self, show_id, show_name):
         rows = episode_names.episodes(show_id)
-        GLib.idle_add(self.apply_episodes, rows, show_name)
+        ui_call(self.apply_episodes, rows, show_name)
 
     def apply_episodes(self, rows, show_name):
         if self.dead:
@@ -3821,12 +3837,12 @@ class RipperWindow(Gtk.ApplicationWindow):
                          daemon=True).start()
 
     def transcript_worker(self, job):
-        GLib.idle_add(self.progress_label.set_text,
+        ui_call(self.progress_label.set_text,
                       "%s — transcribing the dub" % job.label)
         result = self.run_transcript_pass(job)
         self.current_job = None
-        GLib.idle_add(self.job_finished, job, result)
-        GLib.idle_add(self.queue_finished)
+        ui_call(self.job_finished, job, result)
+        ui_call(self.queue_finished)
 
     def open_job_menu(self, row):
         """Right-click a queue row: redo that file's transcript."""
@@ -3901,18 +3917,18 @@ class RipperWindow(Gtk.ApplicationWindow):
             if job is None:
                 break
             self.current_job = job
-            GLib.idle_add(self.job_started, job)
+            ui_call(self.job_started, job)
             result = self.run_job(job)
             self.current_job = None
-            GLib.idle_add(self.job_finished, job, result)
+            ui_call(self.job_finished, job, result)
             if self.cancel_requested:
                 break
-        GLib.idle_add(self.queue_finished)
+        ui_call(self.queue_finished)
 
     def run_job(self, job):
         command = job.command()
         ripper.log("encode start: %s" % " ".join(command))
-        GLib.idle_add(self.append_log_line, "$ " + " ".join(command))
+        ui_call(self.append_log_line, "$ " + " ".join(command))
         try:
             process = subprocess.Popen(command, stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE, text=True,
@@ -3926,9 +3942,9 @@ class RipperWindow(Gtk.ApplicationWindow):
             if label == "Progress":
                 values = ripper.progress_values(payload)
                 if values["state"] == "working":
-                    GLib.idle_add(self.job_progress, job, values)
+                    ui_call(self.job_progress, job, values)
                 elif values["state"] == "scanning":
-                    GLib.idle_add(self.job_progress, job,
+                    ui_call(self.job_progress, job,
                                   {"fraction": 0.0, "eta": 0, "rate": 0,
                                    "scanning": values})
 
@@ -3941,7 +3957,7 @@ class RipperWindow(Gtk.ApplicationWindow):
                     seconds = ripper.parse_copy_progress(line)
                     if seconds is None:
                         continue
-                    GLib.idle_add(self.job_progress, job, {
+                    ui_call(self.job_progress, job, {
                         "fraction": min(1.0, seconds / span), "copy": True})
                 return
             for line in process.stdout:
@@ -3952,7 +3968,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         for line in process.stderr:
             text = line.rstrip()
             if text:
-                GLib.idle_add(self.append_log_line, text)
+                ui_call(self.append_log_line, text)
         process.wait()
         out_thread.join(timeout=3)
         self.current_proc = None
@@ -3997,7 +4013,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         if not command:
             return "done"
         ripper.log("deband start: %s" % " ".join(command))
-        GLib.idle_add(self.progress_label.set_text,
+        ui_call(self.progress_label.set_text,
                       "%s — debanding (second pass)" % job.label)
         try:
             run = subprocess.Popen(command, stdout=subprocess.PIPE,
@@ -4012,12 +4028,12 @@ class RipperWindow(Gtk.ApplicationWindow):
             seconds = ripper.parse_copy_progress(line)
             if seconds is None:
                 continue
-            GLib.idle_add(self.job_progress, job, {
+            ui_call(self.job_progress, job, {
                 "fraction": min(1.0, seconds / span), "copy": True})
         for line in run.stderr:
             text = line.rstrip()
             if text and ("error" in text.lower() or "Error" in text):
-                GLib.idle_add(self.append_log_line, text)
+                ui_call(self.append_log_line, text)
         run.wait()
         self.current_proc = None
         if run.returncode != 0:
@@ -4059,10 +4075,10 @@ class RipperWindow(Gtk.ApplicationWindow):
         for line in run.stdout:
             percent = ripper.parse_transcript_progress(line)
             if percent is not None:
-                GLib.idle_add(self.progress_label.set_text,
+                ui_call(self.progress_label.set_text,
                               "%s — transcribing the dub %d%%"
                               % (job.label, percent))
-                GLib.idle_add(self.job_progress, job,
+                ui_call(self.job_progress, job,
                               {"fraction": percent / 100.0, "transcript": True})
                 continue
             text = line.rstrip()
@@ -4088,7 +4104,7 @@ class RipperWindow(Gtk.ApplicationWindow):
                 except OSError:
                     pass
             return "failed"
-        GLib.idle_add(self.progress_label.set_text,
+        ui_call(self.progress_label.set_text,
                       "%s — adding the transcript" % job.label)
         mux = ripper.mux_transcript_command(job.path, srt, temporary,
                                            keep_disc=job.sub_key != "none")

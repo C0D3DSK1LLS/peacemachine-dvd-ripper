@@ -1,3 +1,14 @@
+peacemachine-dvd-ripper (1.0.20) unstable; urgency=medium
+
+  * Every UI update now goes through a timeout instead of GLib.idle_add. On the
+    Debian test VM idle callbacks were never dispatched, so Find did nothing,
+    Start never launched the encoder, and Stop/Remove had no effect - all of
+    them queued their work through idle_add.
+  * Encodes run HandBrake directly instead of inside `systemd-run --scope`, so
+    Stop's killpg actually reaches the encoder.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 05:02:00 -0500
+
 peacemachine-dvd-ripper (1.0.19) unstable; urgency=medium
 
   * Start the window from a timeout instead of an idle callback. On the Debian
