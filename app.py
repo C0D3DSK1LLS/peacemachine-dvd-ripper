@@ -2174,17 +2174,16 @@ class RipperWindow(Gtk.ApplicationWindow):
         if hasattr(self, "titles_split"):
             height = self.titles_split.get_height()
             if height > 0:
-                wanted = getattr(self, "spinner_height", 235)
+                self.last_titles_height = height
+                rati = getattr(self, "spinner_ratio", 0.0)
+                target = (int(round(height * rati)) if rati > 0
+                          else getattr(self, "spinner_height", 235))
                 current = height - self.titles_split.get_position()
-                if height != getattr(self, "last_titles_height", None):
-                    # still being resized (a queue drag moves it every tick) —
-                    # let it squeeze freely and only tidy up once it stops
-                    self.last_titles_height = height
-                    self.titles_resized_at = now
-                elif now - getattr(self, "titles_resized_at", 0.0) >= 0.3:
-                    # squeezed or grown by a queue drag (or awaiting his own
-                    # divider drag, which updates spinner_height on release):
-                    # one clean reset, keeping at least 120px for the rows
+                # follow a shrinking/growing block every tick so the circle
+                # resizes as the queue divider is dragged, not after it lands.
+                # While he is dragging this divider himself, keep out of the way.
+                if (abs(current - target) > 2
+                        and not getattr(self, "titles_split_dragging", False)):
                     self.restore_titles_split()
 
         # --- rip queue (vertical)
@@ -2565,21 +2564,34 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.titles_split_dragging = False
         height = self.titles_split.get_height()
         if height > 0:
-            self.spinner_height = max(90, height - self.titles_split.get_position())
+            spinner = max(90, height - self.titles_split.get_position())
+            self.spinner_height = spinner
+            self.spinner_ratio = max(0.15, min(0.85, spinner / float(height)))
         return False
 
     def restore_titles_split(self):
-        """Put the titles/spinner divider back at the spinner height he chose."""
+        """Keep the spinner's share of the block constant as the block resizes.
+
+        Using a ratio rather than a pixel height means the circle shrinks the
+        moment the queue divider is dragged (and comes back exactly when it is
+        dragged back), instead of staying full size until it is squeezed
+        (C0D3D, 2026-11-14).
+        """
         if self.dead or not hasattr(self, "titles_split"):
             return False
         height = self.titles_split.get_height()
         if height <= 0:
             return False
-        wanted = getattr(self, "spinner_height", 235)
-        position = max(120, min(height - 110, height - wanted))
+        rati = getattr(self, "spinner_ratio", 0.0)
+        if rati <= 0.0:
+            wanted = getattr(self, "spinner_height", 235)
+            rati = max(0.2, min(0.7, wanted / float(height)))
+            self.spinner_ratio = rati
+        wanted = int(round(height * rati))
+        position = max(120, min(height - 90, height - wanted))
         if abs(self.titles_split.get_position() - position) > 1:
             self.titles_split.set_position(position)
-        self.titles_split_baseline = height - self.titles_split.get_position()
+        self.spinner_height = height - self.titles_split.get_position()
         return False
 
     def place_titles_split(self):
@@ -2591,8 +2603,14 @@ class RipperWindow(Gtk.ApplicationWindow):
         """
         if self.dead or not hasattr(self, "titles_split"):
             return False
-        if self.titles_split.get_height() <= 0:
+        height = self.titles_split.get_height()
+        if height <= 0:
             return True
+        # the card is still settling on the first ticks, so re-derive the share
+        # from the 235px spinner area at whatever height it finally has
+        if getattr(self, "titles_split_place_height", None) != height:
+            self.titles_split_place_height = height
+            self.spinner_ratio = max(0.2, min(0.7, 235.0 / float(height)))
         self.restore_titles_split()
         self.titles_split_checks = getattr(self, "titles_split_checks", 0) + 1
         return self.titles_split_checks < 6
