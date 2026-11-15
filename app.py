@@ -795,7 +795,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.source_revealer = Gtk.Revealer()
         self.source_revealer.set_transition_type(
             Gtk.RevealerTransitionType.SLIDE_UP)
-        self.source_revealer.set_transition_duration(500)
+        self.source_revealer.set_transition_duration(300)
         self.source_revealer.set_child(self.source_card)
         self.source_revealer.set_reveal_child(True)
 
@@ -1983,7 +1983,7 @@ class RipperWindow(Gtk.ApplicationWindow):
     # slow hide animation" / "when i hover over it it opens" / "when i unhover
     # over it, i want a 2 second delay before it hides". The SOURCE / SAVE TO
     # card slides up out of the way and gives its height to the panes below.
-    SOURCE_HIDE_DELAY = 1.5     # seconds after the pointer leaves, plus the slide
+    SOURCE_HIDE_DELAY = 0.7     # seconds after the pointer leaves, plus the slide
     SOURCE_REVEAL_ZONE = 56     # px from the top of the window that opens it
 
     def install_source_autohide(self):
