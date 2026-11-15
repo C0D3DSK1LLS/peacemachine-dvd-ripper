@@ -60,126 +60,211 @@ run on it, not simply the newest upload.
 | Kali, Mint, Pop!_OS | 1.0.26 | same apt path as Debian |
 | Arch / Omarchy | 1.0.26 | package installs clean; the author runs the same code |
 
-**1.0.36 is the current build for every distribution**, and is what the install
-blocks above fetch. The table records the version each distribution was actually
-tested at; 1.0.36 adds the 15-minute extras filter on top of those builds, which
-is a display rule rather than a change to scanning, ripping or encoding.
+**1.0.37 is the current build for every distribution**, and is what the install
+blocks below fetch. The table records the version each distribution was actually
+tested at; 1.0.37 adds the 15-minute extras filter, the popover fix and the
+window-button fix on top of those builds - display rules rather than changes to
+scanning, ripping or encoding.
 
-## Install — copy and paste
+## Install
 
-Everything below installs **PeaceMachine DVD Ripper 1.0.19**. The app is the same on
-every distribution; only the package names differ.
+**Run one command at a time.** Paste a single line, let it finish, then the next -
+several at once is how you end up wondering which one failed.
+
+Everything below installs **PeaceMachine DVD Ripper 1.0.37**. The application is the
+same on every distribution; only the package names differ.
 
 ### Arch, Omarchy, Manjaro, EndeavourOS, CachyOS
 
+1. The tools HandBrake needs:
 ```
 sudo pacman -S handbrake-cli ffmpeg libdvdcss
-sudo pacman -U https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.36/peacemachine-dvd-ripper-1.0.36-1-any.pkg.tar.zst
+```
+2. The ripper:
+```
+sudo pacman -U https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.37/peacemachine-dvd-ripper-1.0.37-1-any.pkg.tar.zst
 ```
 
-### Debian, Ubuntu, Mint, Pop!_OS, Kali
+### Debian
 
+1. HandBrake and ffmpeg:
 ```
 sudo apt install -y handbrake-cli ffmpeg curl
-curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.36/peacemachine-dvd-ripper_1.0.36_all.deb
-sudo apt install ./peacemachine-dvd-ripper_1.0.36_all.deb
 ```
-
-Reading an encrypted (commercial) disc needs libdvdcss, which Debian will not ship.
-`libdvd-pkg` lives in **contrib**, and it builds libdvdcss on your machine:
-
+2. `libdvdcss`, which Debian will not ship - `libdvd-pkg` builds it locally, and it
+   lives in the **contrib** section:
 ```
 sudo sed -i 's/ main$/ main contrib/' /etc/apt/sources.list
+```
+```
 sudo apt update
-sudo apt install -y libdvd-pkg && sudo dpkg-reconfigure libdvd-pkg
+```
+```
+sudo apt install -y libdvd-pkg
+```
+```
+sudo dpkg-reconfigure libdvd-pkg
+```
+3. The ripper:
+```
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.37/peacemachine-dvd-ripper_1.0.37_all.deb
+```
+```
+sudo apt install ./peacemachine-dvd-ripper_1.0.37_all.deb
+```
+
+### Ubuntu, Mint, Pop!_OS, Kali
+
+1. HandBrake and ffmpeg:
+```
+sudo apt install -y handbrake-cli ffmpeg curl
+```
+2. `libdvdcss` for encrypted discs - on Ubuntu it is `libdvd-pkg` from **multiverse**:
+```
+sudo add-apt-repository -y multiverse
+```
+```
+sudo apt update
+```
+```
+sudo apt install -y libdvd-pkg
+```
+```
+sudo dpkg-reconfigure libdvd-pkg
+```
+3. The ripper:
+```
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.37/peacemachine-dvd-ripper_1.0.37_all.deb
+```
+```
+sudo apt install ./peacemachine-dvd-ripper_1.0.37_all.deb
 ```
 
 ### Fedora
 
-Order matters. HandBrake, libdvdcss and the full ffmpeg all live in RPM Fusion,
-and Fedora's own `ffmpeg-free` conflicts with it, so the swap comes before
-anything else:
+Order matters: HandBrake, libdvdcss and the full ffmpeg all live in RPM Fusion, and
+Fedora's own `ffmpeg-free` conflicts with it.
 
+1. RPM Fusion, free half:
 ```
-# 1 - RPM Fusion, both halves
 sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+```
+2. RPM Fusion, non-free half:
+```
 sudo dnf install https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-
-# 2 - the full ffmpeg, replacing Fedora's ffmpeg-free
+```
+3. The full ffmpeg, replacing Fedora's `ffmpeg-free`:
+```
 sudo dnf install --allowerasing ffmpeg
-
-# 3 - HandBrake (this is the CLI package) and libdvdcss from the tainted section
+```
+4. HandBrake (this is the CLI package) and libdvdcss:
+```
 sudo dnf install rpmfusion-free-release-tainted HandBrake libdvdcss
-
-# 4 - the ripper itself
-sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.36/peacemachine-dvd-ripper-1.0.36-1.noarch.rpm
+```
+5. The ripper:
+```
+sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.37/peacemachine-dvd-ripper-1.0.37-1.noarch.rpm
 ```
 
-If step 4 complains about the signature, add `--nogpgcheck` - the package is not
+If step 5 complains about the signature, add `--nogpgcheck` - the package is not
 signed yet.
 
 ### RHEL, AlmaLinux, Rocky Linux
 
-RPM Fusion's **EL** branch gives you ffmpeg and libdvdcss. It has **no HandBrake at
-all**, so the ripper cannot scan or rip until you supply one — use the Flatpak:
+RPM Fusion's **EL** branch has ffmpeg and libdvdcss but **no HandBrake at all**, so
+the ripper needs the Flatpak version of HandBrake. The app finds it automatically.
 
+1. RPM Fusion for EL:
 ```
-# 1 - RPM Fusion for EL (ffmpeg, libdvdcss)
 sudo dnf install --nogpgcheck https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-$(rpm -E %rhel).noarch.rpm
+```
+2. ffmpeg and libdvdcss:
+```
 sudo dnf install rpmfusion-free-release-tainted ffmpeg libdvdcss
-
-# 2 - the ripper itself (installs fine; it will say HandBrake is missing)
-sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.29/peacemachine-dvd-ripper-1.0.29-1.noarch.rpm
-
-# 3 - HandBrake, as a Flatpak, because EL has no package for it
+```
+3. The ripper (it installs fine and will say HandBrake is missing - that is next):
+```
+sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.37/peacemachine-dvd-ripper-1.0.37-1.noarch.rpm
+```
+4. Flatpak itself:
+```
 sudo dnf install -y flatpak
-# reboot or log out and back in after this one, so the Flatpak services start
+```
+5. **Reboot, or log out and back in**, so the Flatpak services start. Nothing else
+   on this list works until you do.
+6. Flathub:
+```
 sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+```
+7. HandBrake:
+```
 sudo flatpak install -y flathub fr.handbrake.ghb
-
-# 4 - let the sandbox see the DVD drive, or HandBrake cannot read the disc
+```
+8. Let the sandbox see the DVD drive, or HandBrake cannot read the disc:
+```
 sudo flatpak override --device=all fr.handbrake.ghb
-
-# 5 - check it is reachable (prints a version number)
+```
+9. Check it - this should print a version number:
+```
 flatpak run --command=HandBrakeCLI fr.handbrake.ghb --version
 ```
 
-The ripper looks for a native `HandBrakeCLI` first and falls back to
-`fr.handbrake.ghb` on its own — no setting to change.
-
 ### openSUSE Leap and Tumbleweed
 
-HandBrake and ffmpeg come from **Packman**; libdvdcss comes from **VideoLAN's**
-repo, because Packman does not carry it for Leap 16. Accept the signing keys or
-zypper skips both repos:
+HandBrake and ffmpeg come from **Packman**; libdvdcss from **VideoLAN's** repo,
+because Packman does not carry it for Leap 16. Both need their signing keys
+accepted, or zypper skips the repo entirely.
 
+1. Packman:
 ```
-# 1 - Packman (HandBrake, ffmpeg)
 sudo zypper addrepo -f https://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_Leap_16.0/ packman
-# 2 - VideoLAN (libdvdcss, needed for encrypted discs)
+```
+2. VideoLAN:
+```
 sudo zypper addrepo -f https://download.videolan.org/pub/videolan/vlc/SuSE/16.0/ videolan
-# 3 - import both keys in one go (answering "r" at the prompt rejects them)
+```
+3. Import both keys without being prompted - answering `r` at that prompt **rejects**
+   the key, and the repo is then skipped:
+```
 sudo zypper --gpg-auto-import-keys refresh
-
-# 4 - the tools.  openSUSE calls libdvdcss "libdvdcss2"
+```
+4. The tools. openSUSE calls libdvdcss **`libdvdcss2`** - `rpm -q libdvdcss` will
+   always claim it is missing:
+```
 sudo zypper in -y handbrake-cli ffmpeg libdvdcss2
-
-# 5 - the ripper
-curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.36/peacemachine-dvd-ripper-1.0.36-1.noarch.rpm
-sudo zypper in -y --allow-unsigned-rpm ./peacemachine-dvd-ripper-1.0.36-1.noarch.rpm
+```
+5. The ripper:
+```
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.37/peacemachine-dvd-ripper-1.0.37-1.noarch.rpm
+```
+```
+sudo zypper in -y --allow-unsigned-rpm ./peacemachine-dvd-ripper-1.0.37-1.noarch.rpm
 ```
 
-On **Tumbleweed**, swap both repo paths for `openSUSE_Tumbleweed` and `SuSE/16.0`
-keeps working for VideoLAN; on **Leap** use the `16.0` paths above.
+On **Tumbleweed**, use `openSUSE_Tumbleweed` in the Packman path.
 
-If Packman's HandBrake does not install, use the Flatpak instead - the app finds
-it automatically:
+If Packman's HandBrake will not install, use the Flatpak instead - the app finds it
+on its own:
 
+1. Flatpak:
 ```
-sudo zypper in -y flatpak        # then reboot or log out and back in
+sudo zypper in -y flatpak
+```
+2. Reboot, or log out and back in.
+3. Flathub:
+```
 sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+```
+4. HandBrake:
+```
 sudo flatpak install -y flathub fr.handbrake.ghb
+```
+5. Drive access:
+```
 sudo flatpak override --device=all fr.handbrake.ghb
+```
+6. Check it:
+```
 flatpak run --command=HandBrakeCLI fr.handbrake.ghb --version
 ```
 
