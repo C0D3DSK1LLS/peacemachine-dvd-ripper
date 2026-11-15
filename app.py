@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.12"
+APP_VERSION = "1.0.13"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -839,8 +839,6 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.cancel_requested = False
         self.running = False
         self.scan_generation = 0
-        self.auto_scanned = False
-        self.auto_queue = []
         self.dead = False
 
         self.set_default_size(1240, 860)
@@ -2318,48 +2316,29 @@ class RipperWindow(Gtk.ApplicationWindow):
         return True
 
     def watch_drive(self):
-        """A USB reader can appear at any time — pick it up without a restart.
+        """Point the SOURCE box at the best optical drive. Nothing else.
 
-        If a drive already holds a disc, scan it without being asked (C0D3D,
-        2026-11-15: "i want it to auto scan the disk without typing
-        /dev/sr1. no bullshit"). Only once per disc, and never while a rip is
-        already running or the titles list is already full.
+        No automatic scanning: the disc is chosen for you, and Scan disc does
+        the work (C0D3D, 2026-11-15: "i dont want it to scan it automatically,
+        i just want the source to be set to the dvd disk reader").
         """
         if self.dead:
             return False
         sources = ripper.list_sources()
+        if not sources:
+            return True
+        best = sources[0]
         current = self.source_entry.get_text().strip()
-        if sources and not current:
-            self.source_entry.set_text(sources[0])
+        if not current:
+            self.source_entry.set_text(best)
             self.source_status.set_text(
-                "Disc drive detected: %s — press Scan disc." % sources[0])
-            if (not self.auto_scanned and ripper.has_media(sources[0])
-                    and not self.running and not self.titles):
-                self.auto_scanned = True
-                self.source_status.set_text(
-                    "Disc detected in %s — scanning…" % sources[0])
-                GLib.timeout_add(400, self.auto_scan_now)
-        elif sources and current.startswith("/dev/sr") and current not in sources:
-            self.source_entry.set_text(sources[0])
+                "Disc drive detected: %s — press Scan disc." % best)
+        elif current.startswith("/dev/sr") and current != best:
+            # a better disc appeared (or the drive moved): follow it
+            self.source_entry.set_text(best)
             self.source_status.set_text(
-                "Drive changed — now using %s." % sources[0])
+                "Using %s — press Scan disc." % best)
         return True
-
-
-    def auto_scan_now(self):
-        """Automatic scan, and if that drive yields nothing, try the next one.
-
-        A leftover virtual CD on sr0 has a "disc" in it as far as the kernel is
-        concerned, so "has media" alone cannot tell it from a DVD. Scanning the
-        wrong one fails in a couple of seconds, so the honest fix is to try each
-        drive in turn until one gives titles (C0D3D, 2026-11-15).
-        """
-        if self.dead or self.running:
-            return False
-        current = self.source_entry.get_text().strip()
-        self.auto_queue = [drive for drive in ripper.list_sources() if drive != current]
-        self.start_scan()
-        return False
 
     def watch_width(self):
         """GTK4 has no size-allocate signal a binding can hook, so poll cheaply."""
@@ -2659,17 +2638,10 @@ class RipperWindow(Gtk.ApplicationWindow):
         return False
 
     def scan_failed(self, message, token=None):
-        ripper.log("scan_failed: token=%s generation=%s dead=%s auto_queue=%s"
-                   % (token, self.scan_generation, self.dead, self.auto_queue))
+        ripper.log("scan_failed: token=%s generation=%s dead=%s"
+                   % (token, self.scan_generation, self.dead))
         if self.dead:
             return
-        if self.auto_queue and not self.running:
-            following = self.auto_queue.pop(0)
-            self.append_log("scan: nothing on %s, trying %s"
-                            % (self.source_entry.get_text().strip(), following))
-            self.source_entry.set_text(following)
-            GLib.idle_add(self.start_scan)
-            return False
         if token is not None and token != self.scan_generation:
             return False
         self.scan_now.set_sensitive(True)

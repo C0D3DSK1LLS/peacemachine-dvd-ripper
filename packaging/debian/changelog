@@ -1,3 +1,10 @@
+peacemachine-dvd-ripper (1.0.13) unstable; urgency=medium
+
+  * No automatic scanning. The SOURCE box points itself at the drive holding the
+    disc and stops there; Scan disc is the only thing that scans.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 04:32:00 -0500
+
 peacemachine-dvd-ripper (1.0.12) unstable; urgency=medium
 
   * Pick a DVD-Video (udf) disc ahead of a plain iso9660 image. A leftover
