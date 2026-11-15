@@ -806,11 +806,11 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.dead = False
 
         self.set_default_size(1240, 860)
-        self.set_title("Matrix DVD Ripper")
+        self.set_title("PeaceMachine DVD Ripper")
 
         header = Gtk.HeaderBar()
         self.set_titlebar(header)
-        title_label = Gtk.Label(label="MATRIX DVD RIPPER")
+        title_label = Gtk.Label(label="PEACEMACHINE DVD RIPPER")
         title_label.add_css_class("app-title")
         header.set_title_widget(title_label)
 
@@ -993,7 +993,7 @@ class RipperWindow(Gtk.ApplicationWindow):
 
     def show_about(self):
         about = Gtk.AboutDialog(transient_for=self, modal=True)
-        about.set_program_name("Matrix DVD Ripper")
+        about.set_program_name("PeaceMachine DVD Ripper")
         about.set_version(APP_VERSION)
         about.set_comments(
             "Rips a DVD into video files your PC can play — every title, every "
@@ -1056,7 +1056,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.about_button = Gtk.Button(label="About")
         self.about_button.add_css_class("compact-button")
         self.about_button.add_css_class("crimson-button")
-        self.about_button.set_tooltip_text("About Matrix DVD Ripper")
+        self.about_button.set_tooltip_text("About PeaceMachine DVD Ripper")
         self.about_button.connect("clicked", lambda *_: self.show_about())
         row.append(self.about_button)
         box.append(row)
