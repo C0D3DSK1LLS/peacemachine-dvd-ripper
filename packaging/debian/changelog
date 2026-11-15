@@ -1,3 +1,11 @@
+peacemachine-dvd-ripper (1.0.7) unstable; urgency=medium
+
+  * Scan a disc that is already in the drive without being asked. When a drive
+    with media is detected at startup the app fills the source and starts the
+    scan itself, once per disc, never while a rip is running.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 04:09:00 -0500
+
 peacemachine-dvd-ripper (1.0.6) unstable; urgency=medium
 
   * Pick the drive that has a disc in it. A leftover installer ISO on sr0 used to

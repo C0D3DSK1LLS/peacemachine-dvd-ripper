@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.6"
+APP_VERSION = "1.0.7"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -839,6 +839,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.cancel_requested = False
         self.running = False
         self.scan_generation = 0
+        self.auto_scanned = False
         self.dead = False
 
         self.set_default_size(1240, 860)
@@ -2316,7 +2317,13 @@ class RipperWindow(Gtk.ApplicationWindow):
         return True
 
     def watch_drive(self):
-        """A USB reader can appear at any time — pick it up without a restart."""
+        """A USB reader can appear at any time — pick it up without a restart.
+
+        If a drive already holds a disc, scan it without being asked (C0D3D,
+        2026-11-15: "i want it to auto scan the disk without typing
+        /dev/sr1. no bullshit"). Only once per disc, and never while a rip is
+        already running or the titles list is already full.
+        """
         if self.dead:
             return False
         sources = ripper.list_sources()
@@ -2325,11 +2332,25 @@ class RipperWindow(Gtk.ApplicationWindow):
             self.source_entry.set_text(sources[0])
             self.source_status.set_text(
                 "Disc drive detected: %s — press Scan disc." % sources[0])
+            if (not self.auto_scanned and ripper.has_media(sources[0])
+                    and not self.running and not self.titles):
+                self.auto_scanned = True
+                self.source_status.set_text(
+                    "Disc detected in %s — scanning…" % sources[0])
+                GLib.timeout_add(400, self.auto_scan_now)
         elif sources and current.startswith("/dev/sr") and current not in sources:
             self.source_entry.set_text(sources[0])
             self.source_status.set_text(
                 "Drive changed — now using %s." % sources[0])
         return True
+
+
+    def auto_scan_now(self):
+        """One automatic scan, from the drive watcher."""
+        if self.dead or self.running:
+            return False
+        self.start_scan()
+        return False
 
     def watch_width(self):
         """GTK4 has no size-allocate signal a binding can hook, so poll cheaply."""
