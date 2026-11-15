@@ -1,3 +1,12 @@
+peacemachine-dvd-ripper (1.0.39) unstable; urgency=medium
+
+  * Browse... and the SAVE TO folder button work on older GTK again. They used
+    Gtk.FileDialog, which only exists from GTK 4.10, so on Debian 12 (4.8) they
+    did nothing at all. Older GTK now gets Gtk.FileChooserNative through one
+    shared helper.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 11:50:00 -0500
+
 peacemachine-dvd-ripper (1.0.38) unstable; urgency=medium
 
   * The About window no longer shows a second close button: it gets the same

@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.38"
+APP_VERSION = "1.0.39"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -833,6 +833,70 @@ class EpisodeListPopover(Gtk.Popover):
         self.popdown()
 
 
+def choose_file(parent, title, filters=(), initial=None, folder=False, on_pick=None):
+    """File chooser that works on any GTK 4.
+
+    Gtk.FileDialog only exists from GTK 4.10, and Debian 12 ships 4.8 - where
+    "Browse..." did nothing at all, because the call raised AttributeError inside
+    a signal handler and went nowhere (C0D3D, 2026-11-15). Older GTK gets
+    Gtk.FileChooserNative instead; both paths hand the result to on_pick().
+    """
+    force_native = bool(os.environ.get("PEACEMACHINE_FORCE_NATIVE_CHOOSER"))
+    if hasattr(Gtk, "FileDialog") and not force_native:
+        dialog = Gtk.FileDialog()
+        dialog.set_title(title)
+        if filters:
+            store = Gio.ListStore.new(Gtk.FileFilter)
+            for item in filters:
+                store.append(item)
+            dialog.set_filters(store)
+        if initial:
+            try:
+                dialog.set_initial_folder(Gio.File.new_for_path(initial))
+            except Exception:
+                pass
+
+        if folder:
+            def done(chooser, result):
+                try:
+                    picked = chooser.select_folder_finish(result)
+                except GLib.Error:
+                    return
+                on_pick(picked)
+            dialog.select_folder(parent, None, done)
+        else:
+            def done(chooser, result):
+                try:
+                    picked = chooser.open_finish(result)
+                except GLib.Error:
+                    return
+                on_pick(picked)
+            dialog.open(parent, None, done)
+        return
+
+    action = (Gtk.FileChooserAction.SELECT_FOLDER if folder
+              else Gtk.FileChooserAction.OPEN)
+    native = Gtk.FileChooserNative.new(title, parent, action, "_Choose", "_Cancel")
+    for item in filters:
+        native.add_filter(item)
+    if initial:
+        try:
+            native.set_current_folder(Gio.File.new_for_path(initial))
+        except Exception:
+            pass
+
+    def on_response(dialog, response):
+        picked = dialog.get_file() if response == Gtk.ResponseType.ACCEPT else None
+        try:
+            dialog.destroy()
+        except Exception:
+            pass
+        on_pick(picked)
+
+    native.connect("response", on_response)
+    native.show()
+
+
 class RipperWindow(Gtk.ApplicationWindow):
     def __init__(self, app):
         super().__init__(application=app)
@@ -1156,9 +1220,7 @@ class RipperWindow(Gtk.ApplicationWindow):
             self.start_scan()
 
     def browse_source(self):
-        dialog = Gtk.FileDialog()
-        dialog.set_title("Choose a disc, ISO image or VIDEO_TS folder")
-        filters = Gio.ListStore.new(Gtk.FileFilter)
+        filters = []
         iso = Gtk.FileFilter()
         iso.set_name("Disc images (*.iso, *.img)")
         for pattern in ("*.iso", "*.ISO", "*.img"):
@@ -1174,18 +1236,14 @@ class RipperWindow(Gtk.ApplicationWindow):
         everything.set_name("All files")
         everything.add_pattern("*")
         filters.append(everything)
-        dialog.set_filters(filters)
 
-        def done(chooser, result):
-            try:
-                picked = chooser.open_finish(result)
-            except GLib.Error:
-                return
-            if picked is not None and picked.get_path():
-                self.source_entry.set_text(picked.get_path())
+        def picked(file):
+            if file is not None and file.get_path():
+                self.source_entry.set_text(file.get_path())
                 self.start_scan()
 
-        dialog.open(self, None, done)
+        choose_file(self, "Choose a disc, ISO image or VIDEO_TS folder",
+                    filters=filters, on_pick=picked)
 
     # ---------------------------------------------------------------- middle
     def build_middle_wrap(self):
@@ -3517,26 +3575,20 @@ class RipperWindow(Gtk.ApplicationWindow):
                 for row in rows]
 
     def pick_output_folder(self):
-        dialog = Gtk.FileDialog()
-        dialog.set_title("Where should the rips go?")
         current = self.output_entry.get_text().strip() or ripper.DEFAULT_OUTPUT_DIR
         try:
             os.makedirs(current, exist_ok=True)
-            dialog.set_initial_folder(Gio.File.new_for_path(current))
         except OSError:
-            pass
+            current = None
 
-        def done(chooser, result):
-            try:
-                folder = chooser.select_folder_finish(result)
-            except GLib.Error:
-                return
+        def picked(folder):
             if folder is not None and folder.get_path():
                 self.output_entry.set_text(folder.get_path())
                 self.state["output_dir"] = folder.get_path()
                 save_state(self.state)
 
-        dialog.select_folder(self, None, done)
+        choose_file(self, "Where should the rips go?", initial=current,
+                    folder=True, on_pick=picked)
 
     # ---------------------------------------------------------------- queue building
     def add_to_queue(self, auto_start=True):
