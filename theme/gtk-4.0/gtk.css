@@ -1762,3 +1762,28 @@ dropdown.sky-frame > button:disabled {
 window.hypr headerbar {
   padding-right: 104px;
 }
+
+/* Window controls as house discs (C0D3D, 2026-11-15): round black face, green
+   ring and green glyph, matching the hyprbars buttons instead of GTK's pills.
+   Under Hyprland the close button is hidden and hyprbars draws all three. */
+headerbar windowcontrols button {
+  min-width: 20px;
+  min-height: 20px;
+  padding: 0;
+  margin: 0 3px;
+  border-radius: 99px;
+  border: 1px solid #00ff41;
+  background: #02100a;
+  color: #00ff41;
+  box-shadow: none;
+}
+
+headerbar windowcontrols button:hover {
+  background: #06301a;
+  border-color: #7dffa4;
+  color: #7dffa4;
+}
+
+headerbar windowcontrols button image {
+  color: inherit;
+}

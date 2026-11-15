@@ -1,3 +1,11 @@
+peacemachine-dvd-ripper (1.0.3) unstable; urgency=medium
+
+  * Window controls are drawn as the house discs - round, black face, green
+    ring - instead of GTK's default pills, so the app matches C0D3D's desktop
+    on machines that have no hyprbars plugin.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 03:48:00 -0500
+
 peacemachine-dvd-ripper (1.0.2) unstable; urgency=medium
 
   * Fix the Matrix skin on machines that are not C0D3D's: the rain tiles were

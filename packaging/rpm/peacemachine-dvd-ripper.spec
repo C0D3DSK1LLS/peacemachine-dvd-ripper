@@ -1,5 +1,5 @@
 Name:           peacemachine-dvd-ripper
-Version:        1.0.2
+Version:        1.0.3
 Release:        1%{?dist}
 Summary:        Rip DVDs and video files into files your PC can play
 License:        MIT
@@ -47,6 +47,9 @@ sh packaging/install-files.sh . %{buildroot} %{_prefix}
 %{_datadir}/%{name}
 
 %changelog
+* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.3-1
+- Window controls as the house discs
+
 * Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.2-1
 - Ship the rain tiles and resolve them at runtime (they were absolute home paths)
 - Require python3-cairo for the spinner

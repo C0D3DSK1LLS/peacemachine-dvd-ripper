@@ -1429,3 +1429,20 @@ button:hover {
 window.hypr headerbar {
   padding-right: 104px;
 }
+
+/* Window controls as house discs (C0D3D, 2026-11-15). */
+headerbar windowcontrols button {
+  min-width: 20px;
+  min-height: 20px;
+  padding: 0;
+  margin: 0 3px;
+  border-radius: 99px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(0, 0, 0, 0.35);
+  color: #e6e6e6;
+  box-shadow: none;
+}
+
+headerbar windowcontrols button:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
