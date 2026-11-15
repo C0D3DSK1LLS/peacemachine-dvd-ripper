@@ -1,3 +1,11 @@
+peacemachine-dvd-ripper (1.0.37) unstable; urgency=medium
+
+  * No box-shadow on popovers. GTK reserves a margin the size of the shadow and
+    paints it as popover background, which put a thick black band around every
+    dropdown menu. The list now hugs a 1px border.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 08:28:00 -0500
+
 peacemachine-dvd-ripper (1.0.36) unstable; urgency=medium
 
   * Only list real titles by default: anything under 15 minutes is treated as an

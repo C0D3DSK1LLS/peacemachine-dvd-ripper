@@ -250,7 +250,10 @@ popover.background > contents {
   background-color: #04100a;
   border: 1px solid #1d3b25;
   color: #c9ffd2;
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.9), 0 0 12px rgba(0, 255, 65, 0.12);
+  /* No box-shadow. GTK reserves a margin the size of the shadow and paints it
+     as popover background, which made a thick black band around every dropdown
+     (C0D3D, 2026-11-15: "the border on the dropdown menu"). */
+  box-shadow: none;
 }
 
 popover listview row:hover {
@@ -1118,7 +1121,7 @@ dropdown > button:hover {
 }
 
 popover > contents, popover.background > contents {
-  box-shadow: 0 0 10px rgba(29, 59, 37, 0.50), 0 0 22px rgba(29, 59, 37, 0.20);
+  box-shadow: none;
 }
 
 checkbutton check {
