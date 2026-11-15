@@ -519,28 +519,56 @@ sudo sh packaging/install-files.sh . /usr /usr
 ### If the rip will not play
 
 The encode is H.264 video with the disc's own audio copied through, which is
-usually **AC-3**. A stock Ubuntu, Debian or Fedora desktop ships no AC-3 decoder,
-so its default player says "plugins which are not installed". Nothing is wrong
-with the file - install a player that has the codecs:
+usually **AC-3**. A stock Ubuntu, Fedora or openSUSE desktop ships no AC-3
+decoder, so double-clicking the file shows "plugins which are not installed".
+Nothing is wrong with the rip — the desktop's own player just cannot decode it.
+
+**Ubuntu, Debian, Mint, Kali** — teach the installed player the codecs:
+
+```
+sudo apt install -y gstreamer1.0-libav gstreamer1.0-plugins-ugly
+```
+
+**Fedora** — the same two plugins, from RPM Fusion (the install steps above already
+enabled it):
+
+```
+sudo dnf install -y gstreamer1-plugins-ugly gstreamer1-libav
+```
+
+**openSUSE** — from Packman, which the install steps above already added:
+
+```
+sudo zypper in -y gstreamer-plugins-ugly gstreamer-plugins-libav
+```
+
+**Arch, Omarchy**:
+
+```
+sudo pacman -S --needed gst-plugins-ugly gst-libav
+```
+
+**RHEL, Alma, Rocky** — simplest is a player that brings its own codecs:
+
+```
+sudo flatpak install -y flathub io.mpv.Mpv
+```
+
+Failing all that, mpv plays it on any of them:
 
 ```
 sudo apt install mpv
 ```
 
-```
-sudo dnf install mpv
-```
+Then open the file with it:
 
 ```
-sudo zypper in mpv
+mpv "$HOME/Videos/DVD Rips/your-file.mkv"
 ```
-
-Then open the file with it, e.g. `mpv "Bleach - 122 - ....mkv"`. On a desktop that
-already plays commercial video, the file plays as it is.
 
 The transcript is **inside the .mkv** as a subtitle track called
-"English (transcript)", set as the default track - there is no separate `.srt` file
-to find or load.
+"English (transcript)", set as the default — there is no separate `.srt` file to
+find or load. Press `v` in mpv to toggle it if the player has subtitles hidden.
 
 ### If the window works but the spinner and rain are missing
 
