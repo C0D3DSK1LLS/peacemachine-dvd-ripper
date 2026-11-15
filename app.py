@@ -1124,16 +1124,26 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.titles_list.add_css_class("title-list")
 
         scroller.set_child(self.titles_list)
-        titles_box.append(scroller)
 
-        # the folder spinny rides at the bottom of the column, centred, so it
-        # follows the panes as they are dragged (C0D3D, 2026-11-12)
+        # the folder spinny rides at the bottom of the column, centred, and the
+        # divider above it drags: pull the list taller and the spinner gives way
+        # (C0D3D, 2026-11-14)
         self.folder_spin = SpinFolder(size=680)
         self.folder_spin.set_halign(Gtk.Align.CENTER)
         self.folder_spin.set_valign(Gtk.Align.END)
         self.folder_spin.set_margin_top(4)
         self.folder_spin.set_margin_bottom(4)
-        titles_box.append(self.folder_spin)
+
+        self.titles_split = Gtk.Paned(orientation=Gtk.Orientation.VERTICAL)
+        self.titles_split.set_wide_handle(True)
+        self.titles_split.set_resize_start_child(True)
+        self.titles_split.set_resize_end_child(False)
+        self.titles_split.set_shrink_start_child(True)
+        self.titles_split.set_shrink_end_child(True)
+        self.titles_split.set_vexpand(True)
+        self.titles_split.set_start_child(scroller)
+        self.titles_split.set_end_child(self.folder_spin)
+        titles_box.append(self.titles_split)
         paned.set_start_child(titles_box)
 
         settings = card(4)
@@ -2342,6 +2352,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         GLib.timeout_add(300, self.watch_split)
         GLib.timeout_add(400, self.match_dropdown_height)
         GLib.timeout_add(2000, self.watch_drive)
+        GLib.timeout_add(400, self.place_titles_split)
 
         # a fresh session: nothing scanned, nothing remembered
         self.titles = []
@@ -2507,6 +2518,19 @@ class RipperWindow(Gtk.ApplicationWindow):
             return "%s · %d ch" % (ripper.fmt_hms(title.duration),
                                    len(title.chapters))
         return ripper.fmt_hms(title.duration)
+
+    def place_titles_split(self):
+        """Start the titles/spinner divider low, leaving room for the rows."""
+        if self.dead or not hasattr(self, "titles_split"):
+            return False
+        height = self.titles_split.get_height()
+        if height <= 0:
+            return False
+        spinner = 210
+        target = max(120, height - spinner)
+        if abs(self.titles_split.get_position() - target) > 4:
+            self.titles_split.set_position(target)
+        return False
 
     def toggle_short_extras(self):
         """Show or hide the sub-five-minute extras in the title list."""
