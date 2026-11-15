@@ -403,6 +403,16 @@ def selected_preset_uses_nvenc(job):
     return "nvenc" in preset or getattr(job, "preset_key", "") == "gpu"
 
 
+def handbrake_available():
+    """True when HandBrakeCLI is actually installed.
+
+    It is only a soft dependency now (Fedora keeps it in RPM Fusion, Alma has no
+    build at all), so the app has to say so instead of failing at the first scan
+    (C0D3D, 2026-11-15).
+    """
+    return os.path.exists(HANDBRAKE) or bool(shutil.which("HandBrakeCLI"))
+
+
 def nvenc_available():
     """True when this machine can actually use HandBrake's NVENC encoder.
 

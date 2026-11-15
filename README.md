@@ -76,13 +76,27 @@ sudo apt install -y libdvd-pkg && sudo dpkg-reconfigure libdvd-pkg
 
 ### Fedora
 
-Order matters — HandBrake and ffmpeg live in RPM Fusion, not in Fedora's own repos:
+Order matters. HandBrake, libdvdcss and the full ffmpeg all live in RPM Fusion,
+and Fedora's own `ffmpeg-free` conflicts with it, so the swap comes before
+anything else:
 
 ```
+# 1 - RPM Fusion, both halves
 sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
-sudo dnf install rpmfusion-free-release-tainted HandBrake ffmpeg libdvdcss
-sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.19/peacemachine-dvd-ripper-1.0.19-1.noarch.rpm
+sudo dnf install https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+
+# 2 - the full ffmpeg, replacing Fedora's ffmpeg-free
+sudo dnf install --allowerasing ffmpeg
+
+# 3 - HandBrake (this is the CLI package) and libdvdcss from the tainted section
+sudo dnf install rpmfusion-free-release-tainted HandBrake libdvdcss
+
+# 4 - the ripper itself
+sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.27/peacemachine-dvd-ripper-1.0.27-1.noarch.rpm
 ```
+
+If step 4 complains about the signature, add `--nogpgcheck` - the package is not
+signed yet.
 
 ### RHEL, AlmaLinux, Rocky Linux
 

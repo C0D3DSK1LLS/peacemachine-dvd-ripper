@@ -1,5 +1,5 @@
 Name:           peacemachine-dvd-ripper
-Version:        1.0.26
+Version:        1.0.27
 Release:        1%{?dist}
 Summary:        Rip DVDs and video files into files your PC can play
 License:        MIT
@@ -11,16 +11,20 @@ Requires:       python3
 Requires:       python3-gobject
 Requires:       python3-cairo
 Requires:       gtk4
-Requires:       ffmpeg
+# Fedora ships ffmpeg-free, RPM Fusion ships the full ffmpeg. Either is fine -
+# demanding only one of them made dnf refuse to install while the other was
+# present (C0D3D, 2026-11-15).
+Requires:       (ffmpeg or ffmpeg-free)
 
-# Fedora/RHEL ship HandBrake in RPM Fusion as "HandBrake" (which provides the
-# HandBrakeCLI binary); openSUSE ships it in Packman as "handbrake-cli".
+# HandBrake lives in RPM Fusion on Fedora, and is absent from RPM Fusion's EL
+# branch for Alma/RHEL 10, where a hard requirement failed the entire install.
+# The app now says plainly when HandBrakeCLI is missing.
 %if 0%{?suse_version}
 Requires:       python3-gobject-cairo
-Requires:       handbrake-cli
+Recommends:     handbrake-cli
 Recommends:     libdvdcss
 %else
-Requires:       HandBrake
+Recommends:     HandBrake
 Recommends:     libdvdcss
 %endif
 
@@ -48,6 +52,9 @@ sh packaging/install-files.sh . %{buildroot} %{_prefix}
 %{_datadir}/%{name}
 
 %changelog
+* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.27-1
+- ffmpeg or ffmpeg-free; HandBrake is a Recommends now
+
 * Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.26-1
 - Two skins only: Matrix and Basic (dark)
 
