@@ -1,3 +1,10 @@
+peacemachine-dvd-ripper (1.0.23) unstable; urgency=medium
+
+  * Hovering a dropdown or a row in a popup is green with white text instead of
+    the desktop theme's accent colour (purple on a stock Debian).
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 05:13:00 -0500
+
 peacemachine-dvd-ripper (1.0.22) unstable; urgency=medium
 
   * Dropdown and tooltip text is white instead of inheriting the crimson control

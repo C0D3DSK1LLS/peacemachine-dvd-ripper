@@ -1,6 +1,6 @@
 # Maintainer: William James Sova (C0D3D) <william@peacemachinestudios.com>
 pkgname=peacemachine-dvd-ripper
-pkgver=1.0.22
+pkgver=1.0.23
 pkgrel=1
 pkgdesc="Rip DVDs and video files into files your PC can play, with per-episode naming"
 arch=('any')

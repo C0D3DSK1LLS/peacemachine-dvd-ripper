@@ -1446,3 +1446,23 @@ headerbar windowcontrols button {
 headerbar windowcontrols button:hover {
   background: rgba(255, 255, 255, 0.16);
 }
+
+/* Hover and selection in popups (C0D3D, 2026-11-15). */
+popover listview row:hover,
+popover listview row:selected,
+popover row:hover,
+popover row:selected,
+listview row:hover,
+listview row:selected,
+menuitem:hover {
+  background-image: none;
+  background-color: #e8e8e8;
+  color: #1f1f1f;
+}
+
+popover listview row:hover label,
+popover listview row:selected label,
+listview row:selected label,
+menuitem:hover label {
+  color: #1f1f1f;
+}

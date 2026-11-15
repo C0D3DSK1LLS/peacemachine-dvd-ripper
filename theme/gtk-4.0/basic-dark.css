@@ -1192,3 +1192,37 @@ headerbar windowcontrols button {
 headerbar windowcontrols button:hover {
   background: rgba(255, 255, 255, 0.16);
 }
+
+/* Hover and selection in popups: green fill, WHITE text, never the desktop's
+   accent colour (C0D3D, 2026-11-15: hovering a dropdown went purple). */
+popover listview row:hover,
+popover listview row:selected,
+popover row:hover,
+popover row:selected,
+listview row:hover,
+listview row:selected,
+menuitem:hover,
+menu menuitem:hover,
+dropdown popover listview row:hover,
+dropdown popover listview row:selected {
+  background-image: none;
+  background-color: #0b2316;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+popover listview row:hover label,
+popover listview row:selected label,
+popover row:hover label,
+popover row:selected label,
+listview row:hover label,
+listview row:selected label,
+menuitem:hover label {
+  color: #ffffff;
+}
+
+dropdown > button:hover {
+  background-image: linear-gradient(to bottom, #0b2316, #06170e);
+  color: #ffffff;
+  border-color: #00ff41;
+}
