@@ -42,3 +42,40 @@ that combined distribution is GPL and must also offer their source.
 
 Note: ripping a disc you own for your own use is legal in many places, but the
 rules differ by country — check your own.
+
+## Installing from a package
+
+Packages install the program to `/usr/share/peacemachine-dvd-ripper`, a launcher
+to `/usr/bin/peacemachine-dvd-ripper`, and the menu entry. Your settings go to
+`~/.local/state/peacemachine-dvd-ripper`.
+
+The app needs HandBrake and ffmpeg, and **every commercial DVD is encrypted**, so
+you also need libdvdcss. How you get it depends on your distribution:
+
+**Arch, Omarchy, Manjaro, EndeavourOS** — both are in `extra`:
+
+```
+sudo pacman -S handbrake-cli ffmpeg libdvdcss
+```
+
+**Debian, Ubuntu, Kali, Mint** — HandBrake is in the normal repositories; libdvdcss
+is not, so Debian ships a helper that builds it on your machine:
+
+```
+sudo apt install handbrake-cli ffmpeg libdvd-pkg && sudo dpkg-reconfigure libdvd-pkg
+```
+
+**Fedora, RHEL, Alma, Rocky** — HandBrake lives in RPM Fusion because of codec
+patents, and libdvdcss only in its tainted section:
+
+```
+sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm && sudo dnf install rpmfusion-free-release-tainted HandBrake ffmpeg libdvdcss
+```
+
+**openSUSE** — Packman carries all three:
+
+```
+sudo zypper addrepo -f https://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_Tumbleweed/ packman && sudo zypper in handbrake-cli ffmpeg libdvdcss
+```
+
+Building the packages yourself: see `packaging/README.md`.

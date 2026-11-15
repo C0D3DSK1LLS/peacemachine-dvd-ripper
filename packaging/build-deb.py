@@ -39,15 +39,51 @@ def project_version():
     raise SystemExit("APP_VERSION not found in app.py")
 
 
-def package_stanza():
-    """The Package: block from debian/control, minus the ${...} placeholders."""
-    paragraph = []
+# Fields that belong in the *source* control file, not the binary one.
+SOURCE_ONLY = {"Source", "Build-Depends", "Build-Depends-Indep", "Standards-Version",
+               "Rules-Requires-Root", "Testsuite", "Vcs-Browser", "Vcs-Git"}
+BINARY_ORDER = ["Package", "Version", "Section", "Priority", "Architecture",
+                "Maintainer", "Installed-Size", "Depends", "Recommends", "Suggests",
+                "Homepage", "Description"]
+
+
+def package_fields():
+    """The binary stanza from debian/control, as an ordered dict of name -> value.
+
+    Continuation lines (the long Description) are kept attached to their field.
+    """
+    fields = {}
+    current = None
     with open(os.path.join(HERE, "debian", "control"), encoding="utf-8") as handle:
         for line in handle:
-            if line.startswith("Source:") or not line.strip():
+            line = line.rstrip("\n")
+            if not line.strip():
+                current = None
                 continue
-            paragraph.append(line.rstrip("\n"))
-    return "\n".join(paragraph) + "\n"
+            if line.startswith(" ") or line.startswith("\t"):
+                if current:
+                    fields[current] += "\n" + line
+                continue
+            name, _, value = line.partition(":")
+            current = name.strip()
+            fields[current] = value.strip()
+    return {name: value for name, value in fields.items() if name not in SOURCE_ONLY}
+
+
+def build_control(version, installed_size):
+    fields = package_fields()
+    fields["Version"] = version
+    fields["Installed-Size"] = str(installed_size)
+    fields.setdefault("Homepage", "https://peacemachinestudios.com")
+    # ${misc:Depends} is substituted by debhelper; here it resolves to nothing.
+    for name in ("Depends", "Recommends", "Suggests"):
+        if name in fields:
+            parts = [part.strip() for part in fields[name].split(",")]
+            fields[name] = ", ".join(part for part in parts if part and not part.startswith("${"))
+
+    order = [name for name in BINARY_ORDER if name in fields]
+    order += [name for name in fields if name not in BINARY_ORDER]
+    return "".join("%s: %s\n" % (name, fields[name]) for name in order)
 
 
 def write_tar_gz(path, files, base):
@@ -128,13 +164,7 @@ def main():
                 installed_size += os.path.getsize(absolute)
         installed_size = max(1, (installed_size + 1023) // 1024)
 
-        control = package_stanza()
-        control = control.replace("${misc:Depends}", "")
-        control = control.replace("Architecture: all", "Architecture: all")
-        control += "Installed-Size: %d\n" % installed_size
-        control += "Homepage: https://peacemachinestudios.com\n"
-        if "Version:" not in control:
-            control += "\n"  # the version lives in the file name for a binary-only deb
+        control = build_control(version, installed_size)
 
         control_work = os.path.join(work, "control")
         os.makedirs(control_work)
@@ -142,6 +172,12 @@ def main():
             handle.write(control)
         with open(os.path.join(control_work, "md5sums"), "w", encoding="utf-8") as handle:
             handle.writelines(md5_lines)
+        # Keep the menu in step without debhelper around to do it for us.
+        with open(os.path.join(control_work, "postinst"), "w", encoding="utf-8") as handle:
+            handle.write("#!/bin/sh\nset -e\n"
+                         "command -v update-desktop-database >/dev/null && "
+                         "update-desktop-database -q || true\nexit 0\n")
+        os.chmod(os.path.join(control_work, "postinst"), 0o755)
 
         control_tar = os.path.join(work, "control.tar.gz")
         write_tar_gz(control_tar, walk(control_work), control_work)
