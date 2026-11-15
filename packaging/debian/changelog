@@ -1,3 +1,11 @@
+peacemachine-dvd-ripper (1.0.43) unstable; urgency=medium
+
+  * The --install-asr hint names the right package. It told openSUSE users to
+    install python3-virtualenv, which is a different tool; venv ships with
+    python3 everywhere except Debian and Ubuntu.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 14:51:00 -0500
+
 peacemachine-dvd-ripper (1.0.42) unstable; urgency=medium
 
   * Transcripts are installable. `peacemachine-dvd-ripper --install-asr` builds
