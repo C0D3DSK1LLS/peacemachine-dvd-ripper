@@ -50,15 +50,16 @@ rules differ by country — check your own.
 Each distribution below is pinned to the version that was actually installed and
 run on it, not simply the newest upload.
 
-| Distribution | Build | What was verified |
-| --- | --- | --- |
-| Debian 13 | **1.0.26** | install, drive detection, scan, Find, Start, Stop, rip |
-| Ubuntu 26.04 | **1.0.26** | install, drive detection, scan, rip, Stop |
-| Fedora 45 | **1.0.26** | install (RPM Fusion + `--allowerasing ffmpeg`), scan, rip |
-| AlmaLinux 10 | 1.0.29 verified | install, Flatpak HandBrake, scan, rip, Stop |
-| openSUSE Leap 16 | 1.0.35 verified | install, Flatpak HandBrake, scan, rip |
-| Kali, Mint, Pop!_OS | 1.0.26 | same apt path as Debian |
-| Arch / Omarchy | 1.0.26 | package installs clean; the author runs the same code |
+| Distribution | GTK | Verified at | What was proven |
+| --- | --- | --- | --- |
+| Debian 13 | 4.18 | 1.0.26 | install, drive detection, scan, Find, Start, Stop, rip |
+| Ubuntu 24.04 LTS | 4.14 | 1.0.37 | install, drive detection, scan, rip |
+| Ubuntu 26.04 | 4.20 | 1.0.26 | install, drive detection, scan, rip, Stop |
+| Fedora 45 | 4.20 | 1.0.26 | install (RPM Fusion + `--allowerasing ffmpeg`), scan, rip |
+| AlmaLinux 10 | 4.18 | 1.0.37 | install, Flatpak HandBrake, scan, rip, Stop |
+| openSUSE Leap 16 | 4.18 | 1.0.37 | install, Flatpak HandBrake, scan, rip |
+| Kali, Mint, Pop!_OS | - | - | same apt path as the Ubuntu builds above |
+| Arch / Omarchy | 4.20 | 1.0.37 | package installs clean; the author runs the same code |
 
 **1.0.37 is the current build for every distribution**, and is what the install
 blocks below fetch. The table records the version each distribution was actually
