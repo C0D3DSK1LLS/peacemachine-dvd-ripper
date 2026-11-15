@@ -2357,8 +2357,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         GLib.timeout_add(300, self.watch_split)
         GLib.timeout_add(400, self.match_dropdown_height)
         GLib.timeout_add(2000, self.watch_drive)
-        GLib.timeout_add(400, self.place_titles_split)
-        GLib.timeout_add(1100, self.place_titles_split)
+        GLib.timeout_add(300, self.place_titles_split)
 
         # a fresh session: nothing scanned, nothing remembered
         self.titles = []
@@ -2526,17 +2525,37 @@ class RipperWindow(Gtk.ApplicationWindow):
         return ripper.fmt_hms(title.duration)
 
     def place_titles_split(self):
-        """Start the titles/spinner divider low, leaving room for the rows."""
+        """Open with the spinner area at the size he picked.
+
+        Polls instead of using fixed delays: the card has no height until the
+        window is laid out, and a late re-tile used to leave the divider all the
+        way down. A steady-size move more than a second after we placed it is
+        him dragging, and that stops the poll (C0D3D, 2026-11-14).
+        """
         if self.dead or not hasattr(self, "titles_split"):
             return False
+        if getattr(self, "titles_split_user", False):
+            return False
+        now = time.monotonic()
         height = self.titles_split.get_height()
         if height <= 0:
+            return True                      # not laid out yet, try again
+        target = max(120, height - 235)
+        position = self.titles_split.get_position()
+        placed_pos = getattr(self, "titles_split_placed_pos", None)
+        placed_height = getattr(self, "titles_split_placed_height", None)
+        if (placed_pos is not None and abs(position - placed_pos) > 6
+                and placed_height == height
+                and now - getattr(self, "titles_split_placed_at", 0.0) > 1.2):
+            self.titles_split_user = True    # that was him, leave it alone
             return False
-        spinner = 235          # the size he picked for the spinner on startup
-        target = max(120, min(height - 110, height - spinner))
-        if abs(self.titles_split.get_position() - target) > 4:
+        if abs(position - target) > 4 or placed_height != height:
             self.titles_split.set_position(target)
-        return False
+            self.titles_split_placed_pos = self.titles_split.get_position()
+            self.titles_split_placed_height = height
+            self.titles_split_placed_at = now
+        self.titles_split_checks = getattr(self, "titles_split_checks", 0) + 1
+        return self.titles_split_checks < 14
 
     def toggle_short_extras(self):
         """Show or hide the sub-five-minute extras in the title list."""
