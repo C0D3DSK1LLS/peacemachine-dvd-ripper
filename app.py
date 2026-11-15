@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.18"
+APP_VERSION = "1.0.19"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -959,7 +959,10 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.output_dir = saved.get("output_dir") or ripper.DEFAULT_OUTPUT_DIR
         self.output_entry.set_text(self.output_dir)
 
-        GLib.idle_add(self.bootstrap)
+        # NOT idle_add: on the Debian test VM GLib idle callbacks were never
+        # dispatched, so bootstrap never ran - no timers, no drive detection and
+        # a spinner that span for ever (C0D3D, 2026-11-15). A timeout always runs.
+        GLib.timeout_add(50, self.bootstrap)
 
     # ---------------------------------------------------------------- source
     def current_theme(self):
@@ -2470,6 +2473,7 @@ class RipperWindow(Gtk.ApplicationWindow):
 
     # ---------------------------------------------------------------- bootstrap
     def bootstrap(self):
+        ripper.log("bootstrap: drives=%s" % ripper.list_sources())
         saved = self.state
         # fixed startup choices, never restored from the file
         self.apply_startup_choices()

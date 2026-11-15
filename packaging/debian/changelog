@@ -1,3 +1,12 @@
+peacemachine-dvd-ripper (1.0.19) unstable; urgency=medium
+
+  * Start the window from a timeout instead of an idle callback. On the Debian
+    test VM GLib idle callbacks were never dispatched, so bootstrap never ran:
+    no drive detection, no timers, and Scan disc span for ever with the titles
+    already parsed. This is the real cause of both symptoms.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 04:50:00 -0500
+
 peacemachine-dvd-ripper (1.0.18) unstable; urgency=medium
 
   * Scan disc always finds a drive: an empty box, or a stale /dev/srN left over
