@@ -39,7 +39,7 @@ APP_VERSION = "1.0.0"
 # size and position ... the default, and open it to that on launch").
 DEFAULT_SPLIT_POSITION = 400     # titles column width
 DEFAULT_QUEUE_HEIGHT = 118       # rip queue height
-SHORT_EXTRA_SECONDS = 300        # titles shorter than this are extras, not listed
+SHORT_EXTRA_SECONDS = 900        # under 15 minutes = an extra, not listed (C0D3D, 2026-11-15)
 THEMES = [
     {"key": "matrix", "short": "Matrix"},
     {"key": "basic-dark", "short": "Basic (dark)"},
