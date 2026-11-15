@@ -10,7 +10,7 @@ depends=('python' 'python-gobject' 'python-cairo' 'gtk4' 'handbrake-cli' 'ffmpeg
 optdepends=('libdvdcss: read encrypted commercial DVDs')
 provides=('dvd-ripper')
 source=("$pkgname-$pkgver.tar.gz::https://github.com/C0D3DSK1LLS/$pkgname/releases/download/v$pkgver/$pkgname-$pkgver.tar.gz")
-sha256sums=('PLACEHOLDER')
+sha256sums=('e14d7edafad7c50bc801af58d361c881b174c58bf1ce2d721ebdedf2a63eb041')
 
 package() {
     local datadir="$pkgdir/usr/share/$pkgname"

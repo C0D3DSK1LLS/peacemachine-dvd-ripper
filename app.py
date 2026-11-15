@@ -1898,9 +1898,11 @@ class RipperWindow(Gtk.ApplicationWindow):
 
         # Caption and buttons share one row (C0D3D, 2026-11-11) so the buttons sit
         # right at the top edge of the card and the list starts under them.
-        head = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        # A CenterBox centres the button group in the WINDOW rather than in the
+        # space left over after the caption (C0D3D, 2026-11-15).
+        head = Gtk.CenterBox()
 
-        head.append(caption("RIP QUEUE"))
+        head.set_start_widget(caption("RIP QUEUE"))
 
         # A plain Box, not a FlowBox: a FlowBox hands out its spare width as gaps
         # between the children, which is what kept spreading these out
@@ -1909,7 +1911,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         # first if the window is narrow.
         buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         buttons.add_css_class("queue-buttons")
-        buttons.set_halign(Gtk.Align.START)
+        buttons.set_halign(Gtk.Align.CENTER)
         buttons.set_valign(Gtk.Align.CENTER)
         buttons.set_hexpand(False)
 
@@ -1959,7 +1961,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         buttons.append(self.retry_button)
 
         self.hug_children(buttons)
-        head.append(buttons)
+        head.set_center_widget(buttons)
         box.append(head)
 
         self.queue_list = Gtk.ListBox()
