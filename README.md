@@ -55,13 +55,15 @@ run on it, not simply the newest upload.
 | Debian 13 | **1.0.26** | install, drive detection, scan, Find, Start, Stop, rip |
 | Ubuntu 26.04 | **1.0.26** | install, drive detection, scan, rip, Stop |
 | Fedora 45 | **1.0.26** | install (RPM Fusion + `--allowerasing ffmpeg`), scan, rip |
-| AlmaLinux 10 | **1.0.29** | install, Flatpak HandBrake, scan, rip, Stop |
-| openSUSE Leap 16 | **1.0.35** | install, Flatpak HandBrake, scan, rip |
+| AlmaLinux 10 | 1.0.29 verified | install, Flatpak HandBrake, scan, rip, Stop |
+| openSUSE Leap 16 | 1.0.35 verified | install, Flatpak HandBrake, scan, rip |
 | Kali, Mint, Pop!_OS | 1.0.26 | same apt path as Debian |
 | Arch / Omarchy | 1.0.26 | package installs clean; the author runs the same code |
 
-Newer builds exist in the releases list and are fine to try, but they are UI
-changes on top of the versions above rather than newly verified releases.
+**1.0.36 is the current build for every distribution**, and is what the install
+blocks above fetch. The table records the version each distribution was actually
+tested at; 1.0.36 adds the 15-minute extras filter on top of those builds, which
+is a display rule rather than a change to scanning, ripping or encoding.
 
 ## Install — copy and paste
 
@@ -72,15 +74,15 @@ every distribution; only the package names differ.
 
 ```
 sudo pacman -S handbrake-cli ffmpeg libdvdcss
-sudo pacman -U https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.26/peacemachine-dvd-ripper-1.0.26-1-any.pkg.tar.zst
+sudo pacman -U https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.36/peacemachine-dvd-ripper-1.0.36-1-any.pkg.tar.zst
 ```
 
 ### Debian, Ubuntu, Mint, Pop!_OS, Kali
 
 ```
 sudo apt install -y handbrake-cli ffmpeg curl
-curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.26/peacemachine-dvd-ripper_1.0.26_all.deb
-sudo apt install ./peacemachine-dvd-ripper_1.0.26_all.deb
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.36/peacemachine-dvd-ripper_1.0.36_all.deb
+sudo apt install ./peacemachine-dvd-ripper_1.0.36_all.deb
 ```
 
 Reading an encrypted (commercial) disc needs libdvdcss, which Debian will not ship.
@@ -110,7 +112,7 @@ sudo dnf install --allowerasing ffmpeg
 sudo dnf install rpmfusion-free-release-tainted HandBrake libdvdcss
 
 # 4 - the ripper itself
-sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.26/peacemachine-dvd-ripper-1.0.26-1.noarch.rpm
+sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.36/peacemachine-dvd-ripper-1.0.36-1.noarch.rpm
 ```
 
 If step 4 complains about the signature, add `--nogpgcheck` - the package is not
@@ -163,8 +165,8 @@ sudo zypper --gpg-auto-import-keys refresh
 sudo zypper in -y handbrake-cli ffmpeg libdvdcss2
 
 # 5 - the ripper
-curl -O https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.35/peacemachine-dvd-ripper-1.0.35-1.noarch.rpm
-sudo zypper in -y --allow-unsigned-rpm ./peacemachine-dvd-ripper-1.0.35-1.noarch.rpm
+curl -O https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.36/peacemachine-dvd-ripper-1.0.36-1.noarch.rpm
+sudo zypper in -y --allow-unsigned-rpm ./peacemachine-dvd-ripper-1.0.36-1.noarch.rpm
 ```
 
 On **Tumbleweed**, swap both repo paths for `openSUSE_Tumbleweed` and `SuSE/16.0`
@@ -187,9 +189,9 @@ The only requirements are Python 3, GTK 4 with PyGObject, PyGObject's cairo
 bridge, HandBrake and ffmpeg:
 
 ```
-curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.26/peacemachine-dvd-ripper-1.0.26.tar.gz
-tar -xzf peacemachine-dvd-ripper-1.0.26.tar.gz
-cd peacemachine-dvd-ripper-1.0.26
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.36/peacemachine-dvd-ripper-1.0.36.tar.gz
+tar -xzf peacemachine-dvd-ripper-1.0.36.tar.gz
+cd peacemachine-dvd-ripper-1.0.36
 sudo sh packaging/install-files.sh . /usr /usr
 ```
 

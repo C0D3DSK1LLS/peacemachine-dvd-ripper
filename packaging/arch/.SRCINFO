@@ -1,6 +1,6 @@
 pkgbase = peacemachine-dvd-ripper
 	pkgdesc = Rip DVDs and video files into files your PC can play, with per-episode naming
-	pkgver = 1.0.35
+	pkgver = 1.0.36
 	pkgrel = 1
 	url = https://peacemachinestudios.com
 	arch = any
@@ -13,7 +13,7 @@ pkgbase = peacemachine-dvd-ripper
 	depends = ffmpeg
 	optdepends = libdvdcss: read encrypted commercial DVDs
 	provides = dvd-ripper
-	source = peacemachine-dvd-ripper-1.0.35.tar.gz::https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.35/peacemachine-dvd-ripper-1.0.35.tar.gz
-	sha256sums = cd4ea98fd5ba22d6bdafb4f38f998add3729b01ffdf4ed25958997b27c15182f
+	source = peacemachine-dvd-ripper-1.0.36.tar.gz::https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.36/peacemachine-dvd-ripper-1.0.36.tar.gz
+	sha256sums = 4d633d6eac3d787f8c85a7e7b95f13a7d775b21d16310a9b1b567320ed738132
 
 pkgname = peacemachine-dvd-ripper
