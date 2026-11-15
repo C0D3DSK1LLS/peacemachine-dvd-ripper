@@ -47,41 +47,88 @@ rules differ by country — check your own.
 
 ## Copy and paste (published release)
 
-**Arch, Omarchy, Manjaro, EndeavourOS**
+Everything below installs **PeaceMachine DVD Ripper 1.0.19**. The app is the same on
+every distribution; only the package names differ.
+
+### Arch, Omarchy, Manjaro, EndeavourOS, CachyOS
 
 ```
 sudo pacman -S handbrake-cli ffmpeg libdvdcss
-sudo pacman -U https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.0/peacemachine-dvd-ripper-1.0.0-1-any.pkg.tar.zst
+sudo pacman -U https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.19/peacemachine-dvd-ripper-1.0.19-1-any.pkg.tar.zst
 ```
 
-**Debian, Ubuntu, Kali, Mint**
+### Debian, Ubuntu, Mint, Pop!_OS, Kali
 
 ```
 sudo apt install -y handbrake-cli ffmpeg curl
-curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.0/peacemachine-dvd-ripper_1.0.0_all.deb
-sudo apt install ./peacemachine-dvd-ripper_1.0.0_all.deb
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.19/peacemachine-dvd-ripper_1.0.19_all.deb
+sudo apt install ./peacemachine-dvd-ripper_1.0.19_all.deb
+```
 
-# only needed to read a commercial (encrypted) DVD, not to install the app
-# libdvd-pkg lives in "contrib", so add it if your sources.list only has "main"
-sudo sed -i 's/trixie main/trixie main contrib/' /etc/apt/sources.list
+Reading an encrypted (commercial) disc needs libdvdcss, which Debian will not ship.
+`libdvd-pkg` lives in **contrib**, and it builds libdvdcss on your machine:
+
+```
+sudo sed -i 's/ main$/ main contrib/' /etc/apt/sources.list
 sudo apt update
 sudo apt install -y libdvd-pkg && sudo dpkg-reconfigure libdvd-pkg
 ```
 
-**Fedora**
+### Fedora
+
+Order matters — HandBrake and ffmpeg live in RPM Fusion, not in Fedora's own repos:
 
 ```
 sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
 sudo dnf install rpmfusion-free-release-tainted HandBrake ffmpeg libdvdcss
-sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.0/peacemachine-dvd-ripper-1.0.0-1.noarch.rpm
+sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.19/peacemachine-dvd-ripper-1.0.19-1.noarch.rpm
 ```
 
-**openSUSE Tumbleweed**
+### RHEL, AlmaLinux, Rocky Linux
+
+Same packages from RPM Fusion's **EL** branch:
+
+```
+sudo dnf install --nogpgcheck https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-$(rpm -E %rhel).noarch.rpm
+sudo dnf install rpmfusion-free-release-tainted HandBrake ffmpeg libdvdcss
+sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.19/peacemachine-dvd-ripper-1.0.19-1.noarch.rpm
+```
+
+### openSUSE Leap and Tumbleweed
 
 ```
 sudo zypper addrepo -f https://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_Tumbleweed/ packman
 sudo zypper in handbrake-cli ffmpeg libdvdcss
-sudo zypper in https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.0/peacemachine-dvd-ripper-1.0.0-1.noarch.rpm
+sudo zypper in https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.19/peacemachine-dvd-ripper-1.0.19-1.noarch.rpm
+```
+
+On **Leap**, point that repo at `openSUSE_Leap_16.0` instead of `openSUSE_Tumbleweed`.
+
+### From source, on anything
+
+The only requirements are Python 3, GTK 4 with PyGObject, PyGObject's cairo
+bridge, HandBrake and ffmpeg:
+
+```
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.19/peacemachine-dvd-ripper-1.0.19.tar.gz
+tar -xzf peacemachine-dvd-ripper-1.0.19.tar.gz
+cd peacemachine-dvd-ripper-1.0.19
+sudo sh packaging/install-files.sh . /usr /usr
+```
+
+### If the window works but the spinner and rain are missing
+
+That is the PyGObject cairo bridge. It is declared as a dependency in every
+package, but if you installed with `dpkg -i` or `rpm -U` instead of through the
+package manager, nothing pulls it in:
+
+```
+# Debian, Ubuntu, Kali
+sudo apt install -y python3-gi-cairo python3-cairo
+# openSUSE
+sudo zypper in python3-gobject-cairo
+# Fedora bundles it inside python3-gobject - reinstall that if it is missing
+sudo dnf reinstall python3-gobject
 ```
 
 ## Installing from a package
