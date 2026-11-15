@@ -824,7 +824,10 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.build_keys()
 
         self.page = Gtk.ScrolledWindow()
-        self.page.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.NEVER)
+        # horizontal AUTOMATIC: if the window is ever narrower than the columns'
+        # minimum, the content scrolls instead of being clipped — GTK clips the
+        # LEFT edge when it has to, which cut "TITLES" in half (C0D3D, 2026-11-14)
+        self.page.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.NEVER)
         self.page.set_overlay_scrolling(False)
         self.page.set_child(root)
         self.page.set_vexpand(True)
@@ -1078,6 +1081,8 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.titles_card = titles_box
         head = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         _titles_cap = caption("TITLES ON THE DISC")
+        _titles_cap.set_ellipsize(Pango.EllipsizeMode.END)
+        _titles_cap.set_max_width_chars(20)
         _titles_cap.add_css_class("cap-green")
         head.append(_titles_cap)
         clear_titles = Gtk.Button(label="Clear")
@@ -1088,6 +1093,9 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.titles_count = plain("", "dim")
         self.titles_count.set_hexpand(True)
         self.titles_count.set_halign(Gtk.Align.END)
+        # it must never be able to widen the card
+        self.titles_count.set_ellipsize(Pango.EllipsizeMode.END)
+        self.titles_count.set_max_width_chars(20)
         head.append(self.titles_count)
         titles_box.append(head)
 
@@ -2216,7 +2224,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         else:
             self.paned.set_size_request(-1, -1)
             self.queue_paned.set_size_request(-1, -1)
-            self.page.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.NEVER)
+            self.page.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.NEVER)
             self.settings_scroller.set_policy(Gtk.PolicyType.NEVER,
                                               Gtk.PolicyType.AUTOMATIC)
             self.paned.set_orientation(Gtk.Orientation.HORIZONTAL)
@@ -2581,11 +2589,11 @@ class RipperWindow(Gtk.ApplicationWindow):
             self.titles_list.append(row)
 
         count = len(visible)
+        # keep this short: a long count inflates the header's minimum width and
+        # GTK then clips the whole card (C0D3D, 2026-11-14)
         self.titles_count.set_text("%d title%s%s" % (
             count, "" if count == 1 else "s",
-            "" if not hidden_extras else
-            "  ·  %d short extra%s hidden" % (
-                hidden_extras, "" if hidden_extras == 1 else "s")))
+            "" if not hidden_extras else " · +%d hidden" % hidden_extras))
         if visible:
             self.titles_hint.set_visible(False)
         if hidden_extras:
