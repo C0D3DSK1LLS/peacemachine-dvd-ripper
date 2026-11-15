@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.31"
+APP_VERSION = "1.0.32"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -1906,12 +1906,12 @@ class RipperWindow(Gtk.ApplicationWindow):
         # is genuinely too narrow to hold them.
         buttons.set_max_children_per_line(6)
         buttons.set_min_children_per_line(5)
-        buttons.set_column_spacing(4)
+        buttons.set_column_spacing(8)
         buttons.set_row_spacing(2)
         buttons.set_homogeneous(False)
-        buttons.set_halign(Gtk.Align.START)
+        buttons.set_halign(Gtk.Align.FILL)
         buttons.set_valign(Gtk.Align.CENTER)
-        buttons.set_hexpand(False)
+        buttons.set_hexpand(True)
 
         self.start_button = icon_button("Start", "media-playback-start-symbolic")
         self.start_button.add_css_class("compact-button")
