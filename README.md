@@ -31,7 +31,8 @@ run on it, not simply the newest upload.
 
 | Distribution | GTK | Verified at | What was proven |
 | --- | --- | --- | --- |
-| Debian 13 | 4.18 | 1.0.40 | install, drive detection, scan, Find, Start, Stop, rip |
+| Debian 12 (bookworm) | 4.8 | 1.0.40 | install, drive detection, scan, Find, Start, Stop, rip |
+| Debian 13 (trixie) | 4.18 | 1.0.26 | install, drive detection, scan, rip |
 | Ubuntu 24.04 LTS | 4.14 | 1.0.37 | install, drive detection, scan, rip |
 | Ubuntu 26.04 | 4.20 | 1.0.26 | install, drive detection, scan, rip, Stop |
 | Fedora 45 | 4.20 | 1.0.26 | install (RPM Fusion + `--allowerasing ffmpeg`), scan, rip |
@@ -74,7 +75,7 @@ peacemachine-dvd-ripper
 
 ### Debian
 
-Verified on Debian 13.
+Verified on Debian 12 (GTK 4.8, the oldest tested) and Debian 13.
 
 1. HandBrake, ffmpeg and curl:
 
@@ -119,7 +120,7 @@ peacemachine-dvd-ripper
 
 ### Ubuntu, Mint, Pop!_OS, Kali
 
-Verified on Ubuntu 24.04 LTS (GTK 4.14, the oldest tested) and Ubuntu 26.04.
+Verified on Ubuntu 24.04 LTS (GTK 4.14) and Ubuntu 26.04.
 
 1. Refresh the lists:
 
