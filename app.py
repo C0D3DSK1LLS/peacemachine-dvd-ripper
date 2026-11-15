@@ -33,13 +33,16 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.35"
+APP_VERSION = "1.0.36"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
 DEFAULT_SPLIT_POSITION = 400     # titles column width
 DEFAULT_QUEUE_HEIGHT = 118       # rip queue height
-SHORT_EXTRA_SECONDS = 300        # titles shorter than this are extras, not listed
+# 15 minutes: on a Bleach disc the 4-minute recaps and previews were showing up
+# as titles, so only the episodes and the main feature are listed by default
+# (C0D3D, 2026-11-15: "1 and 2 are visible and 2 should also be hidden").
+SHORT_EXTRA_SECONDS = 900        # titles shorter than this are extras, not listed
 # The packaged build ships two skins, Matrix and Basic (dark). C0D3D keeps the
 # light and Windows 11 sheets on his own desktop build only (2026-11-15).
 THEMES = [

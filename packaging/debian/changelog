@@ -1,3 +1,11 @@
+peacemachine-dvd-ripper (1.0.36) unstable; urgency=medium
+
+  * Only list real titles by default: anything under 15 minutes is treated as an
+    extra (recaps, previews, menus) and folded behind the "Unhide" button. The
+    5-minute threshold was letting 4-minute recaps through as titles.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 08:20:00 -0500
+
 peacemachine-dvd-ripper (1.0.33) unstable; urgency=medium
 
   * Queue buttons are a plain Box now, packed at their natural width with an 8px
