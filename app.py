@@ -2661,6 +2661,12 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.titles_split_checks = getattr(self, "titles_split_checks", 0) + 1
         return self.titles_split_checks < 6
 
+    def set_episode_status(self, text):
+        """Write the episode status line, hiding it when there is nothing to say."""
+        text = text or ""
+        self.episode_status.set_text(text)
+        self.episode_status.set_visible(bool(text))
+
     def toggle_short_extras(self):
         """Show or hide the sub-five-minute extras in the title list."""
         self.show_short_extras = not getattr(self, "show_short_extras", False)
@@ -3086,9 +3092,9 @@ class RipperWindow(Gtk.ApplicationWindow):
     def lookup_show(self):
         query = self.show_entry.get_text().strip()
         if not query:
-            self.episode_status.set_text("Type a show name first.")
+            self.set_episode_status("Type a show name first.")
             return
-        self.episode_status.set_text("Searching for “%s”…" % query)
+        self.set_episode_status("Searching for “%s”…" % query)
         threading.Thread(target=self.search_worker, args=(query,),
                          daemon=True).start()
 
@@ -3100,7 +3106,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         if self.dead:
             return False
         if not shows:
-            self.episode_status.set_text(
+            self.set_episode_status(
                 "No shows found for “%s” — check the name or your connection." % query)
             return False
         self.episode_shows = shows
@@ -3111,7 +3117,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.show_dropdown.set_model(Gtk.StringList.new(labels))
         self.show_dropdown.set_sensitive(True)
         self.show_dropdown.set_selected(0)
-        self.episode_status.set_text(
+        self.set_episode_status(
             "%d match%s — pick one in the list below."
             % (len(shows), "" if len(shows) == 1 else "es"))
         self.load_episodes(shows[0]["id"], shows[0]["name"])
@@ -3128,7 +3134,7 @@ class RipperWindow(Gtk.ApplicationWindow):
 
     def load_episodes(self, show_id, show_name):
         self.episode_show = show_name
-        self.episode_status.set_text("Fetching the episode list for %s…" % show_name)
+        self.set_episode_status("Fetching the episode list for %s…" % show_name)
         threading.Thread(target=self.episodes_worker, args=(show_id, show_name),
                          daemon=True).start()
 
@@ -3141,7 +3147,7 @@ class RipperWindow(Gtk.ApplicationWindow):
             return False
         self.episode_rows = rows
         if not rows:
-            self.episode_status.set_text(
+            self.set_episode_status(
                 "No episode list came back for %s." % show_name)
             self.split_text_changed()
             return False
@@ -3153,7 +3159,7 @@ class RipperWindow(Gtk.ApplicationWindow):
             for row in rows if row.get("season") is not None)
         self.detected_style = (episode_names.STYLE_ABSOLUTE if year_seasons
                                else episode_names.STYLE_SEASON)
-        self.episode_status.set_text(
+        self.set_episode_status(
             "%s — %d episodes. Set the first episode on this disc."
             % (show_name, len(rows)))
         self.apply_auto_start()
@@ -3183,7 +3189,7 @@ class RipperWindow(Gtk.ApplicationWindow):
 
     def open_episode_list(self, button=None):
         if not self.episode_rows:
-            self.episode_status.set_text("Look a show up first.")
+            self.set_episode_status("Look a show up first.")
             return
         popover = EpisodeListPopover(
             self.episode_show, self.episode_rows, self.name_style_key(),
@@ -3204,7 +3210,7 @@ class RipperWindow(Gtk.ApplicationWindow):
 
         if len(episodes) >= 2:
             self.episode_parts.set_value(min(20, len(episodes)))
-            self.episode_status.set_text(
+            self.set_episode_status(
                 "%d episode-length titles on this disc — so %d episodes."
                 % (len(episodes), len(episodes)))
             return
@@ -3222,17 +3228,16 @@ class RipperWindow(Gtk.ApplicationWindow):
                     if any(abs(title.chapter_starts[index]
                                - title.duration * step / count) <= 45
                            for step in range(1, count))]
-            self.episode_status.set_text(
-                "One title of %s, %d episodes — cuts fall at %s."
-                % (ripper.fmt_hms(title.duration), count,
-                   ", ".join(cuts[:6]) or "even points"))
+            # the "one title of X, N episodes — cuts fall at ..." readout was
+            # removed at C0D3D's request (2026-11-15)
+            self.set_episode_status("")
             return
 
         runtime = int(self.episode_runtime or 0) * 60
         if runtime:
             count = max(1, min(12, int(round(title.duration / float(runtime)))))
             self.episode_parts.set_value(count)
-            self.episode_status.set_text(
+            self.set_episode_status(
                 "Roughly %d episode%s on %s — worth checking before you start."
                 % (count, "" if count == 1 else "s", ripper.fmt_hms(title.duration)))
 
@@ -3257,7 +3262,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         if disc and per_disc and per_disc > 1:
             start = (disc - 1) * per_disc + 1
             self.set_start_episode(start)
-            self.episode_status.set_text(
+            self.set_episode_status(
                 "%s — disc %d of the set, so episodes %d-%d."
                 % (self.episode_show, disc, start, start + per_disc - 1))
             return
@@ -3273,7 +3278,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         next_episode = int(progress.get("next") or 0)
         if next_episode > 0:
             self.set_start_episode(next_episode)
-            self.episode_status.set_text(
+            self.set_episode_status(
                 "%s — %d episodes. Carrying on from episode %d (last disc ended "
                 "there)." % (self.episode_show, len(self.episode_rows or []),
                              next_episode))
