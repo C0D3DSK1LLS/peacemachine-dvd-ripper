@@ -1,3 +1,12 @@
+peacemachine-dvd-ripper (1.0.16) unstable; urgency=medium
+
+  * Read the disc type and label with lsblk instead of blkid. Debian 13 does not
+    install blkid by default (it is in util-linux-extra), so the drive ranking
+    silently did nothing and the empty installer ISO on sr0 kept being chosen
+    over the DVD on sr1.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 04:42:00 -0500
+
 peacemachine-dvd-ripper (1.0.15) unstable; urgency=medium
 
   * Hand the finished scan to the UI thread through a 250 ms timer instead of

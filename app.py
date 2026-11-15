@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.15"
+APP_VERSION = "1.0.16"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -2677,15 +2677,8 @@ class RipperWindow(Gtk.ApplicationWindow):
 
     def disc_label(self, source):
         if re.match(r"^/dev/sr\d+$", source):
-            try:
-                out = subprocess.run(["blkid", "-o", "value", "-s", "LABEL", source],
-                                     capture_output=True, text=True, timeout=6)
-                label = (out.stdout or "").strip().splitlines()
-                if label:
-                    return ripper.safe_filename(label[0], "Disc")
-            except (OSError, subprocess.SubprocessError):
-                pass
-            return "Disc"
+            label = ripper.disc_label(source)      # lsblk first, blkid as backup
+            return ripper.safe_filename(label, "Disc") if label else "Disc"
         base = os.path.basename(source.rstrip("/"))
         if base.upper() == "VIDEO_TS":
             base = os.path.basename(os.path.dirname(source.rstrip("/")))

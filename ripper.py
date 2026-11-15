@@ -416,13 +416,38 @@ def has_media(device):
 
 
 def disc_type(device):
-    """The filesystem type blkid reports, e.g. 'udf' for a DVD-Video."""
-    try:
-        out = subprocess.run(["blkid", "-o", "value", "-s", "TYPE", device],
-                             capture_output=True, text=True, timeout=5)
-        return (out.stdout or "").strip().splitlines()[0] if out.stdout.strip() else ""
-    except (OSError, subprocess.SubprocessError, IndexError):
-        return ""
+    """The filesystem type of the disc, e.g. 'udf' for a DVD-Video.
+
+    lsblk first: it reads udev's database and needs no privileges, while blkid
+    has to open the device and may not even be installed (Debian 13 splits it
+    into util-linux-extra). Measured on the test VM, 2026-11-15: blkid missing
+    meant every drive looked identical and the empty installer ISO on sr0 kept
+    winning over the real DVD on sr1.
+    """
+    for command in (["lsblk", "-no", "FSTYPE", device],
+                    ["blkid", "-o", "value", "-s", "TYPE", device]):
+        try:
+            out = subprocess.run(command, capture_output=True, text=True, timeout=5)
+        except (OSError, subprocess.SubprocessError):
+            continue
+        text = (out.stdout or "").strip().splitlines()
+        if text and text[0].strip():
+            return text[0].strip()
+    return ""
+
+
+def disc_label(device):
+    """Volume label of the disc, or an empty string."""
+    for command in (["lsblk", "-no", "LABEL", device],
+                    ["blkid", "-o", "value", "-s", "LABEL", device]):
+        try:
+            out = subprocess.run(command, capture_output=True, text=True, timeout=5)
+        except (OSError, subprocess.SubprocessError):
+            continue
+        text = (out.stdout or "").strip().splitlines()
+        if text and text[0].strip():
+            return text[0].strip()
+    return ""
 
 
 def list_sources():
