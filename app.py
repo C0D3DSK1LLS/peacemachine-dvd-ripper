@@ -1130,9 +1130,13 @@ class RipperWindow(Gtk.ApplicationWindow):
         # (C0D3D, 2026-11-14)
         self.folder_spin = SpinFolder(size=680)
         self.folder_spin.set_halign(Gtk.Align.CENTER)
-        self.folder_spin.set_valign(Gtk.Align.END)
+        # FILL, not END: with a natural height of 680 an END-aligned widget hangs
+        # below its slot and the ring is drawn out of view (C0D3D, 2026-11-14)
+        self.folder_spin.set_valign(Gtk.Align.FILL)
         self.folder_spin.set_margin_top(4)
         self.folder_spin.set_margin_bottom(4)
+        # never let the drag squeeze it out of sight (C0D3D, 2026-11-14)
+        self.folder_spin.set_size_request(-1, 110)
 
         self.titles_split = Gtk.Paned(orientation=Gtk.Orientation.VERTICAL)
         self.titles_split.set_wide_handle(True)
@@ -2527,7 +2531,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         if height <= 0:
             return False
         spinner = 210
-        target = max(120, height - spinner)
+        target = max(120, min(height - 110, height - spinner))
         if abs(self.titles_split.get_position() - target) > 4:
             self.titles_split.set_position(target)
         return False
