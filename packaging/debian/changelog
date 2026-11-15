@@ -1,3 +1,12 @@
+peacemachine-dvd-ripper (1.0.24) unstable; urgency=medium
+
+  * Force every label inside a popup to white. The unselected rows of a dropdown
+    list were still inheriting the desktop accent colour (purple on stock
+    Debian) because GTK 4.18 builds DropDown rows differently from what the
+    earlier selectors covered.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 05:16:00 -0500
+
 peacemachine-dvd-ripper (1.0.23) unstable; urgency=medium
 
   * Hovering a dropdown or a row in a popup is green with white text instead of

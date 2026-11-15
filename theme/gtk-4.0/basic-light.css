@@ -1466,3 +1466,9 @@ listview row:selected label,
 menuitem:hover label {
   color: #1f1f1f;
 }
+
+/* Every label inside a popup is dark (C0D3D, 2026-11-15). */
+popover,
+popover * {
+  color: #1f1f1f;
+}

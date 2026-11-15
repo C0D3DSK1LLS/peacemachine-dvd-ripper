@@ -1630,3 +1630,17 @@ dropdown > button:hover {
   color: #ffffff;
   border-color: #00ff41;
 }
+
+/* Every label inside a popup is white (C0D3D, 2026-11-15). The unselected rows
+   of a dropdown list were still taking the desktop accent colour (purple on a
+   stock Debian); this covers the whole popup tree rather than guessing which
+   node GTK 4.18 uses for a DropDown row. */
+popover,
+popover * {
+  color: #ffffff;
+}
+
+popover > contents,
+popover.background > contents {
+  background-color: #04100a;
+}
