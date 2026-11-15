@@ -104,10 +104,10 @@ peacemachine-dvd-ripper --install-asr
 
 Verified on Debian 12 (GTK 4.8) and Debian 13.
 
-1. HandBrake, ffmpeg and curl:
+1. HandBrake, ffmpeg, curl, and Python's venv module (needed for transcripts later):
 
 ```
-sudo apt install -y handbrake-cli ffmpeg curl
+sudo apt install -y handbrake-cli ffmpeg curl python3-venv
 ```
 
 2. `libdvdcss`, which Debian will not ship — `libdvd-pkg` builds it locally, and
@@ -145,12 +145,8 @@ sudo apt install ./peacemachine-dvd-ripper_1.0.49_all.deb
 peacemachine-dvd-ripper
 ```
 
-5. Optional — subtitles transcribed from the dub. Debian ships Python's venv
-   module separately:
-
-```
-sudo apt install -y python3-venv
-```
+5. Optional — subtitles transcribed from the dub (the venv module came with the
+   tools in step 1):
 
 ```
 peacemachine-dvd-ripper --install-asr
@@ -166,10 +162,10 @@ Verified on Ubuntu 22.04 LTS (GTK 4.6, the oldest tested), 24.04 LTS and 26.04.
 sudo apt update
 ```
 
-2. HandBrake, ffmpeg and curl:
+2. HandBrake, ffmpeg, curl, and Python's venv module (needed for transcripts later):
 
 ```
-sudo apt install -y handbrake-cli ffmpeg curl
+sudo apt install -y handbrake-cli ffmpeg curl python3-venv
 ```
 
 3. `libdvdcss`, needed for a commercial disc — Ubuntu keeps it in **multiverse**:
@@ -206,12 +202,8 @@ sudo apt install ./peacemachine-dvd-ripper_1.0.49_all.deb
 peacemachine-dvd-ripper
 ```
 
-6. Optional — subtitles transcribed from the dub. Ubuntu ships Python's venv
-   module separately:
-
-```
-sudo apt install -y python3-venv
-```
+6. Optional — subtitles transcribed from the dub (the venv module came with the
+   tools in step 2):
 
 ```
 peacemachine-dvd-ripper --install-asr
@@ -516,7 +508,8 @@ engine, which is **not** part of the package - it downloads a few hundred
 megabytes, so it is a separate step you can skip.
 
 The step is in each distribution's list above: `peacemachine-dvd-ripper
---install-asr`, plus `python3-venv` first on Debian and Ubuntu. It builds the
+--install-asr`. On Debian and Ubuntu the venv module comes with the tools in step
+1 or 2, so there is nothing extra to install. It builds the
 engine in `~/.local/share/peacemachine-dvd-ripper/asr` — never in `/usr` — and
 may be re-run safely at any time.
 
