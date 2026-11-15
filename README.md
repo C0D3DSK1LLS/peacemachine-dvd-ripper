@@ -57,9 +57,12 @@ sudo pacman -U https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/d
 **Debian, Ubuntu, Kali, Mint**
 
 ```
-sudo apt install handbrake-cli ffmpeg libdvd-pkg && sudo dpkg-reconfigure libdvd-pkg
+sudo apt install -y handbrake-cli ffmpeg curl
 curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.0/peacemachine-dvd-ripper_1.0.0_all.deb
 sudo apt install ./peacemachine-dvd-ripper_1.0.0_all.deb
+
+# only needed to read a commercial (encrypted) DVD, not to install the app
+sudo apt install -y libdvd-pkg && sudo dpkg-reconfigure libdvd-pkg
 ```
 
 **Fedora**
