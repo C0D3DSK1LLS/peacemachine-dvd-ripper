@@ -293,6 +293,8 @@ class CircleStep(Gtk.Widget):
         self._pressed = False
         self.set_valign(Gtk.Align.CENTER)
         self.add_css_class("circle-step")
+        # the − is white and the + deep red (C0D3D, 2026-11-15)
+        self.add_css_class("circle-plus" if plus else "circle-minus")
         try:
             self.set_cursor(Gdk.Cursor.new_from_name("pointer", None))
         except Exception:
