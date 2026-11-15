@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.16"
+APP_VERSION = "1.0.18"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -2530,16 +2530,39 @@ class RipperWindow(Gtk.ApplicationWindow):
         return False
 
     # ---------------------------------------------------------------- scan
+    def resolve_source(self):
+        """The path to scan: what is typed, or the best drive that exists.
+
+        Never makes the user type a device, and never fails on a stale one: if
+        the box holds /dev/sr1 from an earlier session but the drive is now sr0
+        (or gone), the live drive is used instead (C0D3D, 2026-11-15).
+        """
+        typed = self.source_entry.get_text().strip()
+        drives = ripper.list_sources()
+        if typed and os.path.exists(typed):
+            return typed, drives
+        if typed.startswith("/dev/sr") or not typed:
+            if drives:
+                self.source_entry.set_text(drives[0])
+                self.flash_status("Using %s" % drives[0])
+                return drives[0], drives
+        return typed, drives
+
     def start_scan(self):
-        source = self.source_entry.get_text().strip()
-        if not source:
-            self.flash_status("Pick a source first — a drive, an ISO, or a VIDEO_TS folder.")
-            return
         if self.running:
             self.flash_status("A rip is running; stop it before rescanning.")
             return
+        source, drives = self.resolve_source()
+        if not source:
+            self.flash_status("No optical drive found. Plug one in, or browse to "
+                              "an ISO or a VIDEO_TS folder.")
+            return
         if not os.path.exists(source):
-            self.flash_status("That path does not exist: %s" % source)
+            if source.startswith("/dev/sr"):
+                self.flash_status("That drive is not connected any more — no disc "
+                                  "drive found. Plug one in, or browse to an ISO.")
+            else:
+                self.flash_status("That path does not exist: %s" % source)
             return
 
         self.scan_generation += 1

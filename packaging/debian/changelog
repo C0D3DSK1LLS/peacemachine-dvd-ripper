@@ -1,3 +1,11 @@
+peacemachine-dvd-ripper (1.0.18) unstable; urgency=medium
+
+  * Scan disc always finds a drive: an empty box, or a stale /dev/srN left over
+    from a previous session, falls back to the optical drive that exists now
+    instead of failing with "that path does not exist".
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 04:46:00 -0500
+
 peacemachine-dvd-ripper (1.0.16) unstable; urgency=medium
 
   * Read the disc type and label with lsblk instead of blkid. Debian 13 does not
