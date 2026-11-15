@@ -33,7 +33,7 @@ run on it, not simply the newest upload.
 | --- | --- | --- | --- |
 | Debian 12 (bookworm) | 4.8 | 1.0.40 | install, drive detection, scan, Find, Start, Stop, rip |
 | Debian 13 (trixie) | 4.18 | 1.0.26 | install, drive detection, scan, rip |
-| Ubuntu 22.04 LTS | 4.6 | 1.0.40 | install, Browse and SAVE TO pick a file and a folder, drive detection, scan, theme switch, no duplicate window button |
+| Ubuntu 22.04 LTS | 4.6 | 1.0.44 | install, Browse and SAVE TO pick a file and a folder, drive detection, scan, rip, transcripts end to end, theme switch, no duplicate window button |
 | Ubuntu 24.04 LTS | 4.14 | 1.0.37 | install, drive detection, scan, rip |
 | Ubuntu 26.04 | 4.20 | 1.0.26 | install, drive detection, scan, rip, Stop |
 | Fedora 45 | 4.20 | 1.0.26 | install (RPM Fusion + `--allowerasing ffmpeg`), scan, rip |
@@ -41,6 +41,10 @@ run on it, not simply the newest upload.
 | openSUSE Leap 16 | 4.18 | 1.0.37 | install, Flatpak HandBrake, scan, rip |
 | Kali, Mint, Pop!_OS | - | - | same apt path as the Ubuntu builds above |
 | Arch / Omarchy | 4.20 | 1.0.37 | package installs clean; the author runs the same code |
+
+Transcripts were proven end to end on Ubuntu 22.04 at 1.0.44: `--install-asr`
+built the engine, the model downloaded, and the rip finished with subtitles beside
+it.
 
 **1.0.44 is the current build for every distribution**, and is what the install
 blocks below fetch. The table records the version each distribution was actually
