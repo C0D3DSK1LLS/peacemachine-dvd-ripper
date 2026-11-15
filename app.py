@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.16"
+APP_VERSION = "1.0.17"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -2533,8 +2533,19 @@ class RipperWindow(Gtk.ApplicationWindow):
     def start_scan(self):
         source = self.source_entry.get_text().strip()
         if not source:
-            self.flash_status("Pick a source first — a drive, an ISO, or a VIDEO_TS folder.")
-            return
+            # never make the user type a device: if the box is empty, ask the
+            # system for the best drive right now and scan that (C0D3D,
+            # 2026-11-15: "i just want the source to be set to the dvd disk
+            # reader, auto so when i hit scan it works")
+            detected = ripper.list_sources()
+            ripper.log("scan pressed with an empty source; drives=%s" % detected)
+            if detected:
+                source = detected[0]
+                self.source_entry.set_text(source)
+            else:
+                self.flash_status("No optical drive found. Plug one in, or browse "
+                                  "to an ISO or a VIDEO_TS folder.")
+                return
         if self.running:
             self.flash_status("A rip is running; stop it before rescanning.")
             return
