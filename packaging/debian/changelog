@@ -1,3 +1,13 @@
+peacemachine-dvd-ripper (1.0.29) unstable; urgency=medium
+
+  * Stop reaches a HandBrake running inside the Flatpak sandbox: killing the
+    `flatpak run` process group did not always do it, so `flatpak kill
+    fr.handbrake.ghb` is issued as well.
+  * The six queue buttons stay in one row on a narrow window. The FlowBox used
+    to wrap them into a vertical column that was half clipped.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 06:38:00 -0500
+
 peacemachine-dvd-ripper (1.0.28) unstable; urgency=medium
 
   * Use the Flatpak HandBrake (fr.handbrake.ghb) when there is no native

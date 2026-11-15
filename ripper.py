@@ -427,6 +427,11 @@ def selected_preset_uses_nvenc(job):
     return "nvenc" in preset or getattr(job, "preset_key", "") == "gpu"
 
 
+def handbrake_is_flatpak():
+    """True when HandBrake is being run through the Flatpak sandbox."""
+    return handbrake_prefix()[:1] == ["flatpak"]
+
+
 def handbrake_available():
     """True when HandBrakeCLI is actually installed.
 

@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.28"
+APP_VERSION = "1.0.29"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -1899,11 +1899,14 @@ class RipperWindow(Gtk.ApplicationWindow):
         buttons = Gtk.FlowBox()
         buttons.add_css_class("queue-buttons")
         buttons.set_selection_mode(Gtk.SelectionMode.NONE)
+        # Six buttons in ONE row, shrinking together, never stacked: on a narrow
+        # window the FlowBox used to wrap them into a vertical column that was
+        # half clipped (C0D3D, 2026-11-15, Alma VM).
         buttons.set_max_children_per_line(6)
-        buttons.set_min_children_per_line(1)
+        buttons.set_min_children_per_line(6)
         buttons.set_column_spacing(6)
-        buttons.set_row_spacing(4)
-        buttons.set_homogeneous(False)
+        buttons.set_row_spacing(2)
+        buttons.set_homogeneous(True)
         buttons.set_halign(Gtk.Align.CENTER)
         buttons.set_valign(Gtk.Align.CENTER)
         buttons.set_hexpand(True)
@@ -3927,6 +3930,16 @@ class RipperWindow(Gtk.ApplicationWindow):
                 os.killpg(os.getpgid(process.pid), signal.SIGTERM)
             except (OSError, ProcessLookupError):
                 pass
+            # A Flatpak HandBrake runs in its own sandbox, so killing the
+            # `flatpak run` process group does not always reach it. flatpak kill
+            # is the supported way to stop it (C0D3D, 2026-11-15, Alma VM).
+            if ripper.handbrake_is_flatpak():
+                try:
+                    subprocess.run(["flatpak", "kill", ripper.FLATPAK_APP],
+                                   capture_output=True, timeout=10)
+                    self.append_log("stopped the Flatpak HandBrake")
+                except (OSError, subprocess.SubprocessError):
+                    pass
 
     def queue_worker(self):
         while True:
