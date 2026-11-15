@@ -1787,3 +1787,14 @@ headerbar windowcontrols button:hover {
 headerbar windowcontrols button image {
   color: inherit;
 }
+
+/* Popup and tooltip text is white (C0D3D, 2026-11-15): the dropdown menu and
+   the preset notes were inheriting the crimson control colour. */
+popover label,
+popover listview label,
+popover listview row label,
+tooltip label,
+listview label,
+menuitem label {
+  color: #ffffff;
+}

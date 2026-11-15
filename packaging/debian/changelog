@@ -1,3 +1,13 @@
+peacemachine-dvd-ripper (1.0.22) unstable; urgency=medium
+
+  * Dropdown and tooltip text is white instead of inheriting the crimson control
+    colour, so the preset menu is readable.
+  * QUALITY starts on Fast - H.264 x264, which works on any machine.
+  * The NVENC preset's note says plainly that it needs an NVIDIA card on the
+    host and will not work in a virtual machine.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 05:10:00 -0500
+
 peacemachine-dvd-ripper (1.0.21) unstable; urgency=medium
 
   * Do not start on the NVENC preset when there is no NVIDIA card. NVENC fails

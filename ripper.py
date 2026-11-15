@@ -80,8 +80,8 @@ PRESETS = [
         "label": "Fastest — NVENC H.264 (MKV)",
         "short": "Fastest — NVENC H.264",
         "ext": "mkv",
-        "note": "GPU encode, quickest of the lot. One core works harder than the rest "
-                "because HandBrake feeds the GPU from a single thread.",
+        "note": "GPU encode, quickest of the lot. Needs an NVIDIA card on the host - "
+                "it will NOT work in a virtual machine unless a GPU is passed through.",
         "args": ["-f", "av_mkv", "-e", "nvenc_h264", "-q", "22",
                  "--encoder-preset", "p5"],
     },
