@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.10"
+APP_VERSION = "1.0.11"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -2632,6 +2632,8 @@ class RipperWindow(Gtk.ApplicationWindow):
         GLib.idle_add(self.scan_done, data, source, token)
 
     def scan_done(self, data, source, token=None):
+        ripper.log("scan_done: token=%s generation=%s dead=%s"
+                   % (token, self.scan_generation, self.dead))
         self.start_is_manual = False
         if self.dead:
             return
@@ -2657,6 +2659,8 @@ class RipperWindow(Gtk.ApplicationWindow):
         return False
 
     def scan_failed(self, message, token=None):
+        ripper.log("scan_failed: token=%s generation=%s dead=%s auto_queue=%s"
+                   % (token, self.scan_generation, self.dead, self.auto_queue))
         if self.dead:
             return
         if self.auto_queue and not self.running:
