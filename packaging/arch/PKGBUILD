@@ -9,11 +9,8 @@ license=('MIT')
 depends=('python' 'python-gobject' 'gtk4' 'handbrake-cli' 'ffmpeg')
 optdepends=('libdvdcss: read encrypted commercial DVDs')
 provides=('dvd-ripper')
-# AUR / release form (swap in when the source is published, then update the sums):
-#   source=("$pkgname-$pkgver.tar.gz::https://github.com/<you>/dvd-ripper/archive/v$pkgver.tar.gz")
-#   sha256sums=('<sha256 of that tarball>')
-source=("$pkgname-$pkgver.tar.gz")
-sha256sums=('SKIP')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/C0D3DSK1LLS/$pkgname/releases/download/v$pkgver/$pkgname-$pkgver.tar.gz")
+sha256sums=('213e8da43f9b1aa4010f26449618f405cc362e3c9e3f4dc0f5506bec4205ea68')
 
 package() {
     local datadir="$pkgdir/usr/share/$pkgname"
