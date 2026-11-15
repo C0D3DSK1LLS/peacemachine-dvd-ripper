@@ -1,3 +1,14 @@
+peacemachine-dvd-ripper (1.0.46) unstable; urgency=medium
+
+  * The transcript venv now takes --system-site-packages, and is rebuilt if it
+    was made without it, so a distro package can satisfy a dependency that has
+    no wheel for that Python.
+  * The failure message names the package that actually unblocks it. Fedora 45
+    carries no python3-av, so it says ffmpeg-devel instead - PyAV then builds
+    from source.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 16:42:00 -0500
+
 peacemachine-dvd-ripper (1.0.45) unstable; urgency=medium
 
   * Transcripts install on a Python that has no onnxruntime wheel - Fedora 45

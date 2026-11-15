@@ -11,6 +11,7 @@ import math
 import os
 import random
 import re
+import shutil
 import signal
 import subprocess
 import sys
@@ -33,7 +34,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.45"
+APP_VERSION = "1.0.46"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -4527,9 +4528,18 @@ def install_asr():
     except OSError as error:
         print("Cannot create %s: %s" % (target, error))
         return 1
+    config = os.path.join(venv, "pyvenv.cfg")
+    if os.path.isfile(python) and os.path.isfile(config):
+        with open(config, encoding="utf-8") as handle:
+            if "include-system-site-packages = false" in handle.read():
+                print("Rebuilding the venv so it can use system packages...")
+                shutil.rmtree(venv, ignore_errors=True)
     if not os.path.isfile(python):
         print("Creating the virtual environment...")
-        made = subprocess.run([sys.executable, "-m", "venv", venv])
+        # --system-site-packages lets a distro package satisfy a dependency that
+        # has no wheel for this Python (PyAV on Fedora 45's 3.15).
+        made = subprocess.run([sys.executable, "-m", "venv",
+                               "--system-site-packages", venv])
         if made.returncode != 0 or not os.path.isfile(python):
             print("This Python has no venv module. Install it and run this again:")
             print("  Debian/Ubuntu:  sudo apt install -y python3-venv")
@@ -4549,8 +4559,17 @@ def install_asr():
               "engine without it (no silence trimming).")
         got = subprocess.run([python, "-m", "pip", "install", "faster-whisper"])
     if got.returncode != 0:
-        print("The install failed. Nothing was broken - the ripper runs fine "
-              "without transcripts.")
+        print("")
+        print("pip could not build one of the dependencies - it is PyAV ('av')")
+        print("when the message mentions libavformat. Install what it needs and")
+        print("run this again:")
+        print("")
+        print("  Fedora:         sudo dnf install ffmpeg-devel python3-devel gcc")
+        print("  Debian/Ubuntu:  sudo apt install python3-av")
+        print("  openSUSE:       sudo zypper in ffmpeg-devel python3-devel gcc")
+        print("  Arch:           sudo pacman -S python-av")
+        print("")
+        print("Nothing is broken - the ripper runs fine without transcripts.")
         return 3
     print("Checking it imports...")
     check = subprocess.run([python, "-c", "import faster_whisper; print("
