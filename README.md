@@ -165,7 +165,7 @@ sudo zypper --gpg-auto-import-keys refresh
 sudo zypper in -y handbrake-cli ffmpeg libdvdcss2
 
 # 5 - the ripper
-curl -O https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.36/peacemachine-dvd-ripper-1.0.36-1.noarch.rpm
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.36/peacemachine-dvd-ripper-1.0.36-1.noarch.rpm
 sudo zypper in -y --allow-unsigned-rpm ./peacemachine-dvd-ripper-1.0.36-1.noarch.rpm
 ```
 
