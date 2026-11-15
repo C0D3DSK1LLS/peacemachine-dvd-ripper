@@ -139,7 +139,7 @@ class TopRule(Gtk.DrawingArea):
         if left is not None:
             # stop the white line a hair outside the card's border so the two
             # meet at the edge instead of leaving a sliver of card showing
-            x_left = max(0.0, left - 4.0)
+            x_left = max(0.0, left - 10.0)
         if right is not None:
             x_right = min(width - 1.0, right)
         if x_right - x_left < 24:
