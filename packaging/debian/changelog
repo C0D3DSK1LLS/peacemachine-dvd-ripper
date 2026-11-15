@@ -1,3 +1,13 @@
+peacemachine-dvd-ripper (1.0.21) unstable; urgency=medium
+
+  * Do not start on the NVENC preset when there is no NVIDIA card. NVENC fails
+    instantly with "Cannot load libcuda.so.1" and HandBrake exits with error 3,
+    which reads as "the app cannot rip" on any Intel/AMD/no-GPU machine. Without
+    /dev/nvidia0 the default becomes Fast - H.264 x264, and an NVENC failure now
+    says so instead of just "failed".
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 05:07:00 -0500
+
 peacemachine-dvd-ripper (1.0.20) unstable; urgency=medium
 
   * Every UI update now goes through a timeout instead of GLib.idle_add. On the

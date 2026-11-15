@@ -397,6 +397,28 @@ def has_media(device):
         return False
 
 
+def selected_preset_uses_nvenc(job):
+    """True when a queued job was encoded with an NVENC preset."""
+    preset = getattr(job, "preset", "") or ""
+    return "nvenc" in preset or getattr(job, "preset_key", "") == "gpu"
+
+
+def nvenc_available():
+    """True when this machine can actually use HandBrake's NVENC encoder.
+
+    Without an NVIDIA driver the NVENC presets fail instantly with
+    "Cannot load libcuda.so.1" and HandBrake exits with error 3 - which looks
+    like the app is broken on any Intel/AMD/no-GPU machine (C0D3D, 2026-11-15,
+    Debian VM with no GPU passed through).
+    """
+    if not os.path.exists("/dev/nvidia0"):
+        return False
+    for folder in ("/usr/lib", "/usr/lib64", "/usr/lib/x86_64-linux-gnu"):
+        if os.path.exists(os.path.join(folder, "libcuda.so.1")):
+            return True
+    return os.path.exists("/usr/lib/libcuda.so.1")
+
+
 def disc_type(device):
     """The filesystem type of the disc, e.g. 'udf' for a DVD-Video.
 

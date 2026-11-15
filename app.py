@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.20"
+APP_VERSION = "1.0.21"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -2465,6 +2465,17 @@ class RipperWindow(Gtk.ApplicationWindow):
     }
     STARTUP_TRANSCRIPT = "best"
 
+    def fall_back_from_gpu_preset(self):
+        """Never start on NVENC where there is no NVIDIA card."""
+        if ripper.nvenc_available():
+            return
+        wanted = self.STARTUP_CHOICES["preset"][1]
+        if wanted == "gpu":
+            self.STARTUP_CHOICES = dict(self.STARTUP_CHOICES,
+                                        preset=("PRESETS", "fast_cpu"))
+            self.state["preset"] = "fast_cpu"
+            ripper.log("no NVIDIA card: preset gpu -> fast_cpu")
+
     def apply_startup_choices(self):
         dropdowns = {
             "preset": self.preset_dropdown,
@@ -2490,6 +2501,7 @@ class RipperWindow(Gtk.ApplicationWindow):
     # ---------------------------------------------------------------- bootstrap
     def bootstrap(self):
         ripper.log("bootstrap: drives=%s" % ripper.list_sources())
+        self.fall_back_from_gpu_preset()
         saved = self.state
         # fixed startup choices, never restored from the file
         self.apply_startup_choices()
@@ -4188,6 +4200,9 @@ class RipperWindow(Gtk.ApplicationWindow):
         self.update_counter()
         if result == "done":
             self.append_log("finished %s (%s)" % (job.path, ripper.fmt_bytes(job.size)))
+        elif ripper.selected_preset_uses_nvenc(job) and not ripper.nvenc_available():
+            self.flash_status("That encode needs an NVIDIA card (NVENC). "
+                              "Pick QUALITY → Fast — H.264 x264.")
         return False
 
     def queue_finished(self):
