@@ -257,6 +257,10 @@ class SpinFolder(Gtk.DrawingArea):
                 cr.set_source_rgba(0.36, 0.62, 1.0, alpha)
                 cr.move_to(x, y)
                 cr.show_text(digit)
+                # show_text appends glyph outlines to the current path; without
+                # this the ring's stroke picks them all up and draws a streak
+                # across the widget (C0D3D, 2026-11-15)
+                cr.new_path()
         cr.restore()
 
     @staticmethod
