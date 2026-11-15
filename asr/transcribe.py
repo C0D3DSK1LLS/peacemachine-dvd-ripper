@@ -19,6 +19,27 @@ import sys
 import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def models_root():
+    """Where downloaded models live.
+
+    Beside the script when that is writable (a source tree or the author's
+    install), otherwise the user's own data directory - a package puts this
+    script in /usr and writing there fails with PermissionError
+    (C0D3D, 2026-11-15).
+    """
+    override = os.environ.get("PEACEMACHINE_ASR_MODELS")
+    if override:
+        os.makedirs(override, exist_ok=True)
+        return override
+    if os.access(HERE, os.W_OK):
+        path = os.path.join(HERE, "models")
+    else:
+        data = os.environ.get("XDG_DATA_HOME") or os.path.expanduser("~/.local/share")
+        path = os.path.join(data, "peacemachine-dvd-ripper", "asr", "models")
+    os.makedirs(path, exist_ok=True)
+    return path
 NV = os.path.join(HERE, "venv", "lib", "python3.12", "site-packages", "nvidia")
 
 
@@ -227,7 +248,7 @@ def main():
         subprocess.run(cmd, check=True)
 
         model = WhisperModel(args.model, device=device, compute_type=compute,
-                             download_root=os.path.join(HERE, "models"))
+                             download_root=models_root())
         # Feed the samples directly: faster-whisper's own decoder goes through
         # PyAV, and the installed PyAV dropped the keyword it passes internally.
         audio = load_wav(wav)

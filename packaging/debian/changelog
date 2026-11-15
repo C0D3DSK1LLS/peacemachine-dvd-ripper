@@ -1,3 +1,15 @@
+peacemachine-dvd-ripper (1.0.44) unstable; urgency=medium
+
+  * The transcript's model download no longer fails on a packaged install.
+    transcribe.py wrote models beside itself, which is /usr/share and read-only,
+    so every transcript ended in "PermissionError ... /asr/models". It now uses
+    its own folder when writable and ~/.local/share/peacemachine-dvd-ripper/asr
+    otherwise.
+  * A failed transcript now puts the real reason in the queue row instead of a
+    flat "transcript pass failed".
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 15:20:00 -0500
+
 peacemachine-dvd-ripper (1.0.43) unstable; urgency=medium
 
   * The --install-asr hint names the right package. It told openSUSE users to

@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.43"
+APP_VERSION = "1.0.44"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -4110,7 +4110,7 @@ class RipperWindow(Gtk.ApplicationWindow):
                 # the rip itself is good; only the optional subtitles are missing
                 job.detail = "transcript skipped - not installed"
             elif outcome != "done":
-                job.detail = "transcript pass failed"
+                job.detail = job.detail or "transcript pass failed"
                 return "failed"
         if process.returncode != 0:
             job.detail = "exit %s" % process.returncode
@@ -4212,9 +4212,12 @@ class RipperWindow(Gtk.ApplicationWindow):
             text = line.rstrip()
             if text:
                 ripper.log("transcript: %s" % text)
+        tail = []
         for line in run.stderr:
             text = line.rstrip()
             if text:
+                tail.append(text)
+                del tail[:-6]
                 ripper.log("transcript: %s" % text)
         run.wait()
         self.current_proc = None
@@ -4231,6 +4234,7 @@ class RipperWindow(Gtk.ApplicationWindow):
                     os.unlink(path)
                 except OSError:
                     pass
+            job.detail = transcript_failure_reason(tail)
             return "failed"
         ui_call(self.progress_label.set_text,
                       "%s — adding the transcript" % job.label)
@@ -4496,6 +4500,16 @@ def force_window_buttons():
                        % settings.get_property("gtk-decoration-layout"))
     except Exception as error:      # never let a cosmetic fail the launch
         ripper.log("could not set the decoration layout: %r" % error)
+
+
+def transcript_failure_reason(tail):
+    """The most useful line out of the transcriber's own traceback."""
+    for line in reversed(tail or []):
+        stripped = line.strip()
+        if re.search(r"(Error|Exception|Exhausted|No space|Permission denied)\b",
+                     stripped):
+            return stripped[:160]
+    return "transcript pass failed"
 
 
 def install_asr():
