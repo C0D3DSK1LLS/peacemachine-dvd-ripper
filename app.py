@@ -1632,13 +1632,13 @@ class RipperWindow(Gtk.ApplicationWindow):
         _ordered += [(name, items) for name, items in _blocks.items()
                      if name not in _order]
 
-        settings.append(self.preview_label)
-        self.preview_rule = self.section_rule()
-        settings.append(self.preview_rule)
+        # the "N files across M titles, about X GB" preview line was removed at
+        # C0D3D's request (2026-11-14) — the label still exists so the code that
+        # updates it cannot break, but it is never added to the column.
 
         # a separator above the first section too (C0D3D, 2026-11-12)
-        self.top_rule = self.section_rule()
-        settings.append(self.top_rule)
+        self.settings_top_rule = self.section_rule()
+        settings.append(self.settings_top_rule)
 
         # these two sections sit tight against the row above them and get no
         # hairline or air of their own (C0D3D, 2026-11-12); everything else
@@ -1684,10 +1684,13 @@ class RipperWindow(Gtk.ApplicationWindow):
         # (C0D3D, 2026-11-12)
         _green_caps = {"FILE NAME", "FIRST EPISODE", "EPISODE NAMES", "EPISODES"}
         _orange_caps = {"ANIME CLEAN-UP", "SPLIT INTO SEPARATE FILES"}
+        _red_caps = {"QUALITY", "AUDIO", "SUBTITLES", "TRANSCRIPT"}
 
         def _tag_green(widget):
             if isinstance(widget, Gtk.Label) and widget.has_css_class("eyebrow"):
-                if widget.get_text() in _green_caps:
+                if widget.get_text() in _red_caps:
+                    widget.add_css_class("cap-red")
+                elif widget.get_text() in _green_caps:
                     widget.add_css_class("cap-green")
                 elif widget.get_text() in _orange_caps:
                     widget.add_css_class("cap-orange")
