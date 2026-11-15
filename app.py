@@ -92,6 +92,50 @@ def save_state(data):
 # --------------------------------------------------------------------------
 # jobs
 # --------------------------------------------------------------------------
+class TopRule(Gtk.DrawingArea):
+    """A white line that arcs down at both ends and wraps the panel tops.
+
+    C0D3D (2026-11-14): "can u round each end so it bends down around the other
+    frames?" Drawn with cairo so the corners are real curves with a double glow
+    rather than a straight CSS border.
+    """
+
+    HEIGHT = 22
+
+    def __init__(self):
+        super().__init__()
+        self.set_content_height(self.HEIGHT)
+        self.set_draw_func(self._draw)
+
+    def _draw(self, area, cr, width, height):
+        import cairo
+
+        if width < 12 or height < 8:
+            return
+        radius = min(9.0, width / 4.0, max(4.0, height - 8.0))
+        y_line = height - radius - 3.0   # room under it for the bend down
+        x_left = 1.0
+        x_right = width - 1.0
+
+        cr.new_path()
+        cr.move_to(x_left, height)
+        cr.line_to(x_left, y_line + radius)
+        cr.arc(x_left + radius, y_line + radius, radius,
+               math.pi, 1.5 * math.pi)
+        cr.line_to(x_right - radius, y_line)
+        cr.arc(x_right - radius, y_line + radius, radius,
+               1.5 * math.pi, 2.0 * math.pi)
+        cr.line_to(x_right, height)
+        cr.set_line_cap(1)           # cairo.LINE_CAP_ROUND
+
+        # double glow, then the crisp line on top
+        for line_width, alpha in ((9.0, 0.09), (4.0, 0.30), (1.7, 1.0)):
+            cr.set_line_width(line_width)
+            cr.set_source_rgba(1.0, 1.0, 1.0, alpha)
+            cr.stroke_preserve()
+        cr.new_path()
+
+
 class SpinFolder(Gtk.DrawingArea):
     """The orbiting folder from the file-copy window.
 
@@ -974,8 +1018,7 @@ class RipperWindow(Gtk.ApplicationWindow):
     def build_middle_wrap(self):
         """The two columns, with a glowing white rule across their top edge."""
         wrapper = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.top_rule = Gtk.Box()
-        self.top_rule.add_css_class("top-rule")
+        self.top_rule = TopRule()
         self.top_rule.set_valign(Gtk.Align.START)
         wrapper.append(self.top_rule)
         wrapper.append(self.build_middle())
