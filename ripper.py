@@ -12,6 +12,30 @@ import subprocess
 import time
 
 HANDBRAKE = shutil.which("HandBrakeCLI") or "/usr/bin/HandBrakeCLI"
+# Where HandBrake actually lives. Native binary first; if it is missing, the
+# Flatpak build (fr.handbrake.ghb) is used instead — that is the only way to get
+# HandBrake on Alma/RHEL 10, where RPM Fusion has no package at all. The Flatpak
+# needs `flatpak override --device=all fr.handbrake.ghb` to reach the drive
+# (C0D3D, 2026-11-15).
+FLATPAK_APP = "fr.handbrake.ghb"
+
+
+def handbrake_prefix():
+    """Command prefix that runs HandBrakeCLI, or [] when there is none."""
+    native = shutil.which("HandBrakeCLI")
+    if native:
+        return [native]
+    if os.path.exists(HANDBRAKE):
+        return [HANDBRAKE]
+    if shutil.which("flatpak"):
+        try:
+            listed = subprocess.run(["flatpak", "list", "--app", "--columns=application"],
+                                    capture_output=True, text=True, timeout=10)
+            if FLATPAK_APP in (listed.stdout or ""):
+                return ["flatpak", "run", "--command=HandBrakeCLI", FLATPAK_APP]
+        except (OSError, subprocess.SubprocessError):
+            pass
+    return []
 FFMPEG = shutil.which("ffmpeg") or "/usr/bin/ffmpeg"
 # C0D3D (2026-11-12): "I DONT WANT ANY SINGLE CORE GOING PAST 80%" and "I WANT THE
 # RIP SPREAD ACROSS ALL 20". Pinning a job to a subset of cores was the wrong tool:
@@ -377,8 +401,8 @@ def scan_command(source, min_duration=10):
     ~60 s). Scans are short and light, so they do not need the quota; encodes
     still go through cpu_limit_prefix().
     """
-    return [
-        HANDBRAKE, "--json", "-i", source, "-t", "0", "--scan",
+    return handbrake_prefix() + [
+        "--json", "-i", source, "-t", "0", "--scan",
         "--min-duration", str(min_duration)]
 
 
@@ -410,7 +434,7 @@ def handbrake_available():
     build at all), so the app has to say so instead of failing at the first scan
     (C0D3D, 2026-11-15).
     """
-    return os.path.exists(HANDBRAKE) or bool(shutil.which("HandBrakeCLI"))
+    return bool(handbrake_prefix())
 
 
 def nvenc_available():
@@ -512,8 +536,8 @@ def build_encode_command(source, title_number, output_path, preset_key,
     subs = SUB_BY_KEY.get(sub_key, SUB_BY_KEY["none"])
     language = AUDIO_LANG_BY_KEY.get(audio_lang, AUDIO_LANG_BY_KEY["any"])
 
-    command = cpu_limit_prefix() + [
-        HANDBRAKE, "--json", "-i", source, "-t", str(title_number),
+    command = cpu_limit_prefix() + handbrake_prefix() + [
+        "--json", "-i", source, "-t", str(title_number),
         "-o", output_path]
     preset_args = list(preset["args"])
     if anime:

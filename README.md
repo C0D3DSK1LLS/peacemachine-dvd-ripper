@@ -118,6 +118,22 @@ sudo zypper in https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/d
 
 On **Leap**, point that repo at `openSUSE_Leap_16.0` instead of `openSUSE_Tumbleweed`.
 
+### When your distribution has no HandBrake (Alma, RHEL 10)
+
+RPM Fusion's EL branch ships ffmpeg and libdvdcss but **no HandBrake at all**, and
+the ripper cannot scan or rip without it. Use the Flatpak build - the app looks
+for it automatically when there is no native `HandBrakeCLI`:
+
+```
+sudo dnf install -y flatpak
+# reboot or log out and back in, then:
+sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+sudo flatpak install -y flathub fr.handbrake.ghb
+sudo flatpak override --device=all fr.handbrake.ghb
+```
+
+That last line matters: a Flatpak is sandboxed and cannot see `/dev/sr0` without it.
+
 ### From source, on anything
 
 The only requirements are Python 3, GTK 4 with PyGObject, PyGObject's cairo

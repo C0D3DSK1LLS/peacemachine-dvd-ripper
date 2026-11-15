@@ -1,3 +1,12 @@
+peacemachine-dvd-ripper (1.0.28) unstable; urgency=medium
+
+  * Use the Flatpak HandBrake (fr.handbrake.ghb) when there is no native
+    HandBrakeCLI. That is the only way to get HandBrake on Alma/RHEL 10, where
+    RPM Fusion ships none at all. Needs `flatpak override --device=all
+    fr.handbrake.ghb` so the sandbox can reach the drive.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 06:30:00 -0500
+
 peacemachine-dvd-ripper (1.0.27) unstable; urgency=medium
 
   * rpm packaging: require "(ffmpeg or ffmpeg-free)" so Fedora's ffmpeg-free no

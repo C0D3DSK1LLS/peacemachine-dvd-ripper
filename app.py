@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.27"
+APP_VERSION = "1.0.28"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -2558,8 +2558,8 @@ class RipperWindow(Gtk.ApplicationWindow):
         # window would never hide it until something else took focus.
         if not ripper.handbrake_available():
             self.source_status.set_text(
-                "HandBrakeCLI is not installed — scanning and ripping need it. "
-                "See the README for your distribution's package.")
+                "HandBrake is not installed — scanning and ripping need it. "
+                "Install it, or use the Flatpak (fr.handbrake.ghb); see the README.")
         self.set_focus(None)
         return False
 
@@ -2584,8 +2584,9 @@ class RipperWindow(Gtk.ApplicationWindow):
 
     def start_scan(self):
         if not ripper.handbrake_available():
-            self.flash_status("HandBrakeCLI is not installed. Install HandBrake "
-                              "for your distribution (see the README) and try again.")
+            self.flash_status("HandBrake is not installed. Install it for your "
+                              "distribution, or use the Flatpak "
+                              "(flatpak install flathub fr.handbrake.ghb) — see the README.")
             return
         if self.running:
             self.flash_status("A rip is running; stop it before rescanning.")
