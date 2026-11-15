@@ -1,5 +1,5 @@
 Name:           peacemachine-dvd-ripper
-Version:        1.0.3
+Version:        1.0.4
 Release:        1%{?dist}
 Summary:        Rip DVDs and video files into files your PC can play
 License:        MIT
@@ -16,6 +16,7 @@ Requires:       ffmpeg
 # Fedora/RHEL ship HandBrake in RPM Fusion as "HandBrake" (which provides the
 # HandBrakeCLI binary); openSUSE ships it in Packman as "handbrake-cli".
 %if 0%{?suse_version}
+Requires:       python3-gobject-cairo
 Requires:       handbrake-cli
 Recommends:     libdvdcss
 %else
@@ -47,6 +48,9 @@ sh packaging/install-files.sh . %{buildroot} %{_prefix}
 %{_datadir}/%{name}
 
 %changelog
+* Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.4-1
+- Require the PyGObject cairo bridge (python3-gobject-cairo on SUSE)
+
 * Sun Nov 15 2026 William James Sova (C0D3D) <william@peacemachinestudios.com> - 1.0.3-1
 - Window controls as the house discs
 

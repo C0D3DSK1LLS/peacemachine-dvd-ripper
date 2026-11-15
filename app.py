@@ -33,7 +33,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.3"
+APP_VERSION = "1.0.4"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -58,6 +58,31 @@ _theme_provider = None
 STATE_DIR = os.environ.get("DVD_RIPPER_STATE_DIR") or os.path.join(
     os.path.expanduser("~"), ".local/share/c0d3d/dvd-ripper")
 STATE_FILE = os.path.join(STATE_DIR, "state.json")
+
+
+# PyGObject needs its cairo bridge to hand a cairo context between GTK and
+# Python. Debian ships it as python3-gi-cairo, openSUSE as
+# python3-gobject-cairo, Fedora puts it inside python3-gobject. Without it every
+# cairo-drawn widget (the spinner, the blue binary, the rounded rules and the
+# circle steppers) raises "Couldn't find foreign struct converter for
+# 'cairo.Context'" on every frame, and prints a traceback per frame.
+# (C0D3D, 2026-11-15: found on a Debian 13 install.)
+_CAIRO_BRIDGE = None
+
+
+def cairo_bridge_ok():
+    """True when GTK can hand us a cairo context. Logged once, then cached."""
+    global _CAIRO_BRIDGE
+    if _CAIRO_BRIDGE is None:
+        try:
+            import cairo  # noqa: F401
+            from gi._gi_cairo import cairo  # noqa: F401
+            _CAIRO_BRIDGE = True
+        except Exception as error:  # noqa: BLE001 - any failure means "no bridge"
+            _CAIRO_BRIDGE = False
+            ripper.log("cairo bridge missing, install python3-gi-cairo "
+                       "(python3-gobject-cairo on openSUSE): %s" % error)
+    return _CAIRO_BRIDGE
 
 
 # --------------------------------------------------------------------------
@@ -117,6 +142,8 @@ class TopRule(Gtk.DrawingArea):
     def _draw(self, area, cr, width, height):
         import cairo
 
+        if not cairo_bridge_ok():
+            return
         if width < 12 or height < 8:
             return
         x_left = 1.0
@@ -278,6 +305,8 @@ class SpinFolder(Gtk.DrawingArea):
         the same shape with the same glow, just larger (C0D3D, 2026-11-12)."""
         import cairo
 
+        if not cairo_bridge_ok():
+            return
         if width < 8 or height < 8:
             return
         scale = min(width, height) / 62.0
@@ -368,6 +397,8 @@ class CircleStep(Gtk.Widget):
         return (self._square, self._square, -1, -1)
 
     def do_snapshot(self, snapshot):
+        if not cairo_bridge_ok():
+            return
         width, height = self.get_width(), self.get_height()
         if width < 3 or height < 3:
             return

@@ -1,3 +1,14 @@
+peacemachine-dvd-ripper (1.0.4) unstable; urgency=medium
+
+  * Add python3-gi-cairo: without PyGObject's cairo bridge the spinner, the blue
+    binary, the rounded rules and the circle steppers threw "Couldn't find
+    foreign struct converter for 'cairo.Context'" on every frame and drew
+    nothing. Found on a Debian 13 test install.
+  * Skip cairo drawing cleanly (and log once) if the bridge is ever missing,
+    instead of a traceback per frame.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 03:53:00 -0500
+
 peacemachine-dvd-ripper (1.0.3) unstable; urgency=medium
 
   * Window controls are drawn as the house discs - round, black face, green
