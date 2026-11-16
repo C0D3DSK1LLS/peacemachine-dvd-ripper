@@ -294,7 +294,14 @@ def main():
         print("extracting audio: %s" % wav, flush=True)
         subprocess.run(cmd, check=True)
 
+        # CPU inference thrashes above a handful of threads and can wedge a
+        # guest outright - four transcribes a disc cleanly where ten froze a
+        # Debian 12 VM (C0D3D, 2026-11-16). The GPU path keeps its own threading.
+        threads = min(4, os.cpu_count() or 4) if device == "cpu" else 0
+        if threads:
+            print("cpu threads: %d" % threads, flush=True)
         model = WhisperModel(args.model, device=device, compute_type=compute,
+                             cpu_threads=threads,
                              download_root=models_root())
         # Feed the samples directly: faster-whisper's own decoder goes through
         # PyAV, and the installed PyAV dropped the keyword it passes internally.

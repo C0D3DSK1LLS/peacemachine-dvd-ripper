@@ -34,7 +34,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.52"
+APP_VERSION = "1.0.53"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -1121,6 +1121,17 @@ class RipperWindow(Gtk.ApplicationWindow):
         # The pair sits to the right of the box (C0D3D, 2026-11-10: "put em both
         # on the right side"), the way a stock spin button reads.
         box.append(spin)
+        # GTK older than 4.10 never allocates the hand-drawn circle, so those
+        # buttons were invisible on Debian 12's GTK 4.8 (C0D3D, 2026-11-16).
+        if Gtk.get_minor_version() < 10:
+            for plus, delta in ((False, -step), (True, step)):
+                button = Gtk.Button(label="+" if plus else "\u2212")
+                button.add_css_class("compact-button")
+                button.set_valign(Gtk.Align.CENTER)
+                button.connect("clicked", lambda _b, d=delta, target=spin:
+                               target.set_value(target.get_value() + d))
+                box.append(button)
+            return box
         for plus, delta in ((False, -step), (True, step)):
             button = CircleStep(
                 plus,

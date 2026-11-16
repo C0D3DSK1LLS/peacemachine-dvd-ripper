@@ -1,3 +1,14 @@
+peacemachine-dvd-ripper (1.0.53) unstable; urgency=medium
+
+  * CPU transcription is capped at four threads. Ten threads wedged a Debian 12
+    guest solid mid-transcript, where four transcribed the same disc cleanly
+    (C0D3D, 2026-11-16). The GPU path is unchanged.
+  * The +/- steppers fall back to plain buttons on GTK older than 4.10: the
+    hand-drawn circle was allocated to nothing on Debian 12's GTK 4.8, so the
+    buttons were there but invisible.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Mon, 16 Nov 2026 06:25:00 -0500
+
 peacemachine-dvd-ripper (1.0.52) unstable; urgency=medium
 
   * The silence filter is back on by default. It was turned off in 1.0.51 on the
