@@ -35,18 +35,19 @@ run on it, not simply the newest upload.
 | Debian 13 (trixie) | 4.18 | 1.0.26 | install, drive detection, scan, rip |
 | Ubuntu 22.04 LTS | 4.6 | 1.0.44 | install, Browse and SAVE TO pick a file and a folder, drive detection, scan, rip, transcripts end to end, theme switch, no duplicate window button |
 | Ubuntu 24.04 LTS | 4.14 | 1.0.37 | install, drive detection, scan, rip |
-| Ubuntu 26.04 | 4.20 | 1.0.49 | install, Browse and SAVE TO pick a file and a folder, no duplicate window button, transcripts install on Python 3.14 |
+| Ubuntu 26.04 | 4.20 | 1.0.50 | install, Browse and SAVE TO pick a file and a folder, disc rip, transcript on Python 3.14 with the VM filter guard, no freeze |
 | Fedora 45 | 4.20 | 1.0.48 | install (RPM Fusion + `--allowerasing ffmpeg`), Browse and SAVE TO pick a file and a folder, no duplicate window button, rip, transcripts on Python 3.15 |
 | AlmaLinux 10 | 4.18 | 1.0.37 | install, Flatpak HandBrake, scan, rip, Stop |
 | openSUSE Leap 16 | 4.18 | 1.0.37 | install, Flatpak HandBrake, scan, rip |
 | Kali, Mint, Pop!_OS | - | - | same apt path as the Ubuntu builds above |
 | Arch / Omarchy | 4.20 | 1.0.44 | signed package install, Browse and SAVE TO pick a file and a folder, no duplicate window button; the author runs the same code |
 
-One caveat from the 26.04 test, and it is not the ripper's fault: in a virtual
-machine on this hardware the host froze four times at the exact moment the
-transcript pass started, with AVX-512 exposed to the guest. The same disc rip and
-transcript then ran cleanly on the host itself. That is a virtual-machine problem,
-not the ripper.
+Frozen transcripts, and the fix: in a virtual machine on this hardware the host
+froze four times at the moment the transcript started. The cause was
+**onnxruntime's silence filter** - removing it made the same transcription finish,
+and the one guest that never froze (Fedora) had no onnxruntime at all. 1.0.50 skips
+that filter automatically inside a VM, and the Ubuntu 26.04 run above was done on
+it: rip, transcript, no freeze.
 
 Transcripts were proven end to end on Ubuntu 22.04 at 1.0.44: `--install-asr`
 built the engine, the model downloaded, and the rip finished with subtitles beside
