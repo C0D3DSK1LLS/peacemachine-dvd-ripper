@@ -14,6 +14,6 @@ pkgbase = peacemachine-dvd-ripper
 	optdepends = libdvdcss: read encrypted commercial DVDs
 	provides = dvd-ripper
 	source = peacemachine-dvd-ripper-1.0.40.tar.gz::https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.40/peacemachine-dvd-ripper-1.0.40.tar.gz
-	sha256sums = fc3334fb8ba03dad194be4f77a4edc4cf8ebd0d182c1138242c07fc2974b5e65
+	sha256sums = 0b3ae7523da239fb5005a7bcfce1d0c0a48f4f2471c947fc27891ca74089662b
 
 pkgname = peacemachine-dvd-ripper
