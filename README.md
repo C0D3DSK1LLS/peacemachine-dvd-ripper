@@ -40,7 +40,7 @@ run on it, not simply the newest upload.
 | AlmaLinux 10 | 4.18 | 1.0.37 | install, Flatpak HandBrake, scan, rip, Stop |
 | openSUSE Leap 16 | 4.18 | 1.0.37 | install, Flatpak HandBrake, scan, rip |
 | Kali, Mint, Pop!_OS | - | - | same apt path as the Ubuntu builds above |
-| Arch / Omarchy | 4.20 | 1.0.44 | signed package install, Browse and SAVE TO pick a file and a folder, no duplicate window button; the author runs the same code |
+| Arch / Omarchy | 4.20 | 1.0.52 | signed package install, Browse and SAVE TO pick a file and a folder, no duplicate window button, disc rips, transcripts |
 
 Frozen transcripts, and the fix: in a virtual machine on this hardware the host
 froze four times at the moment the transcript started. The cause is
