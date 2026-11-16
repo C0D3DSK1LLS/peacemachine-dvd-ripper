@@ -1,3 +1,12 @@
+peacemachine-dvd-ripper (1.0.52) unstable; urgency=medium
+
+  * The silence filter is back on by default. It was turned off in 1.0.51 on the
+    strength of a wrong diagnosis - the guest freezes were ctranslate2's AVX-512
+    kernels, fixed by masking AVX-512 for the VM, not by this filter. ASR_VAD=0
+    still turns it off.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 23:01:00 -0500
+
 peacemachine-dvd-ripper (1.0.51) unstable; urgency=medium
 
   * The silence filter is now off by default everywhere, and only ASR_VAD=1 turns
