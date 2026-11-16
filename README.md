@@ -32,7 +32,7 @@ run on it, not simply the newest upload.
 | Distribution | GTK | Verified at | What was proven |
 | --- | --- | --- | --- |
 | Debian 12 (bookworm) | 4.8 | 1.0.40 | install, drive detection, scan, Find, Start, Stop, rip |
-| Debian 13 (trixie) | 4.18 | 1.0.52 | install, disc rip, transcript - in a VM with AVX-512 masked for the guest |
+| Debian 13 (trixie) | 4.18 | 1.0.52 | install, disc rip, transcript with the silence filter on - in a VM with AVX-512 masked for the guest |
 | Ubuntu 22.04 LTS | 4.6 | 1.0.44 | install, Browse and SAVE TO pick a file and a folder, drive detection, scan, rip, transcripts end to end, theme switch, no duplicate window button |
 | Ubuntu 24.04 LTS | 4.14 | 1.0.37 | install, drive detection, scan, rip |
 | Ubuntu 26.04 | 4.20 | 1.0.50 | install, Browse and SAVE TO pick a file and a folder, disc rip, transcript on Python 3.14 with the VM filter guard, no freeze |
