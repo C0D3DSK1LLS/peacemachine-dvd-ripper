@@ -1,3 +1,13 @@
+peacemachine-dvd-ripper (1.0.51) unstable; urgency=medium
+
+  * The silence filter is now off by default everywhere, and only ASR_VAD=1 turns
+    it on. The 1.0.50 guard tried to spot a virtual machine by its DMI product
+    name, but QEMU reports "Standard PC (Q35 + ICH9, 2009)", so the guard never
+    fired and onnxruntime froze the host again on Debian. Detection that can miss
+    is not worth a hard lock-up.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 22:42:00 -0500
+
 peacemachine-dvd-ripper (1.0.50) unstable; urgency=medium
 
   * The transcript no longer runs the silence filter inside a virtual machine.

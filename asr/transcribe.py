@@ -98,21 +98,18 @@ def in_virtual_machine():
 
 
 def vad_enabled():
-    """Run the silence filter only where it is known to be safe.
+    """The silence filter is opt-in, and off unless ASR_VAD=1 says otherwise.
 
-    onnxruntime's filter froze the whole host when it ran inside a KVM guest on
-    this machine - four hard lock-ups, every one at this exact point
-    (C0D3D, 2026-11-15). ASR_VAD=1 forces it, ASR_VAD=0 disables it.
+    onnxruntime's filter froze the host outright - four lock-ups inside KVM
+    guests on this machine, and a fifth on Debian after a "detect the VM" guard
+    missed it (QEMU reports its product name as "Standard PC (Q35 + ICH9, 2009)").
+    A guess that can miss is not worth a frozen machine, so the filter is off
+    everywhere by default; ASR_VAD=1 turns it back on (C0D3D, 2026-11-15).
     """
-    forced = os.environ.get("ASR_VAD", "").strip()
-    if forced == "1":
+    if os.environ.get("ASR_VAD", "").strip() == "1":
+        print("silence filter enabled by ASR_VAD=1", flush=True)
         return vad_available()
-    if forced == "0":
-        return False
-    if in_virtual_machine():
-        print("virtual machine - skipping the silence filter", flush=True)
-        return False
-    return vad_available()
+    return False
 
 
 def cuda_libraries_ready():
