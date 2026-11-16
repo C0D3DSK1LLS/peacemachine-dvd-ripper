@@ -32,7 +32,7 @@ run on it, not simply the newest upload.
 | Distribution | GTK | Verified at | What was proven |
 | --- | --- | --- | --- |
 | Debian 12 (bookworm) | 4.8 | 1.0.40 | install, drive detection, scan, Find, Start, Stop, rip |
-| Debian 13 (trixie) | 4.18 | 1.0.26 | install, drive detection, scan, rip |
+| Debian 13 (trixie) | 4.18 | 1.0.51 | install, disc rip, transcript - in a VM with AVX-512 masked for the guest |
 | Ubuntu 22.04 LTS | 4.6 | 1.0.44 | install, Browse and SAVE TO pick a file and a folder, drive detection, scan, rip, transcripts end to end, theme switch, no duplicate window button |
 | Ubuntu 24.04 LTS | 4.14 | 1.0.37 | install, drive detection, scan, rip |
 | Ubuntu 26.04 | 4.20 | 1.0.50 | install, Browse and SAVE TO pick a file and a folder, disc rip, transcript on Python 3.14 with the VM filter guard, no freeze |
@@ -564,6 +564,24 @@ cd peacemachine-dvd-ripper-1.0.51
 ```
 sudo sh packaging/install-files.sh . /usr /usr
 ```
+
+#### Ripping inside a virtual machine
+
+A guest can transcribe too, but on some hosts the engine's AVX-512 kernels hang the
+machine at the moment the transcript starts - the rip reaches 100% and the box
+freezes before a single percentage prints. Hiding AVX-512 from the guest fixes it,
+at a small cost in transcription speed. In `virsh edit <domain>`, inside `<cpu>`:
+
+```xml
+<feature policy='disable' name='avx512f'/>
+<feature policy='disable' name='avx512dq'/>
+<feature policy='disable' name='avx512bw'/>
+<feature policy='disable' name='avx512vl'/>
+<feature policy='disable' name='avx512cd'/>
+```
+
+That was the difference on the author's machine: with those disabled, a Debian 13
+guest ripped a disc and transcribed it end to end.
 
 ### If the rip will not play
 
