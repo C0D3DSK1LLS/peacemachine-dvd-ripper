@@ -86,6 +86,35 @@ def vad_available():
         return False
 
 
+def in_virtual_machine():
+    """True inside QEMU, VMware, VirtualBox and friends."""
+    try:
+        with open("/sys/class/dmi/id/product_name", encoding="utf-8") as handle:
+            name = handle.read().strip().lower()
+    except OSError:
+        return False
+    return any(token in name for token in
+               ("qemu", "kvm", "virtualbox", "vmware", "bochs", "hyper-v"))
+
+
+def vad_enabled():
+    """Run the silence filter only where it is known to be safe.
+
+    onnxruntime's filter froze the whole host when it ran inside a KVM guest on
+    this machine - four hard lock-ups, every one at this exact point
+    (C0D3D, 2026-11-15). ASR_VAD=1 forces it, ASR_VAD=0 disables it.
+    """
+    forced = os.environ.get("ASR_VAD", "").strip()
+    if forced == "1":
+        return vad_available()
+    if forced == "0":
+        return False
+    if in_virtual_machine():
+        print("virtual machine - skipping the silence filter", flush=True)
+        return False
+    return vad_available()
+
+
 def cuda_libraries_ready():
     """True only when cuBLAS and cuDNN actually load.
 
@@ -278,9 +307,9 @@ def main():
             language=args.language,
             task="transcribe",
             beam_size=args.beam,
-            vad_filter=vad_available(),
+            vad_filter=vad_enabled(),
             vad_parameters=({"min_silence_duration_ms": 350,
-                             "speech_pad_ms": 120} if vad_available() else None),
+                             "speech_pad_ms": 120} if vad_enabled() else None),
             condition_on_previous_text=False,
             word_timestamps=True,
             no_speech_threshold=0.6,

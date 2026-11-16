@@ -1,3 +1,13 @@
+peacemachine-dvd-ripper (1.0.50) unstable; urgency=medium
+
+  * The transcript no longer runs the silence filter inside a virtual machine.
+    onnxruntime's filter froze the host outright when it ran in a KVM guest -
+    four hard lock-ups, each at the moment the transcript started, and none
+    once it was removed (C0D3D, 2026-11-15). Transcription itself is unchanged;
+    ASR_VAD=1 forces the filter, ASR_VAD=0 turns it off everywhere.
+
+ -- William James Sova (C0D3D) <william@peacemachinestudios.com>  Sun, 15 Nov 2026 18:52:00 -0500
+
 peacemachine-dvd-ripper (1.0.49) unstable; urgency=medium
 
   * The app has its own icon: a Matrix disc-and-data mark, shipped in hicolor at
