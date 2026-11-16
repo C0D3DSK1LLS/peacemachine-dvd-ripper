@@ -31,7 +31,7 @@ run on it, not simply the newest upload.
 
 | Distribution | GTK | Verified at | What was proven |
 | --- | --- | --- | --- |
-| Debian 12 (bookworm) | 4.8 | 1.0.40 | install, drive detection, scan, Find, Start, Stop, rip |
+| Debian 12 (bookworm) | 4.8 | 1.0.52 | install, disc rip, transcript on the fast model (in a VM with AVX-512 masked) |
 | Debian 13 (trixie) | 4.18 | 1.0.52 | install, disc rip, transcript with the silence filter on - in a VM with AVX-512 masked for the guest |
 | Ubuntu 22.04 LTS | 4.6 | 1.0.44 | install, Browse and SAVE TO pick a file and a folder, drive detection, scan, rip, transcripts end to end, theme switch, no duplicate window button |
 | Ubuntu 24.04 LTS | 4.14 | 1.0.37 | install, drive detection, scan, rip |
@@ -535,7 +535,9 @@ is unaffected; the queue row says "transcript skipped" and nothing else changes.
 
 The silence filter runs when onnxruntime is installed; `ASR_VAD=0` turns it off.
 If a guest freezes the machine the moment a transcript starts, that is the
-AVX-512 problem below, not this filter.
+AVX-512 problem below, not this filter. In a virtual machine, prefer the **fast** or
+**better** model: the **best** model is heavy enough to wedge an older guest on this
+hardware, and fast transcribed a disc cleanly where best froze.
 
 A CUDA card is used automatically when the CUDA libraries are present. To add
 them to the transcript venv:
