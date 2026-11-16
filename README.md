@@ -43,11 +43,17 @@ run on it, not simply the newest upload.
 | Arch / Omarchy | 4.20 | 1.0.44 | signed package install, Browse and SAVE TO pick a file and a folder, no duplicate window button; the author runs the same code |
 
 Frozen transcripts, and the fix: in a virtual machine on this hardware the host
-froze four times at the moment the transcript started. The cause was
-**onnxruntime's silence filter** - removing it made the same transcription finish,
-and the one guest that never froze (Fedora) had no onnxruntime at all. 1.0.50 skips
-that filter automatically inside a VM, and the Ubuntu 26.04 run above was done on
-it: rip, transcript, no freeze.
+froze four times at the moment the transcript started. The cause is
+**ctranslate2's AVX-512 kernels** inside KVM - the rip reaches 100%, the engine
+starts loading its model, prints no percentage, and the host locks up. Masking
+AVX-512 from the guest is what fixed it: with that done a Debian 13 guest ripped
+and transcribed two discs end to end. **Ripping inside a virtual machine** below
+has the XML to paste into `virsh edit`.
+
+An earlier version of this note blamed onnxruntime's silence filter, and 1.0.50 and
+1.0.51 were built on that reading. It was wrong. The filter is back on by default
+in 1.0.52, because the transcripts want it - `ASR_VAD=0` turns it off, `ASR_VAD=1`
+forces it.
 
 Transcripts were proven end to end on Ubuntu 22.04 at 1.0.44: `--install-asr`
 built the engine, the model downloaded, and the rip finished with subtitles beside
