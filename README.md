@@ -529,11 +529,24 @@ A rip can carry subtitles transcribed from the dub. That needs a speech-to-text
 engine, which is **not** part of the package - it downloads a few hundred
 megabytes, so it is a separate step you can skip.
 
-The step is in each distribution's list above: `peacemachine-dvd-ripper
---install-asr`. On Debian and Ubuntu the venv module comes with the tools in step
-1 or 2, so there is nothing extra to install. It builds the
-engine in `~/.local/share/peacemachine-dvd-ripper/asr` — never in `/usr` — and
-may be re-run safely at any time.
+Two commands, in this order:
+
+1. The venv module, if the tools in step 1 did not bring it in — on Debian,
+   Ubuntu and Mint it is `python3-venv`:
+
+```
+sudo apt install -y python3-venv
+```
+
+2. Build the engine:
+
+```
+peacemachine-dvd-ripper --install-asr
+```
+
+It builds in `~/.local/share/peacemachine-dvd-ripper/asr` — never in `/usr` — and
+may be re-run safely at any time. Without it, transcript jobs fail with
+`No module named 'faster_whisper'` and the rip itself is untouched.
 
 Then open the ripper and set **TRANSCRIPT** to fast, better or best. The model
    downloads the first time a rip uses it: ~500 MB for fast, ~1.5 GB for better,
