@@ -564,7 +564,7 @@ The only requirements are Python 3, GTK 4 with PyGObject, PyGObject's cairo
 bridge, HandBrake and ffmpeg:
 
 ```
-curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper-1.0.54-debian12_all.deb
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper-1.0.54.tar.gz
 ```
 
 ```
