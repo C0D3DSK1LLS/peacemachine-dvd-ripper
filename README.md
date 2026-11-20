@@ -102,7 +102,7 @@ sudo pacman-key --lsign-key 3AE4C112E0B3DD29456E9E4E40DA9F6783593208
 3. The ripper:
 
 ```
-sudo pacman -U https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper-1.0.53-1-arch.pkg.tar.zst
+sudo pacman -U https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper-1.0.54-1-arch.pkg.tar.zst
 ```
 
 4. Launch it:
@@ -151,7 +151,7 @@ sudo dpkg-reconfigure libdvd-pkg
 
 ```
 curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper_1.0.54-debian12_all.deb
-# Debian 13 / testing: same command with peacemachine-dvd-ripper_1.0.53-debian13_all.deb
+# Debian 13 / testing: same command with peacemachine-dvd-ripper_1.0.54-debian13_all.deb
 ```
 
 ```
@@ -303,7 +303,7 @@ sudo dnf install HandBrake
 5. The ripper:
 
 ```
-sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper-1.0.49-1.fedora45.noarch.rpm
+sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper-1.0.54-1-fedora45.noarch.rpm
 ```
 
 If that complains about the signature, add `--nogpgcheck` — the rpm is not signed.
@@ -372,7 +372,7 @@ sudo dnf install rpmfusion-free-release-tainted ffmpeg libdvdcss
 3. The ripper — it installs fine and will say HandBrake is missing, which is next:
 
 ```
-sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper-1.0.38-1.alma10.noarch.rpm
+sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper-1.0.54-1-alma10.noarch.rpm
 ```
 
 4. Flatpak itself:
@@ -459,7 +459,7 @@ sudo zypper in -y handbrake-cli ffmpeg libdvdcss2
 5. The ripper:
 
 ```
-curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper-1.0.38-1.opensuse16.noarch.rpm
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper-1.0.54-1-opensuse16.noarch.rpm
 ```
 
 ```
