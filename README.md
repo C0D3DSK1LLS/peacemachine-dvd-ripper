@@ -29,6 +29,11 @@ source row.
 Each distribution below is pinned to the version that was actually installed and
 run on it, not simply the newest upload.
 
+**On something else?** Ask. Open an issue saying which distribution and version you
+run, and it gets tested and added to this table — Debian 12, Debian 13 and Ubuntu
+22.04 all arrived that way. Nothing here is closed to a distro that has not been
+reached yet.
+
 | Distribution | GTK | Verified at | What was proven |
 | --- | --- | --- | --- |
 | Debian 12 (bookworm) | 4.8 | 1.0.53 | install, disc rip, transcript (the CPU thread cap is what made this guest survive; GTK 4.8 uses plain stepper buttons) |
