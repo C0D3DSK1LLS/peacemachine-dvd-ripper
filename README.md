@@ -208,7 +208,7 @@ sudo dpkg-reconfigure libdvd-pkg
 4. The ripper:
 
 ```
-curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper_1.0.38-ubuntu2404_all.deb
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper_1.0.54-ubuntu2404_all.deb
 ```
 
 ```
