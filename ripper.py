@@ -767,7 +767,7 @@ def segments_from_breaks(breaks, duration):
     return out
 
 
-def best_episode_count(title, candidates=tuple(range(2, 9)), tolerance=45.0):
+def best_episode_count(title, candidates=tuple(range(2, 31)), tolerance=45.0):
     """How many episodes are inside one long title?
 
     A play-all playlist keeps the episodes' chapter marks, so the episode
@@ -782,10 +782,17 @@ def best_episode_count(title, candidates=tuple(range(2, 9)), tolerance=45.0):
         return None
     scored = []
     for count in candidates:
+        segment = title.duration / count
+        # an episode is between ten and forty-five minutes; anything outside
+        # that is not a sensible count for a disc of episodes
+        if segment < 600 or segment > 2700:
+            continue
         targets = [title.duration * index / count for index in range(1, count)]
         errors = [min(abs(start - target) for start in starts) for target in targets]
         if all(error <= tolerance for error in errors):
-            scored.append((sum(errors) / len(errors), -count, count))
+            # round the score so near-identical fits tie, then prefer the
+            # larger count: more chapters explained beats fewer
+            scored.append((round(sum(errors) / len(errors), 3), -count, count))
     if not scored:
         return None
     scored.sort()
