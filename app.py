@@ -2374,13 +2374,13 @@ class RipperWindow(Gtk.ApplicationWindow):
     # These are the settings every launch starts with (C0D3D, 2026-11-12):
     # subtitles English, transcript best, passthrough best audio, fastest NVENC,
     # denoise light, deblock mild, deband off, keep disc resolution, any
-    # language. They are not remembered between launches - only the episode
+    # language, which is English only. They are not remembered between launches - only the episode
     # number, the episode name and the save folder are.
     STARTUP_CHOICES = {
         "preset": ("PRESETS", "gpu"),
         "audio": ("AUDIO_MODES", "copy"),
         "subs": ("SUB_MODES", "eng"),
-        "audio_lang": ("AUDIO_LANGUAGES", "any"),
+        "audio_lang": ("AUDIO_LANGUAGES", "eng"),
         "resolution": ("RESOLUTIONS", "native"),
         "denoise": ("DENOISE_MODES", "light"),
         "deblock": ("DEBLOCK_MODES", "mild"),
