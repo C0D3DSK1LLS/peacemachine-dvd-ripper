@@ -568,7 +568,7 @@ curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/downloa
 ```
 
 ```
-tar -xzf peacemachine-dvd-ripper-1.0.53.tar.gz
+tar -xzf peacemachine-dvd-ripper-1.0.54.tar.gz
 ```
 
 ```
