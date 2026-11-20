@@ -1357,7 +1357,7 @@ button.mode-button.orange-button:checked {
    other panels (C0D3D, 2026-11-12). */
 .queue-card {
   background-image: none;
-  background-color: rgba(0, 0, 0, 0.68);
+  background-color: #000000;
 }
 
 .titles-card {
