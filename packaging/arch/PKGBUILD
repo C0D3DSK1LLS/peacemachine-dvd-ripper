@@ -1,6 +1,6 @@
 # Maintainer: William James Sova (C0D3D) <william@peacemachinestudios.com>
 pkgname=peacemachine-dvd-ripper
-pkgver=1.0.57
+pkgver=1.0.54
 pkgrel=1
 pkgdesc="Rip DVDs and video files into files your PC can play, with per-episode naming"
 arch=('any')
@@ -10,7 +10,7 @@ depends=('python' 'python-gobject' 'python-cairo' 'gtk4' 'handbrake-cli' 'ffmpeg
 optdepends=('libdvdcss: read encrypted commercial DVDs')
 provides=('dvd-ripper')
 source=("$pkgname-$pkgver.tar.gz::https://github.com/C0D3DSK1LLS/$pkgname/releases/download/v$pkgver/$pkgname-$pkgver.tar.gz")
-sha256sums=('a37e04b98559174639cd0d439e69a0fbbb9d0f4197ee191cba42d5f8940d3ebd')
+sha256sums=('b72635ec35ff999850e316609b4cc783bd1c31232ed5cb8b159171cbf3576e03')
 
 package() {
     local datadir="$pkgdir/usr/share/$pkgname"
