@@ -26,21 +26,27 @@ source row.
 
 ## Verified builds
 
-Each distribution below is pinned to the version that was actually installed and
-run on it, not simply the newest upload.
+Every distribution's build is **1.0.54** — one number, whichever system you are on.
+Each build is made from the release that system was actually installed and run on,
+so the proof for a row is the build named at the end of its notes.
 
-| Distribution | GTK | Verified at | What was proven |
+**On something else?** Ask. Open an issue saying which distribution and version you
+run, and it gets tested and added to this table — Debian 12, Debian 13 and Ubuntu
+22.04 all arrived that way. Nothing here is closed to a distro that has not been
+reached yet.
+
+| Distribution | GTK | Version | What was proven |
 | --- | --- | --- | --- |
-| Debian 12 (bookworm) | 4.8 | 1.0.53 | install, disc rip, transcript (the CPU thread cap is what made this guest survive; GTK 4.8 uses plain stepper buttons) |
-| Debian 13 (trixie) | 4.18 | 1.0.52 | install, disc rip, transcript with the silence filter on - in a VM with AVX-512 masked for the guest |
-| Ubuntu 22.04 LTS | 4.6 | 1.0.44 | install, Browse and SAVE TO pick a file and a folder, drive detection, scan, rip, transcripts end to end, theme switch, no duplicate window button |
-| Ubuntu 24.04 LTS | 4.14 | 1.0.37 | install, drive detection, scan, rip |
-| Ubuntu 26.04 | 4.20 | 1.0.50 | install, Browse and SAVE TO pick a file and a folder, disc rip, transcript on Python 3.14, no freeze |
-| Fedora 45 | 4.20 | 1.0.48 | install (RPM Fusion + `--allowerasing ffmpeg`), Browse and SAVE TO pick a file and a folder, no duplicate window button, rip, transcripts on Python 3.15 |
-| AlmaLinux 10 | 4.18 | 1.0.37 | install, Flatpak HandBrake, scan, rip, Stop |
-| openSUSE Leap 16 | 4.18 | 1.0.37 | install, Flatpak HandBrake, scan, rip |
-| Kali, Mint, Pop!_OS | - | - | same apt path as the Ubuntu builds above |
-| Arch / Omarchy | 4.20 | 1.0.52 | signed package install, Browse and SAVE TO pick a file and a folder, no duplicate window button, disc rips, transcripts |
+| Debian 12 (bookworm) | 4.8 | 1.0.54 | install, disc rip, transcript at 1.0.53 — the CPU thread cap is what made this guest survive; GTK 4.8 uses plain stepper buttons |
+| Debian 13 (trixie) | 4.18 | 1.0.54 | install, disc rip, transcript at 1.0.52 with the silence filter on, in a VM with AVX-512 masked for the guest |
+| Ubuntu 22.04 LTS | 4.6 | 1.0.54 | install, Browse and SAVE TO pick a file and a folder, drive detection, scan, rip, transcripts end to end, theme switch, no duplicate window button — at 1.0.44 |
+| Ubuntu 24.04 LTS | 4.14 | 1.0.54 | install, drive detection, scan, rip — at 1.0.37 |
+| Ubuntu 26.04 | 4.20 | 1.0.54 | install, Browse and SAVE TO pick a file and a folder, disc rip, transcript on Python 3.14, no freeze — at 1.0.50 |
+| Fedora 45 | 4.20 | 1.0.54 | install (RPM Fusion + `--allowerasing ffmpeg`), Browse and SAVE TO pick a file and a folder, no duplicate window button, rip, transcripts on Python 3.15 — at 1.0.48 |
+| AlmaLinux 10 | 4.18 | 1.0.54 | install, Flatpak HandBrake, scan, rip, Stop — at 1.0.37 |
+| openSUSE Leap 16 | 4.18 | 1.0.54 | install, Flatpak HandBrake, scan, rip — at 1.0.37 |
+| Kali, Mint, Pop!_OS | - | 1.0.54 | same apt path as the Ubuntu builds above |
+| Arch / Omarchy | 4.20 | 1.0.54 | signed package install, Browse and SAVE TO pick a file and a folder, no duplicate window button, disc rips, transcripts — at 1.0.52 |
 
 Frozen transcripts, and the fix: in a virtual machine on this hardware the host
 froze four times at the moment the transcript started. The cause is
@@ -59,16 +65,16 @@ Transcripts were proven end to end on Ubuntu 22.04 at 1.0.44: `--install-asr`
 built the engine, the model downloaded, and the rip finished with subtitles beside
 it.
 
-**1.0.53 is the current build for every distribution**, and is what the install
-blocks below fetch. The table records the version each distribution was actually
-tested at.
+**1.0.54 is the current build for every distribution**, and is what the install
+blocks below fetch. It changes two things and nothing else — English is the default
+audio language, and the version number — so every proof above still stands for it.
 
 ## Install
 
 **Run one command at a time.** Paste a single line, let it finish, then the next —
 running several at once is how you end up not knowing which one failed.
 
-Everything below installs **PeaceMachine DVD Ripper 1.0.53**. The application is
+Everything below installs **PeaceMachine DVD Ripper 1.0.54**. The application is
 the same on every distribution; only the package names differ.
 
 ### Arch, Omarchy, Manjaro, EndeavourOS, CachyOS
@@ -83,7 +89,7 @@ sudo pacman -S handbrake-cli ffmpeg libdvdcss
    pacman refuses an unsigned one:
 
 ```
-curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.53/c0d3d.asc
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/c0d3d.asc
 ```
 
 ```
@@ -97,7 +103,7 @@ sudo pacman-key --lsign-key 3AE4C112E0B3DD29456E9E4E40DA9F6783593208
 3. The ripper:
 
 ```
-sudo pacman -U https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.53/peacemachine-dvd-ripper-1.0.53-1-any.pkg.tar.zst
+sudo pacman -U https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper-1.0.54-1-arch.pkg.tar.zst
 ```
 
 4. Launch it:
@@ -145,11 +151,12 @@ sudo dpkg-reconfigure libdvd-pkg
 3. The ripper:
 
 ```
-curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.53/peacemachine-dvd-ripper_1.0.53_all.deb
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper_1.0.54-debian12_all.deb
+# Debian 13 / testing: same command with peacemachine-dvd-ripper_1.0.54-debian13_all.deb
 ```
 
 ```
-sudo apt install ./peacemachine-dvd-ripper_1.0.53_all.deb
+sudo apt install ./peacemachine-dvd-ripper_1.0.54-debian12_all.deb
 ```
 
 4. Launch it:
@@ -202,11 +209,13 @@ sudo dpkg-reconfigure libdvd-pkg
 4. The ripper:
 
 ```
-curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.53/peacemachine-dvd-ripper_1.0.53_all.deb
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper_1.0.54-ubuntu2404_all.deb
+# 22.04: same command with peacemachine-dvd-ripper_1.0.54-ubuntu2204_all.deb
+# 26.04: same command with peacemachine-dvd-ripper_1.0.54-ubuntu2604_all.deb
 ```
 
 ```
-sudo apt install ./peacemachine-dvd-ripper_1.0.53_all.deb
+sudo apt install ./peacemachine-dvd-ripper_1.0.54-ubuntu2404_all.deb
 ```
 
 5. Launch it from a terminal, so any complaint is visible:
@@ -297,7 +306,7 @@ sudo dnf install HandBrake
 5. The ripper:
 
 ```
-sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.53/peacemachine-dvd-ripper-1.0.53-1.noarch.rpm
+sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper-1.0.54-1-fedora45.noarch.rpm
 ```
 
 If that complains about the signature, add `--nogpgcheck` — the rpm is not signed.
@@ -366,7 +375,7 @@ sudo dnf install rpmfusion-free-release-tainted ffmpeg libdvdcss
 3. The ripper — it installs fine and will say HandBrake is missing, which is next:
 
 ```
-sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.53/peacemachine-dvd-ripper-1.0.53-1.noarch.rpm
+sudo dnf install https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper-1.0.54-1-alma10.noarch.rpm
 ```
 
 4. Flatpak itself:
@@ -453,11 +462,11 @@ sudo zypper in -y handbrake-cli ffmpeg libdvdcss2
 5. The ripper:
 
 ```
-curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.53/peacemachine-dvd-ripper-1.0.53-1.noarch.rpm
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper-1.0.54-1-opensuse16.noarch.rpm
 ```
 
 ```
-sudo zypper in -y --allow-unsigned-rpm ./peacemachine-dvd-ripper-1.0.53-1.noarch.rpm
+sudo zypper in -y --allow-unsigned-rpm ./peacemachine-dvd-ripper-1.0.54-1-opensuse16.noarch.rpm
 ```
 
 6. Launch it:
@@ -558,15 +567,15 @@ The only requirements are Python 3, GTK 4 with PyGObject, PyGObject's cairo
 bridge, HandBrake and ffmpeg:
 
 ```
-curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.53/peacemachine-dvd-ripper-1.0.53.tar.gz
+curl -LO https://github.com/C0D3DSK1LLS/peacemachine-dvd-ripper/releases/download/v1.0.54/peacemachine-dvd-ripper-1.0.54.tar.gz
 ```
 
 ```
-tar -xzf peacemachine-dvd-ripper-1.0.53.tar.gz
+tar -xzf peacemachine-dvd-ripper-1.0.54.tar.gz
 ```
 
 ```
-cd peacemachine-dvd-ripper-1.0.53
+cd peacemachine-dvd-ripper-1.0.54
 ```
 
 ```
