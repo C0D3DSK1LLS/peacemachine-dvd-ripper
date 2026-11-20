@@ -34,7 +34,7 @@ import names as episode_names  # noqa: E402
 import ripper  # noqa: E402
 
 APP_ID = "org.jimmy.DvdRipper"
-APP_VERSION = "1.0.54"
+APP_VERSION = "1.0.57"
 
 # Where the panes sit on a fresh install (C0D3D, 2026-11-12: "make the current
 # size and position ... the default, and open it to that on launch").
@@ -2550,7 +2550,7 @@ class RipperWindow(Gtk.ApplicationWindow):
         "preset": ("PRESETS", "fast_cpu"),
         "audio": ("AUDIO_MODES", "copy"),
         "subs": ("SUB_MODES", "eng"),
-        "audio_lang": ("AUDIO_LANGUAGES", "any"),
+        "audio_lang": ("AUDIO_LANGUAGES", "eng"),
         "resolution": ("RESOLUTIONS", "native"),
         "denoise": ("DENOISE_MODES", "light"),
         "deblock": ("DEBLOCK_MODES", "mild"),
